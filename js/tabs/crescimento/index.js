@@ -1,3 +1,4 @@
+import { WHO_DATA } from './who_data.js';
 export function renderCrescimento() {
   const container = document.getElementById('tab-cresc');
 
@@ -158,13 +159,27 @@ function calcularCrescimento() {
     alvo = sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2;
   }
 
-  // === INTEGRAÇÃO OMS (Mock Data) ===
-  const omsData = {
-      peso: { l: -0.1661, m: 7.1, s: 0.1111 },
-      estatura: { l: 1, m: 65.9, s: 0.0364 },
-      pc: { l: 1, m: 42.2, s: 0.0300 },
-      alvoAdulto: { l: 1, m: 176.1, s: 0.04 }
-  };
+ // === INTEGRAÇÃO OMS REAL ===
+  
+  // 1. Encontrar o Z-Score para o Alvo Parental (usando a tabela de 19 anos / 228 meses)
+  let zAlvo = null;
+  const refAlvo = WHO_DATA[sexo].estatura[228];
+  if (alvo > 0 && refAlvo) {
+    zAlvo = calcularZScoreOMS(alvo, refAlvo.l, refAlvo.m, refAlvo.s);
+  }
+
+  // 2. Encontrar o Z-Score das Medidas Atuais (baseado na idade total em meses)
+  let zPeso = null, zEst = null, zPC = null;
+  
+  if (idadeTotalMeses >= 0 && WHO_DATA[sexo].peso[idadeTotalMeses]) {
+    const rPeso = WHO_DATA[sexo].peso[idadeTotalMeses];
+    const rEst = WHO_DATA[sexo].estatura[idadeTotalMeses];
+    const rPC = WHO_DATA[sexo].pc[idadeTotalMeses];
+
+    if (peso2 > 0) zPeso = calcularZScoreOMS(peso2, rPeso.l, rPeso.m, rPeso.s);
+    if (est2 > 0) zEst = calcularZScoreOMS(est2, rEst.l, rEst.m, rEst.s);
+    if (pc2 > 0 && rPC) zPC = calcularZScoreOMS(pc2, rPC.l, rPC.m, rPC.s); 
+  }
 
   const zPeso = calcularZScoreOMS(peso2, omsData.peso.l, omsData.peso.m, omsData.peso.s);
   const zEst = calcularZScoreOMS(est2, omsData.estatura.l, omsData.estatura.m, omsData.estatura.s);
