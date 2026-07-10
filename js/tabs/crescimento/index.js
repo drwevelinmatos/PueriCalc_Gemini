@@ -46,9 +46,24 @@ export function renderCrescimento() {
     ${avisoErro}
     <div class="card">
       <div class="card-header">
-        <h2>Velocidade de Crescimento</h2>
+        <h2>Dados do Paciente e Medidas</h2>
       </div>
-      <div class="grid-2">
+      
+      <div class="grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label>Sexo do Paciente</label>
+          <select id="cresc-sexo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+        </div>
+        <div>
+          <label>Data de Nascimento</label>
+          <input type="date" id="cresc-nasc">
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 14px; padding-top: 10px; border-top: 1px solid #eee;">
         <div>
           <label>Data Inicial (Consulta Anterior)</label>
           <input type="date" id="cresc-data1">
@@ -59,7 +74,7 @@ export function renderCrescimento() {
         </div>
       </div>
 
-      <div class="grid-2" style="margin-top: 14px;">
+      <div class="grid-2" style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee;">
         <div style="border-right: 1px dashed #ccc; padding-right: 10px;">
           <h3 style="font-size: 0.9rem; color: var(--primary);">Medidas Anteriores</h3>
           <label>PC Anterior (cm)</label>
@@ -100,18 +115,8 @@ export function renderCrescimento() {
       <div class="card-header">
         <h2>Alvo Parental e Idade Óssea</h2>
       </div>
+      
       <div class="grid-2">
-        <div>
-          <label>Sexo do Paciente</label>
-          <select id="cresc-sexo">
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-          </select>
-        </div>
-        <div>
-          <label>Data de Nasc. (Obrigatório)</label>
-          <input type="date" id="cresc-nasc">
-        </div>
         <div>
           <label>Altura da Mãe (cm)</label>
           <input type="number" step="0.1" id="cresc-mae" placeholder="Ex: 165">
@@ -182,7 +187,6 @@ function calcularZScoreOMS(medida, l, m, s) {
   return (Math.pow(medida / m, l) - 1) / (l * s);
 }
 
-// Função para buscar a referência de velocidade baseada na idade atual
 function obterRefVelocidade(tipo, idadeMeses) {
   if (idadeMeses === null || isNaN(idadeMeses)) return "S/ Ref.";
   const faixas = REF_CRESCIMENTO[tipo];
@@ -212,6 +216,7 @@ function calcularCrescimento() {
   const peso1G = unidPeso1 === 'kg' ? peso1Raw * 1000 : peso1Raw;
   const peso2G = unidPeso2 === 'kg' ? peso2Raw * 1000 : peso2Raw;
 
+  // Os dados de sexo e nascimento agora vêm do Bloco Superior, mas para o código não muda nada
   const sexo = document.getElementById('cresc-sexo').value;
   const mae = parseFloat(document.getElementById('cresc-mae').value) || 0;
   const pai = parseFloat(document.getElementById('cresc-pai').value) || 0;
@@ -221,13 +226,11 @@ function calcularCrescimento() {
   const icRxAnos = parseInt(document.getElementById('cresc-ic-rx-anos').value) || 0;
   const icRxMeses = parseInt(document.getElementById('cresc-ic-rx-meses').value) || 0;
 
-  // CÁLCULO DE TEMPO CONTÍNUO
   let diffDias = 0;
   if (d1 && d2 && d2 > d1) {
     diffDias = (d2 - d1) / (1000 * 60 * 60 * 24);
   }
 
-  // Idade Cronológica Atual em Dias e Meses completos
   let idadeTotalDias = null;
   let idadeTotalMeses = null;
   if (nasc && d2 && d2 >= nasc) {
@@ -237,10 +240,9 @@ function calcularCrescimento() {
     idadeTotalMeses = mesesTotais;
   }
 
-  // VELOCIDADES DE CRESCIMENTO E REFERÊNCIAS
-  let velPC = null;    // cm/mês
-  let velPeso = null;  // g/dia
-  let velEst = null;   // cm/ano
+  let velPC = null;    
+  let velPeso = null;  
+  let velEst = null;   
 
   if (diffDias > 0) {
     if (pc1 > 0 && pc2 > 0) velPC = (pc2 - pc1) / (diffDias / 30.4375);
@@ -252,13 +254,11 @@ function calcularCrescimento() {
   const refPeso = obterRefVelocidade('peso_g_dia', idadeTotalMeses);
   const refEst = obterRefVelocidade('alt_cm_ano', idadeTotalMeses);
 
-  // Alvo Parental (Tanner)
   let alvo = 0;
   if (mae > 0 && pai > 0) {
     alvo = sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2;
   }
 
-  // === PROCESSAMENTO DOS Z-SCORES COM PROTEÇÃO DE PREFIXO ===
   let zPC = null, zPeso = null, zEst = null, zAlvo = null;
 
   if (nasc && WHO_DATA && WHO_DATA[sexo]) {
@@ -284,7 +284,6 @@ function calcularCrescimento() {
     }
   }
 
-  // Formatação Visual
   const strIO = ioAnos > 0 || ioMeses > 0 ? `${ioAnos}a ${ioMeses}m` : "Não informada";
   const strIC = icRxAnos > 0 || icRxMeses > 0 ? `${icRxAnos}a ${icRxMeses}m` : "Não informada";
 
@@ -297,9 +296,8 @@ function calcularCrescimento() {
   const fmtVel = (val, tipo, refEsperada) => {
     if (val === null || isNaN(val)) return "Requer 2 datas e medidas completas";
     let suf = tipo === 'pc' ? ' cm/mês' : (tipo === 'peso' ? ' g/dia' : ' cm/ano');
-    let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; // peso sem decimais para gramas
+    let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; 
     
-    // Adiciona a referência se a idade foi informada
     if (refEsperada !== "S/ Ref." && refEsperada !== "") {
         stringVel += ` <em>(Ref: ${refEsperada})</em>`;
     }
@@ -308,7 +306,6 @@ function calcularCrescimento() {
 
   const txtPeso2 = unidPeso2 === 'g' ? peso2Raw.toFixed(0) + ' g' : peso2Raw.toFixed(2) + ' kg';
 
-  // === EXIBIÇÃO FINAL EXATAMENTE CONFORME PROTOCOLO SOLICITADO ===
   let html = `<strong>Bloco 1</strong><br>`;
   html += `- PC: ${pc2 ? pc2.toFixed(1) + ' cm' : '--'} (${fmtVel(velPC, 'pc', refPC)})<br>`;
   html += `- Peso: ${peso2Raw ? txtPeso2 : '--'} (${fmtVel(velPeso, 'peso', refPeso)})<br>`;
