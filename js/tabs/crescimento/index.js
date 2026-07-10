@@ -1,9 +1,31 @@
-import { WHO_DATA } from './who_data.js';
+// tabs/crescimento/index.js
+
+// Tentativa de importação segura dos dados da OMS
+let WHO_DATA = null;
+let erroDados = null;
+
+try {
+  const modulo = await import('./who_data.js');
+  WHO_DATA = modulo.WHO_DATA;
+} catch (e) {
+  erroDados = e.message;
+  console.warn("Aviso: Não foi possível carregar o arquivo who_data.js", e);
+}
 
 export function renderCrescimento() {
   const container = document.getElementById('tab-cresc');
+  if (!container) return;
+
+  // Se houver erro crítico no arquivo de dados, avisa o usuário mas NÃO some com a aba
+  const avisoErro = erroDados ? `
+    <div style="background: #fff5f5; border: 1px solid #d32f2f; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left;">
+      <strong>⚠️ Atenção Clínico-Tecnológica:</strong> O arquivo <code>who_data.js</code> não foi detectado ou contém erros de sintaxe.<br>
+      <small>Verifique se o arquivo gerado pelo conversor está na pasta <em>tabs/crescimento/</em> e com o nome correto. Erro: ${erroDados}</small>
+    </div>
+  ` : '';
 
   container.innerHTML = `
+    ${avisoErro}
     <div class="card">
       <div class="card-header">
         <h2>Velocidade de Crescimento</h2>
@@ -90,7 +112,7 @@ export function renderCrescimento() {
     <div id="res-cresc" class="result-box"></div>
   `;
 
-  // 1) Preencher Data Atual (Final) automaticamente com a data de hoje
+  // Preencher Data Atual (Final) automaticamente com a data de hoje
   document.getElementById('cresc-data2').valueAsDate = new Date();
 
   // Acionar o evento de clique para o cálculo
@@ -105,17 +127,17 @@ function calcularZScoreOMS(medida, l, m, s) {
 }
 
 function calcularCrescimento() {
-  // Captura de Elementos do DOM
   const d1 = new Date(document.getElementById('cresc-data1').value);
   const d2 = new Date(document.getElementById('cresc-data2').value);
   const nasc = new Date(document.getElementById('cresc-nasc').value);
   
-  const pc1 = parseFloat(document.getElementById('cresc-pc1').value) || 0;
   const pc2 = parseFloat(document.getElementById('cresc-pc2').value) || 0;
-  const peso1 = parseFloat(document.getElementById('cresc-peso1').value) || 0;
   const peso2 = parseFloat(document.getElementById('cresc-peso2').value) || 0;
-  const est1 = parseFloat(document.getElementById('cresc-est1').value) || 0;
   const est2 = parseFloat(document.getElementById('cresc-est2').value) || 0;
+
+  const pc1 = parseFloat(document.getElementById('cresc-pc1').value) || 0;
+  const peso1 = parseFloat(document.getElementById('cresc-peso1').value) || 0;
+  const est1 = parseFloat(document.getElementById('cresc-est1').value) || 0;
 
   const sexo = document.getElementById('cresc-sexo').value;
   const mae = parseFloat(document.getElementById('cresc-mae').value) || 0;
@@ -134,21 +156,22 @@ function calcularCrescimento() {
     diffAnosVelocidade = diffMeses / 12;
   }
 
-  // Idade Cronológica Atual em meses completos (Para buscar nas tabelas OMS)
+  // Idades Cronológicas exatas para busca na OMS (Dias e Meses)
+  let idadeTotalDias = 0;
   let idadeTotalMeses = 0;
   if (!isNaN(nasc) && !isNaN(d2)) {
+    const diffTime = Math.abs(d2 - nasc);
+    idadeTotalDias = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
     let mesesTotais = (d2.getFullYear() - nasc.getFullYear()) * 12 + (d2.getMonth() - nasc.getMonth());
     if (d2.getDate() < nasc.getDate()) mesesTotais -= 1;
     idadeTotalMeses = mesesTotais;
   }
 
   // Cálculos de Velocidade de Crescimento (Bloco 1)
-  let velPC = 0, velPeso = 0, velEst = 0;
-  if (diffAnosVelocidade > 0) {
-    velPC = (pc2 - pc1) / diffAnosVelocidade;
-    velPeso = (peso2 - peso1) / diffAnosVelocidade;
-    velEst = (est2 - est1) / diffAnosVelocidade;
-  }
+  let velPC = diffAnosVelocidade > 0 ? (pc2 - pc1) / diffAnosVelocidade : 0;
+  let velPeso = diffAnosVelocidade > 0 ? (peso2 - peso1) / diffAnosVelocidade : 0;
+  let velEst = diffAnosVelocidade > 0 ? (est2 - est1) / diffAnosVelocidade : 0;
 
   // Cálculo Alvo Parental (Tanner)
   let alvo = 0;
@@ -162,44 +185,47 @@ function calcularCrescimento() {
   if (WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
 
-    // Busca dos parâmetros L, M, S para a idade atual em meses
+    // Diferenciação Clínica: Tabelas de 0-5 anos usam DIAS. Tabelas de 5-19 anos usam MESES.
+    const chaveBusca = idadeTotalMeses < 61 ? idadeTotalDias : idadeTotalMeses;
+
     if (idadeTotalMeses >= 0) {
-      if (pc2 > 0 && tabelas.pc && tabelas.pc[idadeTotalMeses]) {
-        const ref = tabelas.pc[idadeTotalMeses];
+      if (pc2 > 0 && tabelas.pc && tabelas.pc[chaveBusca]) {
+        const ref = tabelas.pc[chaveBusca];
         zPC = calcularZScoreOMS(pc2, ref.l, ref.m, ref.s);
       }
-      if (peso2 > 0 && tabelas.peso && tabelas.peso[idadeTotalMeses]) {
-        const ref = tabelas.peso[idadeTotalMeses];
+      if (peso2 > 0 && tabelas.peso && tabelas.peso[chaveBusca]) {
+        const ref = tabelas.peso[chaveBusca];
         zPeso = calcularZScoreOMS(peso2, ref.l, ref.m, ref.s);
       }
-      if (est2 > 0 && tabelas.estatura && tabelas.estatura[idadeTotalMeses]) {
-        const ref = tabelas.estatura[idadeTotalMeses];
+      if (est2 > 0 && tabelas.estatura && tabelas.estatura[chaveBusca]) {
+        const ref = tabelas.estatura[chaveBusca];
         zEst = calcularZScoreOMS(est2, ref.l, ref.m, ref.s);
       }
     }
 
-    // Cálculo do Desvio Padrão do Alvo Parental usando a tabela de estatura final adulta (19 anos / 228 meses)
+    // Alvo parental comparado com estatura final adulta da curva (19 anos / 228 meses)
     if (alvo > 0 && tabelas.estatura && tabelas.estatura[228]) {
       const refAlvo = tabelas.estatura[228];
       zAlvo = calcularZScoreOMS(alvo, refAlvo.l, refAlvo.m, refAlvo.s);
     }
   }
 
-  // Formatação das Strings de Idade e Desvios Padrões
+  // Formatação das Strings
   const strIO = ioAnos > 0 || ioMeses > 0 ? `${ioAnos}a ${ioMeses}m` : "Não informada";
   const strIC = icRxAnos > 0 || icRxMeses > 0 ? `${icRxAnos}a ${icRxMeses}m` : "Não informada";
 
   const fmtZ = (val) => {
-    if (val === null || isNaN(val)) return "Sem dados de referência";
+    if (erroDados) return "Aguardando correção do arquivo de dados";
+    if (val === null || isNaN(val)) return "Sem dados de referência para esta idade";
     return (val > 0 ? "+" : "") + val.toFixed(2) + " SD";
   };
 
   const fmtVel = (val, unid) => {
-    if (diffAnosVelocidade <= 0 || isNaN(val)) return "Requer 2 datas";
+    if (diffAnosVelocidade <= 0 || isNaN(val)) return "--";
     return (val >= 0 ? "+" : "") + val.toFixed(unid === 'peso' ? 2 : 1) + (unid === 'peso' ? " kg/ano" : " cm/ano");
   };
 
-  // === CONSTRUÇÃO DA EXIBIÇÃO FINAL EXATAMENTE CONFORME PROTOCOLO ===
+  // === RENDERIZAÇÃO DA ESTRUTURA CLÍNICA SOLICITADA ===
   let html = `<strong>Bloco 1</strong><br>`;
   html += `- PC: ${pc2 ? pc2.toFixed(1) + ' cm' : '--'} (${fmtVel(velPC, 'pc')})<br>`;
   html += `- Peso: ${peso2 ? peso2.toFixed(2) + ' kg' : '--'} (${fmtVel(velPeso, 'peso')})<br>`;
@@ -223,8 +249,9 @@ function calcularCrescimento() {
   html += `- Idade Cronologica: ${strIC}<br>`;
   html += `- Desvio padrao calculado: ${fmtZ(zAlvo)}<br>`;
 
-  // Renderizar a caixa de resultados na tela
   const resBox = document.getElementById('res-cresc');
-  resBox.style.display = 'block';
-  resBox.innerHTML = html;
+  if (resBox) {
+    resBox.style.display = 'block';
+    resBox.innerHTML = html;
+  }
 }
