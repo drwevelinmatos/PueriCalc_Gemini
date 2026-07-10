@@ -1,217 +1,171 @@
-import { byId, showResult } from '../../utils/dom.js';
-import {
-  calculateGrowthVelocities,
-  calculateParentalTarget
-} from './logic.js';
-
 export function renderCrescimento() {
-  const root = byId('tab-cresc');
-  if (!root) return;
+  const container = document.getElementById('tab-cresc');
 
-  root.innerHTML = `
+  container.innerHTML = `
     <div class="card">
-      <div class="card-header"><h2>Velocidades (PC, Peso, Estatura) — bloco único</h2></div>
-
+      <div class="card-header">
+        <h2>Velocidade de Crescimento</h2>
+      </div>
+      
       <div class="grid-2">
         <div>
-          <label>Data inicial</label>
-          <input type="date" id="cr-data-i">
+          <label>Data Inicial</label>
+          <input type="date" id="cresc-data1">
         </div>
         <div>
-          <label>Data final</label>
-          <input type="date" id="cr-data-f">
+          <label>Data Atual (Final)</label>
+          <input type="date" id="cresc-data2">
         </div>
       </div>
 
-      <div class="grid-3">
-        <div>
-          <label>PC inicial (cm)</label>
-          <input type="number" id="cr-pc-i" step="0.1">
+      <div class="grid-2" style="margin-top: 14px;">
+        <div style="border-right: 1px dashed #ccc; padding-right: 10px;">
+          <h3 style="font-size: 0.9rem; color: var(--primary);">Medidas Anteriores</h3>
+          <label>PC (cm)</label>
+          <input type="number" step="0.1" id="cresc-pc1" placeholder="Ex: 35.0">
+          <label>Peso (kg)</label>
+          <input type="number" step="0.01" id="cresc-peso1" placeholder="Ex: 3.2">
+          <label>Estatura (cm)</label>
+          <input type="number" step="0.1" id="cresc-est1" placeholder="Ex: 50.0">
         </div>
-        <div>
-          <label>PC final (cm)</label>
-          <input type="number" id="cr-pc-f" step="0.1">
-        </div>
-        <div>
-          <label>Idade (meses) (p/ referência)</label>
-          <input type="number" id="cr-idade-meses" step="0.1" min="0">
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div>
-          <label>Peso inicial</label>
-          <input type="number" id="cr-peso-i" step="1">
-        </div>
-        <div>
-          <label>Peso final</label>
-          <input type="number" id="cr-peso-f" step="1">
+        <div style="padding-left: 10px;">
+          <h3 style="font-size: 0.9rem; color: var(--primary);">Medidas Atuais</h3>
+          <label>PC (cm)</label>
+          <input type="number" step="0.1" id="cresc-pc2" placeholder="Ex: 42.0">
+          <label>Peso (kg)</label>
+          <input type="number" step="0.01" id="cresc-peso2" placeholder="Ex: 6.5">
+          <label>Estatura (cm)</label>
+          <input type="number" step="0.1" id="cresc-est2" placeholder="Ex: 62.0">
         </div>
       </div>
-
-      <label>Unidade do peso</label>
-      <select id="cr-peso-unid">
-        <option value="g">g</option>
-        <option value="kg">kg</option>
-      </select>
-
-      <div class="grid-2">
-        <div>
-          <label>Estatura inicial (cm)</label>
-          <input type="number" id="cr-alt-i" step="0.1">
-        </div>
-        <div>
-          <label>Estatura final (cm)</label>
-          <input type="number" id="cr-alt-f" step="0.1">
-        </div>
-      </div>
-
-      <button class="calc-btn" id="btn-cr-velocidades">Calcular velocidades</button>
-
-      <div id="res-cr-peso" class="result-box"></div>
-      <div id="res-cr-pc" class="result-box"></div>
-      <div id="res-cr-alt" class="result-box"></div>
-      <div id="ref-cr" class="result-box"></div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Alvo parental + Idade óssea + Análise integrada</h2></div>
-
+      <div class="card-header">
+        <h2>Alvo Parental e Idade Óssea</h2>
+      </div>
       <div class="grid-2">
         <div>
-          <label>Altura do pai (cm)</label>
-          <input type="number" id="ap-pai" step="0.1">
+          <label>Sexo do Paciente</label>
+          <select id="cresc-sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+        </div>
+        <div></div>
+        <div>
+          <label>Altura da Mãe (cm)</label>
+          <input type="number" step="0.1" id="cresc-mae" placeholder="Ex: 165">
         </div>
         <div>
-          <label>Altura da mãe (cm)</label>
-          <input type="number" id="ap-mae" step="0.1">
+          <label>Altura do Pai (cm)</label>
+          <input type="number" step="0.1" id="cresc-pai" placeholder="Ex: 178">
         </div>
       </div>
-
-      <label>Sexo da criança</label>
-      <select id="ap-sexo">
-        <option value="M">Masculino</option>
-        <option value="F">Feminino</option>
-      </select>
-
-      <div class="grid-2">
+      
+      <div class="grid-2" style="margin-top: 10px;">
         <div>
-          <label>Altura atual (cm)</label>
-          <input type="number" id="ap-alt-atual" step="0.1">
+          <label>Idade Óssea</label>
+          <div style="display: flex; gap: 5px;">
+            <input type="number" id="cresc-io-anos" placeholder="Anos">
+            <input type="number" id="cresc-io-meses" placeholder="Meses">
+          </div>
         </div>
         <div>
-          <label>Idade cronológica (anos)</label>
-          <input type="number" id="ap-idade" step="0.1">
+          <label>Idade Cronológica</label>
+          <div style="display: flex; gap: 5px;">
+            <input type="number" id="cresc-ic-anos" placeholder="Anos">
+            <input type="number" id="cresc-ic-meses" placeholder="Meses">
+          </div>
         </div>
-      </div>
-
-      <label>Idade óssea (anos) (entrada manual)</label>
-      <input type="number" id="ap-io" step="0.1">
-
-      <button class="calc-btn" id="btn-ap-analise">Calcular e analisar</button>
-      <div id="res-ap" class="result-box"></div>
-
-      <div class="muted">
-        Idade óssea aqui permanece como input clínico manual, pronta para integração posterior com regra interpretativa própria.
       </div>
     </div>
+
+    <button class="calc-btn" id="btn-calc-cresc">Calcular Crescimento</button>
+    <div id="res-cresc" class="result-box"></div>
   `;
 
-  bindCrescimentoEvents();
+  // 1) Preencher Data Atual automaticamente
+  document.getElementById('cresc-data2').valueAsDate = new Date();
+
+  // Evento de cálculo
+  document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
 }
 
-function bindCrescimentoEvents() {
-  byId('btn-cr-velocidades')?.addEventListener('click', handleGrowthVelocities);
-  byId('btn-ap-analise')?.addEventListener('click', handleParentalTarget);
-}
+function calcularCrescimento() {
+  // Coletar Datas
+  const d1 = new Date(document.getElementById('cresc-data1').value);
+  const d2 = new Date(document.getElementById('cresc-data2').value);
+  
+  // Coletar Medidas
+  const pc1 = parseFloat(document.getElementById('cresc-pc1').value) || 0;
+  const pc2 = parseFloat(document.getElementById('cresc-pc2').value) || 0;
+  const peso1 = parseFloat(document.getElementById('cresc-peso1').value) || 0;
+  const peso2 = parseFloat(document.getElementById('cresc-peso2').value) || 0;
+  const est1 = parseFloat(document.getElementById('cresc-est1').value) || 0;
+  const est2 = parseFloat(document.getElementById('cresc-est2').value) || 0;
 
-function handleGrowthVelocities() {
-  const result = calculateGrowthVelocities({
-    startDate: byId('cr-data-i')?.value,
-    endDate: byId('cr-data-f')?.value,
-    headCircInitial: Number(byId('cr-pc-i')?.value),
-    headCircFinal: Number(byId('cr-pc-f')?.value),
-    weightInitial: Number(byId('cr-peso-i')?.value),
-    weightFinal: Number(byId('cr-peso-f')?.value),
-    weightUnit: byId('cr-peso-unid')?.value,
-    heightInitial: Number(byId('cr-alt-i')?.value),
-    heightFinal: Number(byId('cr-alt-f')?.value),
-    ageMonths: Number(byId('cr-idade-meses')?.value)
-  });
+  // Coletar Alvo Parental e Idades
+  const sexo = document.getElementById('cresc-sexo').value;
+  const mae = parseFloat(document.getElementById('cresc-mae').value) || 0;
+  const pai = parseFloat(document.getElementById('cresc-pai').value) || 0;
+  
+  const ioAnos = parseInt(document.getElementById('cresc-io-anos').value) || 0;
+  const ioMeses = parseInt(document.getElementById('cresc-io-meses').value) || 0;
+  const icAnos = parseInt(document.getElementById('cresc-ic-anos').value) || 0;
+  const icMeses = parseInt(document.getElementById('cresc-ic-meses').value) || 0;
 
-  if (result.error) {
-    showResult('res-cr-peso', result.error);
-    return;
+  // Cálculo de tempo em meses e anos
+  let diffMeses = 0;
+  let diffAnos = 0;
+  if (!isNaN(d1) && !isNaN(d2)) {
+    diffMeses = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+    const diasExtra = d2.getDate() - d1.getDate();
+    if (diasExtra < 0) diffMeses -= 1; // Ajuste fino de dias
+    diffAnos = diffMeses / 12;
   }
 
-  showResult(
-    'res-cr-peso',
-    `Ganho ponderal: ${result.weightGainPerDay.toFixed(1)} g/dia\nΔPeso total: ${result.totalWeightDeltaG.toFixed(0)} g em ${result.days} dia(s)`
-  );
+  // Cálculo de Velocidades (por ano)
+  let velPC = 0, velPeso = 0, velEst = 0;
+  if (diffAnos > 0) {
+    velPC = (pc2 - pc1) / diffAnos;
+    velPeso = (peso2 - peso1) / diffAnos;
+    velEst = (est2 - est1) / diffAnos;
+  }
 
-  showResult(
-    'res-cr-pc',
-    `Velocidade de PC: ${result.headCircPerMonth.toFixed(2)} cm/mês\nΔPC total: ${result.totalHeadCircDelta.toFixed(2)} cm`
-  );
+  // Cálculo Alvo Parental (Tanner)
+  let alvo = 0;
+  if (mae > 0 && pai > 0) {
+    alvo = sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2;
+  }
 
-  showResult(
-    'res-cr-alt',
-    `Velocidade de estatura: ${result.heightPerYear.toFixed(2)} cm/ano\nΔEstatura total: ${result.totalHeightDelta.toFixed(2)} cm`
-  );
+  // Formatação Idades
+  const strIO = ioAnos > 0 || ioMeses > 0 ? \`\${ioAnos}a \${ioMeses}m\` : "Não informada";
+  const strIC = icAnos > 0 || icMeses > 0 ? \`\${icAnos}a \${icMeses}m\` : "Não informada";
 
-  if (result.references) {
-    showResult(
-      'ref-cr',
-      [
-        'Referências (placeholders):',
-        `Peso (g/dia): ${result.references.peso}`,
-        `PC (cm/mês): ${result.references.pc}`,
-        `Estatura (cm/ano): ${result.references.altura}`,
-        '',
-        'ATUALIZAR_CONFORME_REFERÊNCIA: edite REF_CRESCIMENTO.'
-      ].join('\n')
-    );
+  // Construção do Resultado Final (Formatado exatamente como solicitado)
+  let html = \`<strong>BLOCO 1 - Medidas e Velocidade</strong><br>\`;
+  html += \`- PC: \${pc2 ? pc2.toFixed(1) + ' cm' : '--'} (\${velPC ? velPC.toFixed(1) + ' cm/ano' : '--'})<br>\`;
+  html += \`- Peso: \${peso2 ? peso2.toFixed(2) + ' kg' : '--'} (\${velPeso ? velPeso.toFixed(2) + ' kg/ano' : '--'})<br>\`;
+  html += \`- Estatura: \${est2 ? est2.toFixed(1) + ' cm' : '--'} (\${velEst ? velEst.toFixed(1) + ' cm/ano' : '--'})<br><br>\`;
+
+  html += \`<strong>BLOCO 2 - Referência para a Idade</strong><br>\`;
+  html += \`- PC: [Aguardando tabela de referência]<br>\`;
+  html += \`- Peso: [Aguardando tabela de referência]<br>\`;
+  html += \`- Estatura: [Aguardando tabela de referência]<br><br>\`;
+
+  html += \`<strong>ALVO PARENTAL E DESENVOLVIMENTO ÓSSEO</strong><br>\`;
+  if (alvo > 0) {
+    html += \`- Alvo parental: \${alvo.toFixed(1)} cm<br>\`;
+    html += \`- Faixa: \${(alvo - 5).toFixed(1)} a \${(alvo + 5).toFixed(1)} cm<br>\`;
   } else {
-    showResult(
-      'ref-cr',
-      'Informe idade (meses) para trazer referências por faixa etária.'
-    );
+    html += \`- Alvo parental: Dados dos pais incompletos<br>\`;
   }
-}
+  html += \`- Idade óssea: \${strIO}<br>\`;
+  html += \`- Idade Cronológica: \${strIC}<br>\`;
+  html += \`- Desvio padrão calculado: [Aguardando integração Z-Score]<br>\`;
 
-function handleParentalTarget() {
-  const result = calculateParentalTarget({
-    fatherHeight: Number(byId('ap-pai')?.value),
-    motherHeight: Number(byId('ap-mae')?.value),
-    sex: byId('ap-sexo')?.value,
-    currentHeight: Number(byId('ap-alt-atual')?.value),
-    chronologicalAge: Number(byId('ap-idade')?.value),
-    boneAge: Number(byId('ap-io')?.value)
-  });
-
-  if (result.error) {
-    return showResult('res-ap', result.error);
-  }
-
-  const lines = [
-    `Alvo parental: ${result.targetHeight.toFixed(1)} cm`,
-    `Faixa esperada: ${result.minExpected.toFixed(1)} a ${result.maxExpected.toFixed(1)} cm`,
-    '',
-    `Altura atual: ${Number(byId('ap-alt-atual')?.value).toFixed(1)} cm`,
-    `Diferença vs alvo: ${result.delta.toFixed(1)} cm`,
-    `Interpretação: ${result.withinRange ? 'Dentro' : 'Fora'} da faixa alvo.`
-  ];
-
-  if (result.boneAge !== null) {
-    lines.push(
-      '',
-      `Idade óssea: ${result.boneAge.toFixed(1)} anos`,
-      `IO - IC: ${result.boneAgeDiff.toFixed(1)} ano(s)`,
-      'Interpretação IO: PLACEHOLDER.'
-    );
-  } else {
-    lines.push('', 'Idade óssea: não informada (opcional).');
-  }
-
-  showResult('res-ap', lines.join('\n'));
+  const resBox = document.getElementById('res-cresc');
+  resBox.style.display = 'block';
+  resBox.innerHTML = html;
 }
