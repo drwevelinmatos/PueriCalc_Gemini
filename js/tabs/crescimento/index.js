@@ -182,6 +182,7 @@ function calcularZScoreOMS(medida, l, m, s) {
   return (Math.pow(medida / m, l) - 1) / (l * s);
 }
 
+// Função para buscar a referência de velocidade baseada na idade atual
 function obterRefVelocidade(tipo, idadeMeses) {
   if (idadeMeses === null || isNaN(idadeMeses)) return "S/ Ref.";
   const faixas = REF_CRESCIMENTO[tipo];
@@ -237,9 +238,9 @@ function calcularCrescimento() {
   }
 
   // VELOCIDADES DE CRESCIMENTO E REFERÊNCIAS
-  let velPC = null;    
-  let velPeso = null;  
-  let velEst = null;   
+  let velPC = null;    // cm/mês
+  let velPeso = null;  // g/dia
+  let velEst = null;   // cm/ano
 
   if (diffDias > 0) {
     if (pc1 > 0 && pc2 > 0) velPC = (pc2 - pc1) / (diffDias / 30.4375);
@@ -257,10 +258,10 @@ function calcularCrescimento() {
     alvo = sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2;
   }
 
-  // === PROCESSAMENTO DOS Z-SCORES DA OMS ===
+  // === PROCESSAMENTO DOS Z-SCORES COM PROTEÇÃO DE PREFIXO ===
   let zPC = null, zPeso = null, zEst = null, zAlvo = null;
 
-  if (idadeTotalMeses !== null && WHO_DATA && WHO_DATA[sexo]) {
+  if (nasc && WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
     const prefixoBusca = idadeTotalMeses < 61 ? 'd' : 'm';
     const idadeBusca = idadeTotalMeses < 61 ? idadeTotalDias : idadeTotalMeses;
@@ -286,22 +287,19 @@ function calcularCrescimento() {
   // Formatação Visual
   const strIO = ioAnos > 0 || ioMeses > 0 ? `${ioAnos}a ${ioMeses}m` : "Não informada";
   const strIC = icRxAnos > 0 || icRxMeses > 0 ? `${icRxAnos}a ${icRxMeses}m` : "Não informada";
-  
-  // NOVA BLINDAGEM: Mostra a idade para prevenir sustos de digitação
-  const strIdadeAtual = idadeTotalMeses !== null 
-    ? `${Math.floor(idadeTotalMeses / 12)}a ${idadeTotalMeses % 12}m` 
-    : "Data Inválida";
 
   const fmtZ = (val) => {
-    if (idadeTotalMeses === null) return "Requer data de nascimento";
+    if (!document.getElementById('cresc-nasc').value) return "Requer data de nascimento";
     if (val === null || isNaN(val)) return "Sem dados de referência para esta idade";
     return (val > 0 ? "+" : "") + val.toFixed(2) + " SD";
   };
 
   const fmtVel = (val, tipo, refEsperada) => {
-    if (val === null || isNaN(val)) return "Requer 2 datas e medidas";
+    if (val === null || isNaN(val)) return "Requer 2 datas e medidas completas";
     let suf = tipo === 'pc' ? ' cm/mês' : (tipo === 'peso' ? ' g/dia' : ' cm/ano');
-    let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; 
+    let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; // peso sem decimais para gramas
+    
+    // Adiciona a referência se a idade foi informada
     if (refEsperada !== "S/ Ref." && refEsperada !== "") {
         stringVel += ` <em>(Ref: ${refEsperada})</em>`;
     }
@@ -317,7 +315,7 @@ function calcularCrescimento() {
   html += `- Estatura: ${est2 ? est2.toFixed(1) + ' cm' : '--'} (${fmtVel(velEst, 'estatura', refEst)})<br><br>`;
 
   html += `<strong>Bloco 2</strong><br>`;
-  html += `Referencia para idade (${strIdadeAtual})<br>`;
+  html += `Referencia para idade<br>`;
   html += `- PC: ${fmtZ(zPC)}<br>`;
   html += `- Peso: ${fmtZ(zPeso)}<br>`;
   html += `- Estatura: ${fmtZ(zEst)}<br><br>`;
