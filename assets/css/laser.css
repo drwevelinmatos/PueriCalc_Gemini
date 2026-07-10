@@ -1,0 +1,485 @@
+#tab-laser,
+#tab-laser * {
+  font-family: 'Gotham Book', Arial, sans-serif;
+}
+
+#tab-laser h2,
+#tab-laser h3,
+#tab-laser h4,
+#tab-laser .print-brand {
+  font-family: 'Comfortaa', Arial, sans-serif;
+}
+
+.laser-page {
+  display: block;
+}
+
+.laser-hero {
+  background: linear-gradient(135deg, rgba(40,90,129,1), rgba(31,71,102,1));
+  color: #fff;
+  border-radius: 22px;
+  padding: 22px 20px 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+
+.laser-hero h2 {
+  color: #fff;
+  text-align: left;
+  margin: 6px 0 8px;
+  font-size: 1.5rem;
+}
+
+.laser-hero p {
+  margin: 0;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.laser-hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.laser-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.laser-sidebar {
+  position: sticky;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.laser-menu-btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 14px;
+  border: 1px solid rgba(40,90,129,0.12);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.laser-menu-btn:hover {
+  transform: translateY(-1px);
+}
+
+.laser-menu-btn.active {
+  background: linear-gradient(135deg, var(--primary), rgb(31,71,102));
+  color: #fff;
+}
+
+.laser-menu-title {
+  display: block;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.laser-menu-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  opacity: 0.82;
+}
+
+.laser-content {
+  min-width: 0;
+}
+
+.laser-panel {
+  display: none;
+}
+
+.laser-panel.active {
+  display: block;
+  animation: fadeIn .22s ease;
+}
+
+.laser-panel-head {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(40,90,129,0.10);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+.laser-panel-head h3 {
+  text-align: left;
+  margin: 0 0 6px;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.laser-panel-head p {
+  margin: 0;
+  color: #6b7b87;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.laser-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(40,90,129,0.10);
+  box-shadow: var(--shadow);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea,
+.prontuario-box textarea {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid #dce4ec;
+  background: #fff;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.input-group textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 8px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mini-btn {
+  border: 1px solid rgba(40,90,129,0.12);
+  background: #F8FBFD;
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FBFD;
+  border: 1px solid rgba(40,90,129,0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+}
+
+.check-item input {
+  width: auto;
+  margin: 0;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.laser-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.laser-result-card {
+  background: #F8FBFD;
+  border: 1px solid rgba(40,90,129,0.10);
+  border-radius: 16px;
+  padding: 14px;
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.laser-result-card small {
+  color: #6b7b87;
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.laser-result-card strong {
+  color: var(--primary);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.laser-result-highlight {
+  background: #FFF7F7;
+  border-color: rgba(180,35,24,0.12);
+}
+
+.laser-result-highlight strong {
+  color: #B42318;
+  font-size: 1.15rem;
+}
+
+.laser-note-box {
+  margin-top: 16px;
+  background: #F8FBFD;
+  border: 1px solid rgba(40,90,129,0.12);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.laser-note-box h4 {
+  margin: 0 0 8px;
+  color: var(--primary);
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.protocol-text {
+  white-space: pre-line;
+  line-height: 1.6;
+  font-size: 0.84rem;
+}
+
+.actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.form-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-tertiary {
+  border: none;
+  border-radius: 12px;
+  padding: 13px 14px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 800;
+  font-family: 'Gotham Book', Arial, sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), rgb(31,71,102));
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #F2F7FA;
+  color: var(--primary);
+  border: 1px solid rgba(40,90,129,0.12);
+}
+
+.btn-tertiary {
+  background: #fff;
+  color: var(--primary);
+  border: 1px solid rgba(40,90,129,0.12);
+}
+
+.prontuario-box {
+  margin-top: 16px;
+  border: 1px solid rgba(40,90,129,0.12);
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+}
+
+.prontuario-box textarea {
+  min-height: 220px;
+  resize: vertical;
+  font-family: monospace !important;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: #FCFDFE;
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+.laser-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  background: #fff;
+  border: 1px solid rgba(40,90,129,0.12);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.laser-table th,
+.laser-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(40,90,129,0.12);
+  vertical-align: top;
+}
+
+.laser-table thead {
+  background: #F2F7FA;
+}
+
+.laser-table th {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.print-area {
+  display: none;
+}
+
+.print-sheet {
+  background: #fff;
+  border: 1px solid rgba(40,90,129,0.12);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.print-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(40,90,129,0.12);
+}
+
+.print-brand {
+  color: var(--primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.print-subbrand {
+  color: #5B6B7A;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.print-body {
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.signature-box {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(40,90,129,0.18);
+  font-size: 0.82rem;
+  color: #5B6B7A;
+}
+
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #F2F7FA;
+  border: 1px solid rgba(40,90,129,0.12);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.hidden-print {
+  display: block;
+}
+
+@media (max-width: 980px) {
+  .laser-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .laser-sidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    overflow: auto;
+  }
+
+  .laser-menu-btn {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 760px) {
+  .form-grid,
+  .meta-grid,
+  .actions-row,
+  .checklist-grid,
+  .laser-results-grid,
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .laser-hero h2 {
+    font-size: 1.25rem;
+  }
+}

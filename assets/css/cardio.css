@@ -1,0 +1,97 @@
+.subnav {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(40, 90, 129, 0.08);
+  border: 1px solid rgba(40, 90, 129, 0.15);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: auto;
+}
+
+.subnav button {
+  border: 0;
+  background: rgba(40, 90, 129, 0.12);
+  color: var(--primary);
+  font-weight: 800;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.subnav button.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.cardio-sub {
+  display: none;
+}
+
+.cardio-sub.active {
+  display: block;
+}
+
+/* MRPA */
+.mrpa-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mrpa-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.mrpa-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 8px 0 6px;
+}
+
+.mrpa-box {
+  border: 1.6px solid rgba(0, 0, 0, 0.75);
+  border-radius: 8px;
+  height: 30px;
+  background: #fff;
+}
+
+.mrpa-box.big {
+  height: 70px;
+}
+
+.mrpa-row-title {
+  font-family: 'Comfortaa', cursive;
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+  text-align: left;
+}
+
+.mrpa-medicao {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+
+.mrpa-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .mrpa-grid-2,
+  .mrpa-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

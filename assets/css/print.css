@@ -1,0 +1,81 @@
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .main-nav,
+  .app-footer,
+  .hidden-print {
+    display: none !important;
+  }
+
+  .tab-content {
+    display: block !important;
+  }
+
+  .card,
+  .laser-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+}
+/* IMPRESSÃO MRPA */
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  #mrpa-print-area,
+  #mrpa-print-area * {
+    visibility: visible !important;
+  }
+
+  #mrpa-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+
+  .mrpa-toolbar,
+  .subnav,
+  .main-nav,
+  .app-header,
+  .app-footer,
+  .hidden-print {
+    display: none !important;
+  }
+
+  .mrpa-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .mrpa-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+
+  .mrpa-medicao {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    box-shadow: none !important;
+  }
+
+  .mrpa-box {
+    border: 1.6px solid #000 !important;
+    background: #fff !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
