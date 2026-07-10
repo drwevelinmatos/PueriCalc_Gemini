@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PueriCalc - Dr. Wevelin Matos</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/layout.css">
+  <link rel="stylesheet" href="./assets/css/cardio.css">
+  <link rel="stylesheet" href="./assets/css/laser.css">
+  <link rel="stylesheet" href="./assets/css/checklist.css">
+  <link rel="stylesheet" href="./assets/css/print.css">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>PueriCalc - Dr. Wevelin Matos</h1>
+    <div class="muted">
+      Neonato • Crescimento • Cardio • Emergência • Hidratação • Laserterapia • Laboratórios • Checklist
+    </div>
+  </header>
+
+  <nav class="main-nav" id="main-nav">
+    <button class="nav-btn active" data-tab="tab-neo">Neonato</button>
+    <button class="nav-btn" data-tab="tab-cresc">Crescimento</button>
+    <button class="nav-btn" data-tab="tab-cardio">Cardio</button>
+    <button class="nav-btn" data-tab="tab-emerg">Emergência</button>
+    <button class="nav-btn" data-tab="tab-hidra">Hidratação</button>
+    <button class="nav-btn" data-tab="tab-laser">Laserterapia</button>
+    <button class="nav-btn" data-tab="tab-lab">Laboratórios</button>
+    <button class="nav-btn" data-tab="tab-check">Checklist</button>
+  </nav>
+
+  <main class="container">
+    <section id="tab-neo" class="tab-content active"></section>
+    <section id="tab-cresc" class="tab-content"></section>
+    <section id="tab-cardio" class="tab-content"></section>
+    <section id="tab-emerg" class="tab-content"></section>
+    <section id="tab-hidra" class="tab-content"></section>
+    <section id="tab-laser" class="tab-content"></section>
+    <section id="tab-lab" class="tab-content"></section>
+    <section id="tab-check" class="tab-content"></section>
+  </main>
+
+  <footer class="app-footer">
+    Versão de trabalho • Estruturas prontas para atualização conforme protocolos • Offline-friendly
+  </footer>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
