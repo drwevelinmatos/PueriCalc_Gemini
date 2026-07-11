@@ -342,46 +342,47 @@ function calcularCrescimento() {
   // CÁLCULO DO IMC
   const imcAtual = (peso2Kg > 0 && est2 > 0) ? (peso2Kg / Math.pow(est2 / 100, 2)) : 0;
 
-  // === PROCESSAMENTO DOS Z-SCORES COM PROTEÇÃO PARA TODAS AS IDADES ===
-let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
+ // === PROCESSAMENTO DOS Z-SCORES COM PROTEÇÃO DE PREFIXO (V2) ===
+  let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
 
-if (nasc && WHO_DATA && WHO_DATA[sexo]) {
+  if (nasc && WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
-    const prefixoBusca = idadeTotalMeses < 61 ? 'd' : 'm';
     const idadeBusca = idadeTotalMeses < 61 ? idadeTotalDias : idadeTotalMeses;
+    const prefixoPreferencial = idadeTotalMeses < 61 ? 'd' : 'm';
+    
+    // Tenta primeiro o prefixo ideal, se falhar, tenta o outro (Rede de Segurança)
+    const obterRefSeguro = (param, id) => {
+        let ref = obterDadosProximosPrefixo(tabelas[param], id, prefixoPreferencial);
+        if (!ref) {
+            // Se falhar (ex: busca 'm' e não encontra), tenta o outro prefixo
+            const prefixoAlternativo = prefixoPreferencial === 'm' ? 'd' : 'm';
+            ref = obterDadosProximosPrefixo(tabelas[param], id, prefixoAlternativo);
+        }
+        return ref;
+    };
 
-    // 1. Perímetro Cefálico (OMS 0-5 anos)
     if (pc2 > 0 && tabelas.pc) {
-        const ref = obterDadosProximosPrefixo(tabelas.pc, idadeBusca, prefixoBusca);
-        if (ref) zPC = calcularZScoreOMS(pc2, ref.l, ref.m, ref.s);
+      const ref = obterRefSeguro('pc', idadeBusca);
+      if (ref) zPC = calcularZScoreOMS(pc2, ref.l, ref.m, ref.s);
     }
-
-    // 2. Peso-para-Idade (OMS 0-10 anos)
-    // Se > 10 anos (120 meses), o peso-para-idade não é calculado (segue diretriz OMS)
+    
+    // Peso: Se > 10 anos (120 meses), OMS não define peso-para-idade.
     if (idadeTotalMeses <= 120 && peso2Kg > 0 && tabelas.peso) {
-        const ref = obterDadosProximosPrefixo(tabelas.peso, idadeBusca, prefixoBusca);
-        if (ref) zPeso = calcularZScoreOMS(peso2Kg, ref.l, ref.m, ref.s);
+      const ref = obterRefSeguro('peso', idadeBusca);
+      if (ref) zPeso = calcularZScoreOMS(peso2Kg, ref.l, ref.m, ref.s);
     }
-
-    // 3. Estatura-para-Idade (OMS 0-19 anos)
+    
     if (est2 > 0 && tabelas.estatura) {
-        const ref = obterDadosProximosPrefixo(tabelas.estatura, idadeBusca, prefixoBusca);
-        if (ref) zEst = calcularZScoreOMS(est2, ref.l, ref.m, ref.s);
+      const ref = obterRefSeguro('estatura', idadeBusca);
+      if (ref) zEst = calcularZScoreOMS(est2, ref.l, ref.m, ref.s);
     }
-
-    // 4. IMC-para-Idade (OMS 0-19 anos) - Onde calculamos a nutrição para > 5 anos
+    
     if (imcAtual > 0 && tabelas.imc) {
-        const ref = obterDadosProximosPrefixo(tabelas.imc, idadeBusca, prefixoBusca);
-        if (ref) zIMC = calcularZScoreOMS(imcAtual, ref.l, ref.m, ref.s);
+      const ref = obterRefSeguro('imc', idadeBusca);
+      if (ref) zIMC = calcularZScoreOMS(imcAtual, ref.l, ref.m, ref.s);
     }
-
-    // Alvo Parental
-    if (alvo > 0 && tabelas.estatura && tabelas.estatura['m228']) {
-        const refAlvo = tabelas.estatura['m228']; 
-        zAlvo = calcularZScoreOMS(alvo, refAlvo.l, refAlvo.m, refAlvo.s);
-    }
-}
-
+    // ... restante da função ...
+    
   // === RENDERIZAÇÃO DA TELA FINAL ===
   const fmtZ = (val, isRaw = false) => {
     if (!document.getElementById('cresc-nasc').value) return "Requer idade";
