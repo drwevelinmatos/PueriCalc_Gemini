@@ -187,13 +187,66 @@ function calcularZScoreOMS(medida, l, m, s) {
   return (Math.pow(medida / m, l) - 1) / (l * s);
 }
 
+// Converte Z-Score em Percentil (Aproximação de erro de Gauss)
+function zParaPercentil(z) {
+  if (z === null || isNaN(z)) return null;
+  let sign = (z < 0) ? -1 : 1;
+  let x = Math.abs(z) / Math.sqrt(2);
+  let t = 1.0 / (1.0 + 0.3275911 * x);
+  let a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+  let erf = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+  return 0.5 * (1.0 + sign * erf) * 100;
+}
+
 function obterRefVelocidade(tipo, idadeMeses) {
   if (idadeMeses === null || isNaN(idadeMeses)) return "S/ Ref.";
   const faixas = REF_CRESCIMENTO[tipo];
   if (!faixas) return "";
-  
   const faixaEncontrada = faixas.find(f => idadeMeses >= f.minM && idadeMeses <= f.maxM);
   return faixaEncontrada ? faixaEncontrada.ref : "Fora da faixa";
+}
+
+// === INTELIGÊNCIA CLÍNICA OMS ===
+function classificarPC(z) {
+  if (z === null) return "";
+  if (z < -2) return "Microcefalia";
+  if (z > 2) return "Macrocefalia";
+  return "Normocefalia";
+}
+
+function classificarPeso(z) {
+  if (z === null) return "";
+  if (z < -3) return "Muito baixo peso";
+  if (z < -2) return "Baixo peso";
+  if (z > 2) return "Peso elevado";
+  return "Peso adequado";
+}
+
+function classificarEstatura(z) {
+  if (z === null) return "";
+  if (z < -3) return "Muito baixa estatura";
+  if (z < -2) return "Baixa estatura";
+  if (z > 2) return "Alta estatura"; 
+  return "Estatura adequada";
+}
+
+function classificarIMC(z, idadeMeses) {
+  if (z === null) return "";
+  if (idadeMeses <= 60) { // 0 a 5 anos
+    if (z < -3) return "Magreza acentuada";
+    if (z < -2) return "Magreza";
+    if (z <= 1) return "Eutrofia";
+    if (z <= 2) return "Risco de sobrepeso";
+    if (z <= 3) return "Sobrepeso";
+    return "Obesidade";
+  } else { // 5 a 19 anos
+    if (z < -3) return "Magreza acentuada";
+    if (z < -2) return "Magreza";
+    if (z <= 1) return "Eutrofia";
+    if (z <= 2) return "Sobrepeso";
+    if (z <= 3) return "Obesidade";
+    return "Obesidade grave";
+  }
 }
 
 function calcularCrescimento() {
@@ -216,7 +269,6 @@ function calcularCrescimento() {
   const peso1G = unidPeso1 === 'kg' ? peso1Raw * 1000 : peso1Raw;
   const peso2G = unidPeso2 === 'kg' ? peso2Raw * 1000 : peso2Raw;
 
-  // Os dados de sexo e nascimento agora vêm do Bloco Superior, mas para o código não muda nada
   const sexo = document.getElementById('cresc-sexo').value;
   const mae = parseFloat(document.getElementById('cresc-mae').value) || 0;
   const pai = parseFloat(document.getElementById('cresc-pai').value) || 0;
@@ -226,13 +278,11 @@ function calcularCrescimento() {
   const icRxAnos = parseInt(document.getElementById('cresc-ic-rx-anos').value) || 0;
   const icRxMeses = parseInt(document.getElementById('cresc-ic-rx-meses').value) || 0;
 
+  // CÁLCULO DE TEMPO CONTÍNUO E VELOCIDADE
   let diffDias = 0;
-  if (d1 && d2 && d2 > d1) {
-    diffDias = (d2 - d1) / (1000 * 60 * 60 * 24);
-  }
+  if (d1 && d2 && d2 > d1) diffDias = (d2 - d1) / (1000 * 60 * 60 * 24);
 
-  let idadeTotalDias = null;
-  let idadeTotalMeses = null;
+  let idadeTotalDias = null, idadeTotalMeses = null;
   if (nasc && d2 && d2 >= nasc) {
     idadeTotalDias = Math.floor((d2 - nasc) / (1000 * 60 * 60 * 24));
     let mesesTotais = (d2.getFullYear() - nasc.getFullYear()) * 12 + (d2.getMonth() - nasc.getMonth());
@@ -240,10 +290,7 @@ function calcularCrescimento() {
     idadeTotalMeses = mesesTotais;
   }
 
-  let velPC = null;    
-  let velPeso = null;  
-  let velEst = null;   
-
+  let velPC = null, velPeso = null, velEst = null;   
   if (diffDias > 0) {
     if (pc1 > 0 && pc2 > 0) velPC = (pc2 - pc1) / (diffDias / 30.4375);
     if (peso1Kg > 0 && peso2Kg > 0) velPeso = (peso2G - peso1G) / diffDias;
@@ -254,12 +301,14 @@ function calcularCrescimento() {
   const refPeso = obterRefVelocidade('peso_g_dia', idadeTotalMeses);
   const refEst = obterRefVelocidade('alt_cm_ano', idadeTotalMeses);
 
-  let alvo = 0;
-  if (mae > 0 && pai > 0) {
-    alvo = sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2;
-  }
+  // Alvo Parental
+  let alvo = (mae > 0 && pai > 0) ? (sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2) : 0;
 
-  let zPC = null, zPeso = null, zEst = null, zAlvo = null;
+  // CÁLCULO DO IMC
+  const imcAtual = (peso2Kg > 0 && est2 > 0) ? (peso2Kg / Math.pow(est2 / 100, 2)) : 0;
+
+  // PROCESSAMENTO DOS Z-SCORES (OMS)
+  let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
 
   if (nasc && WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
@@ -278,55 +327,67 @@ function calcularCrescimento() {
       const ref = obterDadosProximosPrefixo(tabelas.estatura, idadeBusca, prefixoBusca);
       if (ref) zEst = calcularZScoreOMS(est2, ref.l, ref.m, ref.s);
     }
+    if (imcAtual > 0 && tabelas.imc) {
+      const ref = obterDadosProximosPrefixo(tabelas.imc, idadeBusca, prefixoBusca);
+      if (ref) zIMC = calcularZScoreOMS(imcAtual, ref.l, ref.m, ref.s);
+    }
     if (alvo > 0 && tabelas.estatura && tabelas.estatura['m228']) {
       const refAlvo = tabelas.estatura['m228']; 
       zAlvo = calcularZScoreOMS(alvo, refAlvo.l, refAlvo.m, refAlvo.s);
     }
   }
 
-  const strIO = ioAnos > 0 || ioMeses > 0 ? `${ioAnos}a ${ioMeses}m` : "Não informada";
-  const strIC = icRxAnos > 0 || icRxMeses > 0 ? `${icRxAnos}a ${icRxMeses}m` : "Não informada";
-
-  const fmtZ = (val) => {
-    if (!document.getElementById('cresc-nasc').value) return "Requer data de nascimento";
-    if (val === null || isNaN(val)) return "Sem dados de referência para esta idade";
+  // === RENDERIZAÇÃO DA TELA FINAL ===
+  const fmtZ = (val, isRaw = false) => {
+    if (!document.getElementById('cresc-nasc').value) return "Requer idade";
+    if (val === null || isNaN(val)) return "S/ Ref.";
+    if (isRaw) return (val > 0 ? "+" : "") + val.toFixed(2);
     return (val > 0 ? "+" : "") + val.toFixed(2) + " SD";
   };
 
+  const fmtPerc = (z) => {
+    const p = zParaPercentil(z);
+    if (p === null) return "--";
+    return "P" + Math.round(p);
+  };
+
   const fmtVel = (val, tipo, refEsperada) => {
-    if (val === null || isNaN(val)) return "Requer 2 datas e medidas completas";
+    if (val === null || isNaN(val)) return "Requer 2 medidas";
     let suf = tipo === 'pc' ? ' cm/mês' : (tipo === 'peso' ? ' g/dia' : ' cm/ano');
     let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; 
-    
-    if (refEsperada !== "S/ Ref." && refEsperada !== "") {
-        stringVel += ` <em>(Ref: ${refEsperada})</em>`;
-    }
+    if (refEsperada !== "S/ Ref." && refEsperada !== "") stringVel += ` <em>(Ref: ${refEsperada})</em>`;
     return stringVel;
   };
 
   const txtPeso2 = unidPeso2 === 'g' ? peso2Raw.toFixed(0) + ' g' : peso2Raw.toFixed(2) + ' kg';
 
-  let html = `<strong>Bloco 1</strong><br>`;
+  let html = `<strong>Bloco 1 - Velocidades</strong><br>`;
   html += `- PC: ${pc2 ? pc2.toFixed(1) + ' cm' : '--'} (${fmtVel(velPC, 'pc', refPC)})<br>`;
   html += `- Peso: ${peso2Raw ? txtPeso2 : '--'} (${fmtVel(velPeso, 'peso', refPeso)})<br>`;
   html += `- Estatura: ${est2 ? est2.toFixed(1) + ' cm' : '--'} (${fmtVel(velEst, 'estatura', refEst)})<br><br>`;
 
-  html += `<strong>Bloco 2</strong><br>`;
-  html += `Referencia para idade<br>`;
-  html += `- PC: ${fmtZ(zPC)}<br>`;
-  html += `- Peso: ${fmtZ(zPeso)}<br>`;
-  html += `- Estatura: ${fmtZ(zEst)}<br><br>`;
+  html += `<strong>Bloco 2 - Estado Nutricional (Classificação OMS)</strong><br>`;
+  if (idadeTotalMeses !== null && idadeTotalMeses <= 24) {
+    html += `- PC: ${fmtPerc(zPC)} <span style="color:#666;">(${classificarPC(zPC)})</span><br>`;
+  } else {
+    html += `- PC: <span style="color:#666;">(Classificação aplicável até aos 2 anos)</span><br>`;
+  }
+  html += `- Peso: ${fmtPerc(zPeso)} <span style="color:#666;">(${classificarPeso(zPeso)})</span><br>`;
+  html += `- Estatura: ${fmtPerc(zEst)} <span style="color:#666;">(${classificarEstatura(zEst)})</span><br>`;
+  html += `- IMC (${imcAtual > 0 ? imcAtual.toFixed(1) : '--'} kg/m²): Z-Score ${fmtZ(zIMC, true)} <span style="color:var(--primary); font-weight:bold;">[${classificarIMC(zIMC, idadeTotalMeses)}]</span><br><br>`;
 
-  html += `<strong>Alvo parental: resultado seguir a seguinte estrutura abaixo</strong><br>`;
+  html += `<strong>Bloco 3 - Alvo Parental e Desenvolvimento Ósseo</strong><br>`;
   if (alvo > 0) {
     html += `- Alvo parental: ${alvo.toFixed(1)} cm<br>`;
     html += `- Faixa: ${(alvo - 5).toFixed(1)} a ${(alvo + 5).toFixed(1)} cm<br>`;
+    html += `- Desvio padrão (Z-Score) do alvo: ${fmtZ(zAlvo)}<br>`;
   } else {
     html += `- Alvo parental: Dados dos pais incompletos<br>- Faixa: --<br>`;
   }
-  html += `- Idade ossea: ${strIO}<br>`;
-  html += `- Idade Cronologica: ${strIC}<br>`;
-  html += `- Desvio padrao calculado: ${fmtZ(zAlvo)}<br>`;
+  const strIO = ioAnos > 0 || ioMeses > 0 ? `${ioAnos}a ${ioMeses}m` : "Não informada";
+  const strIC = icRxAnos > 0 || icRxMeses > 0 ? `${icRxAnos}a ${icRxMeses}m` : "Não informada";
+  html += `- Idade óssea: ${strIO}<br>`;
+  html += `- Idade Cronológica (Raio-X): ${strIC}<br>`;
 
   const resBox = document.getElementById('res-cresc');
   if (resBox) {
