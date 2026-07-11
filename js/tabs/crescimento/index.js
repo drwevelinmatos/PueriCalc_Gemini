@@ -8,7 +8,7 @@ try {
   WHO_DATA = modulo.WHO_DATA;
 } catch (e) {
   erroDados = e.message;
-  console.warn("Aviso: Não foi possível carregar o arquivo who_data.js", e);
+  console.warn("Aviso: Não foi possível carregar o ficheiro who_data.js", e);
 }
 
 // === REFERÊNCIAS CLÍNICAS DE VELOCIDADE ===
@@ -37,7 +37,7 @@ export function renderCrescimento() {
 
   const avisoErro = erroDados ? `
     <div style="background: #fff5f5; border: 1px solid #d32f2f; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left;">
-      <strong>⚠️ Atenção:</strong> O arquivo <code>who_data.js</code> não foi detectado.<br>
+      <strong>⚠️ Atenção:</strong> O ficheiro <code>who_data.js</code> não foi detetado.<br>
       <small>Erro: ${erroDados}</small>
     </div>
   ` : '';
@@ -90,6 +90,9 @@ export function renderCrescimento() {
           
           <label>Estatura Anterior (cm)</label>
           <input type="number" step="0.1" id="cresc-est1" placeholder="Ex: 50.0">
+          
+          <label style="margin-top: 8px; color: #7f8c8d;">IMC Anterior (kg/m²)</label>
+          <input type="text" id="cresc-imc1" readonly style="background: #eef2f5; border: 1px dashed #ccc; cursor: not-allowed;" placeholder="Automático">
         </div>
         
         <div style="padding-left: 10px;">
@@ -107,6 +110,9 @@ export function renderCrescimento() {
           
           <label>Estatura Atual (cm)</label>
           <input type="number" step="0.1" id="cresc-est2" placeholder="Ex: 65.0">
+
+          <label style="margin-top: 8px; color: var(--primary);">IMC Atual (kg/m²)</label>
+          <input type="text" id="cresc-imc2" readonly style="background: rgba(40,90,129,0.05); border: 1px dashed var(--primary); font-weight: bold; cursor: not-allowed;" placeholder="Automático">
         </div>
       </div>
     </div>
@@ -151,6 +157,32 @@ export function renderCrescimento() {
 
   document.getElementById('cresc-data2').valueAsDate = new Date();
   document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
+
+  // === LISTENERS PARA CÁLCULO DE IMC AUTOMÁTICO NA INTERFACE ===
+  const p1 = document.getElementById('cresc-peso1');
+  const e1 = document.getElementById('cresc-est1');
+  const u1 = document.getElementById('cresc-unidade-peso1');
+  const i1 = document.getElementById('cresc-imc1');
+
+  const p2 = document.getElementById('cresc-peso2');
+  const e2 = document.getElementById('cresc-est2');
+  const u2 = document.getElementById('cresc-unidade-peso2');
+  const i2 = document.getElementById('cresc-imc2');
+
+  const calcIMC = (pNode, eNode, uNode, iNode) => {
+    let p = parseFloat(pNode.value);
+    let e = parseFloat(eNode.value);
+    if (p > 0 && e > 0) {
+      if (uNode.value === 'g') p = p / 1000;
+      const imc = p / Math.pow(e / 100, 2);
+      iNode.value = imc.toFixed(1);
+    } else {
+      iNode.value = '';
+    }
+  };
+
+  [p1, e1, u1].forEach(el => el.addEventListener('input', () => calcIMC(p1, e1, u1, i1)));
+  [p2, e2, u2].forEach(el => el.addEventListener('input', () => calcIMC(p2, e2, u2, i2)));
 }
 
 function parseHTMLDate(str) {
@@ -214,8 +246,11 @@ function classificarPC(z) {
   return "Normocefalia";
 }
 
-function classificarPeso(z) {
-  if (z === null) return "";
+function classificarPeso(z, idadeMeses) {
+  if (z === null) {
+    if (idadeMeses !== null && idadeMeses > 120) return "Avaliado por IMC (>10 anos)";
+    return "";
+  }
   if (z < -3) return "Muito baixo peso";
   if (z < -2) return "Baixo peso";
   if (z > 2) return "Peso elevado";
@@ -307,7 +342,7 @@ function calcularCrescimento() {
   // CÁLCULO DO IMC
   const imcAtual = (peso2Kg > 0 && est2 > 0) ? (peso2Kg / Math.pow(est2 / 100, 2)) : 0;
 
-  // PROCESSAMENTO DOS Z-SCORES (OMS)
+  // PROCESSAMENTO DOS Z-SCORES E PERCENTIS (OMS)
   let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
 
   if (nasc && WHO_DATA && WHO_DATA[sexo]) {
@@ -346,6 +381,7 @@ function calcularCrescimento() {
   };
 
   const fmtPerc = (z) => {
+    if (z === null) return "--";
     const p = zParaPercentil(z);
     if (p === null) return "--";
     return "P" + Math.round(p);
@@ -367,12 +403,14 @@ function calcularCrescimento() {
   html += `- Estatura: ${est2 ? est2.toFixed(1) + ' cm' : '--'} (${fmtVel(velEst, 'estatura', refEst)})<br><br>`;
 
   html += `<strong>Bloco 2 - Estado Nutricional (Classificação OMS)</strong><br>`;
+  
   if (idadeTotalMeses !== null && idadeTotalMeses <= 24) {
     html += `- PC: ${fmtPerc(zPC)} <span style="color:#666;">(${classificarPC(zPC)})</span><br>`;
   } else {
     html += `- PC: <span style="color:#666;">(Classificação aplicável até aos 2 anos)</span><br>`;
   }
-  html += `- Peso: ${fmtPerc(zPeso)} <span style="color:#666;">(${classificarPeso(zPeso)})</span><br>`;
+  
+  html += `- Peso: ${fmtPerc(zPeso)} <span style="color:#666;">(${classificarPeso(zPeso, idadeTotalMeses)})</span><br>`;
   html += `- Estatura: ${fmtPerc(zEst)} <span style="color:#666;">(${classificarEstatura(zEst)})</span><br>`;
   html += `- IMC (${imcAtual > 0 ? imcAtual.toFixed(1) : '--'} kg/m²): Z-Score ${fmtZ(zIMC, true)} <span style="color:var(--primary); font-weight:bold;">[${classificarIMC(zIMC, idadeTotalMeses)}]</span><br><br>`;
 
