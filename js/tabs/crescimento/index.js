@@ -8,7 +8,7 @@ try {
   WHO_DATA = modulo.WHO_DATA;
 } catch (e) {
   erroDados = e.message;
-  console.warn("Aviso: Não foi possível carregar o ficheiro who_data.js", e);
+  console.warn("Aviso: Não foi possível carregar o arquivo who_data.js", e);
 }
 
 // === REFERÊNCIAS CLÍNICAS DE VELOCIDADE ===
@@ -37,7 +37,7 @@ export function renderCrescimento() {
 
   const avisoErro = erroDados ? `
     <div style="background: #fff5f5; border: 1px solid #d32f2f; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left;">
-      <strong>⚠️ Atenção:</strong> O ficheiro <code>who_data.js</code> não foi detetado.<br>
+      <strong>⚠️ Atenção:</strong> O arquivo <code>who_data.js</code> não foi detetado.<br>
       <small>Erro: ${erroDados}</small>
     </div>
   ` : '';
