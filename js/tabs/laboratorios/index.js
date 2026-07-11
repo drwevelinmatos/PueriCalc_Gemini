@@ -99,11 +99,12 @@ export function renderLaboratorios() {
   container.innerHTML = `
     <div class="subnav">
       <button class="subnav-lab-btn active" data-target="lab-gerais">Exames Gerais</button>
-      <button class="subnav-lab-btn" data-target="lab-bio">Exames Lab</button>
+      <button class="subnav-lab-btn" data-target="lab-bio">Exames Lab (Bioquímica)</button>
       <button class="subnav-lab-btn" data-target="lab-extrac">Extrair Exames (IA)</button>
     </div>
 
     <div id="lab-gerais" class="lab-sub-panel" style="display: block;">
+      
       <div class="card">
         <div class="card-header"><h2>Diagnóstico Gasométrico Pediátrico</h2></div>
         <div class="grid-3" style="margin-bottom: 10px;">
@@ -118,59 +119,6 @@ export function renderLaboratorios() {
         </div>
         <button class="calc-btn" id="btn-gasometria">Diagnosticar Gasometria</button>
         <div id="res-gasometria" class="result-box" style="white-space: pre-wrap; font-family: monospace;"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h2>Conversor de Unidades Pediátricas</h2></div>
-        <div class="grid-2">
-          <div style="border-right: 1px dashed #ccc; padding-right: 10px;">
-            <label>Glicose (mg/dL para mmol/L)</label>
-            <div style="display:flex; gap:5px;">
-              <input type="number" id="conv-glic" placeholder="mg/dL">
-              <button class="calc-btn" id="btn-conv-glic" style="margin-top:0;">Converter</button>
-            </div>
-            <div id="res-conv-glic" style="margin-top: 5px; font-weight: bold; color: var(--primary);"></div>
-          </div>
-          <div style="padding-left: 10px;">
-            <label>Creatinina (mg/dL para µmol/L)</label>
-            <div style="display:flex; gap:5px;">
-              <input type="number" id="conv-crea" placeholder="mg/dL">
-              <button class="calc-btn" id="btn-conv-crea" style="margin-top:0;">Converter</button>
-            </div>
-            <div id="res-conv-crea" style="margin-top: 5px; font-weight: bold; color: var(--primary);"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="lab-bio" class="lab-sub-panel" style="display: none;">
-      
-      <div class="card">
-        <div class="card-header"><h2>Avaliação Bioquímica Pediátrica</h2></div>
-        <label>Idade do Paciente:</label>
-        <div class="grid-3" style="margin-bottom: 15px;">
-          <input type="number" id="bio-anos" placeholder="Anos" min="0" max="18">
-          <input type="number" id="bio-meses" placeholder="Meses" min="0" max="11">
-          <input type="number" id="bio-dias" placeholder="Dias" min="0" max="30">
-        </div>
-        
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
-            <thead style="position: sticky; top: 0; background: var(--primary); color: white;">
-              <tr>
-                <th style="padding: 8px;">Exame</th>
-                <th style="padding: 8px;">Valor Inserido</th>
-                <th style="padding: 8px;">Faixa Normal</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-bioquimica">
-              </tbody>
-          </table>
-        </div>
-        <div class="grid-2">
-          <button class="calc-btn" id="btn-avaliar-bio">Avaliar Tudo</button>
-          <button class="calc-btn" id="btn-limpar-bio" style="background: #95a5a6;">Limpar Tabela</button>
-        </div>
       </div>
 
       <div class="card">
@@ -223,6 +171,60 @@ export function renderLaboratorios() {
         <div id="res-liquor" class="result-box"></div>
       </div>
 
+      <div class="card">
+        <div class="card-header"><h2>Conversor de Unidades Pediátricas</h2></div>
+        <div class="grid-2">
+          <div style="border-right: 1px dashed #ccc; padding-right: 10px;">
+            <label>Glicose (mg/dL para mmol/L)</label>
+            <div style="display:flex; gap:5px;">
+              <input type="number" id="conv-glic" placeholder="mg/dL">
+              <button class="calc-btn" id="btn-conv-glic" style="margin-top:0;">Converter</button>
+            </div>
+            <div id="res-conv-glic" style="margin-top: 5px; font-weight: bold; color: var(--primary);"></div>
+          </div>
+          <div style="padding-left: 10px;">
+            <label>Creatinina (mg/dL para µmol/L)</label>
+            <div style="display:flex; gap:5px;">
+              <input type="number" id="conv-crea" placeholder="mg/dL">
+              <button class="calc-btn" id="btn-conv-crea" style="margin-top:0;">Converter</button>
+            </div>
+            <div id="res-conv-crea" style="margin-top: 5px; font-weight: bold; color: var(--primary);"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="lab-bio" class="lab-sub-panel" style="display: none;">
+      
+      <div class="card">
+        <div class="card-header"><h2>Avaliação Bioquímica Pediátrica</h2></div>
+        <label>Idade do Paciente:</label>
+        <div class="grid-3" style="margin-bottom: 15px;">
+          <input type="number" id="bio-anos" placeholder="Anos" min="0" max="18">
+          <input type="number" id="bio-meses" placeholder="Meses" min="0" max="11">
+          <input type="number" id="bio-dias" placeholder="Dias" min="0" max="30">
+        </div>
+        
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+            <thead style="position: sticky; top: 0; background: var(--primary); color: white;">
+              <tr>
+                <th style="padding: 8px;">Exame</th>
+                <th style="padding: 8px;">Valor Inserido</th>
+                <th style="padding: 8px;">Faixa Normal</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-bioquimica">
+              </tbody>
+          </table>
+        </div>
+        <div class="grid-2">
+          <button class="calc-btn" id="btn-avaliar-bio">Avaliar Tudo</button>
+          <button class="calc-btn" id="btn-limpar-bio" style="background: #95a5a6;">Limpar Tabela</button>
+        </div>
+      </div>
+
     </div>
 
     <div id="lab-extrac" class="lab-sub-panel" style="display: none;">
@@ -230,14 +232,14 @@ export function renderLaboratorios() {
         <div class="card-header">
           <h2>Leitor de Laudos por IA (Gemini 2.5)</h2>
         </div>
-        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">Carregue o arquivo PDF completo ou selecione as várias fotos do exame de uma só vez para o Cérebro IA extrair os dados perfeitamente estruturados.</p>
+        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">Carregue o ficheiro PDF completo ou selecione as várias fotos do exame de uma só vez para o Cérebro IA extrair os dados perfeitamente estruturados.</p>
         
         <div style="margin-bottom: 15px;">
           <label>Chave de Acesso (Google API Key)</label>
-          <input type="text" id="ai-key" placeholder="Cole sua chave de acesso aqui...">
+          <input type="text" id="ai-key" placeholder="Cole a sua chave de acesso aqui...">
           <div style="margin-top: 5px; display: flex; align-items: center; gap: 5px;">
             <input type="checkbox" id="ai-save-key" checked style="width: auto; margin:0;">
-            <label for="ai-save-key" style="margin:0; font-weight:normal; color:#666;">Salvar chave neste computador</label>
+            <label for="ai-save-key" style="margin:0; font-weight:normal; color:#666;">Salvar chave neste dispositivo</label>
           </div>
         </div>
 
@@ -256,7 +258,7 @@ export function renderLaboratorios() {
         </div>
 
         <button class="calc-btn" id="btn-processar-ai" style="background-color: var(--lab);">Processar com IA</button>
-        <div id="ai-loading" style="display: none; text-align: center; color: #e67e22; font-weight: bold; margin-top: 15px;">⏳ A IA está lendo e transcrevendo... Aguarde...</div>
+        <div id="ai-loading" style="display: none; text-align: center; color: #e67e22; font-weight: bold; margin-top: 15px;">⏳ A IA está a ler e a transcrever... Aguarde...</div>
         
         <div id="ai-resultado-container" style="display: none; margin-top: 20px;">
           <button class="calc-btn" id="btn-copiar-ai" style="background-color: #27ae60; margin-bottom: 10px;">📋 Copiar Resultado</button>
@@ -283,6 +285,9 @@ export function renderLaboratorios() {
 
   // === ATRELAR EVENTOS (EXAMES GERAIS) ===
   document.getElementById('btn-gasometria').addEventListener('click', diagnosticarGasometria);
+  document.getElementById('btn-hemo').addEventListener('click', interpretarHemograma);
+  document.getElementById('btn-liquor').addEventListener('click', avaliarLiquor);
+  
   document.getElementById('btn-conv-glic').addEventListener('click', () => {
     const val = parseFloat(document.getElementById('conv-glic').value);
     if(val) document.getElementById('res-conv-glic').innerText = `= ${(val / 18.018).toFixed(2)} mmol/L`;
@@ -292,11 +297,9 @@ export function renderLaboratorios() {
     if(val) document.getElementById('res-conv-crea').innerText = `= ${(val * 88.4).toFixed(2)} µmol/L`;
   });
 
-  // === ATRELAR EVENTOS (EXAMES LAB) ===
+  // === ATRELAR EVENTOS (EXAMES LAB / BIOQUÍMICA) ===
   document.getElementById('btn-avaliar-bio').addEventListener('click', avaliarBioquimica);
   document.getElementById('btn-limpar-bio').addEventListener('click', limparBioquimica);
-  document.getElementById('btn-hemo').addEventListener('click', interpretarHemograma);
-  document.getElementById('btn-liquor').addEventListener('click', avaliarLiquor);
 
   // === ATRELAR EVENTOS (EXTRAÇÃO IA) ===
   const keySalva = localStorage.getItem('minha_api_key_gemini');
@@ -582,7 +585,7 @@ async function processarExamesIA() {
   const container = document.getElementById('ai-resultado-container');
   const output = document.getElementById('ai-output');
 
-  if (!apiKey) return alert('Por favor, insira sua API Key do Google.');
+  if (!apiKey) return alert('Por favor, insira a sua API Key do Google.');
   if (fileInput.files.length === 0) return alert('Por favor, selecione os PDFs ou Imagens do exame.');
 
   if (isSalvar) localStorage.setItem('minha_api_key_gemini', apiKey);
@@ -610,7 +613,7 @@ async function processarExamesIA() {
       "nem 'Não informado'. Apenas remova a linha ou o marcador correspondente àquele exame ausente.";
 
     const padrao = tipoPadrao === 'consultorio' ? PADRAO_CONSULTORIO : PADRAO_AMBULATORIO;
-    conteudosParaEnviar.push(`Extraia os dados dos arquivos anexos e formate seguindo exatamente este padrão (lembre-se de omitir os exames não encontrados):\n\n${padrao}`);
+    conteudosParaEnviar.push(`Extraia os dados dos ficheiros anexos e formate seguindo exatamente este padrão (lembre-se de omitir os exames não encontrados):\n\n${padrao}`);
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -626,7 +629,7 @@ async function processarExamesIA() {
 
   } catch (error) {
     console.error(error);
-    alert('Ocorreu um erro ao processar o exame com IA: ' + error.message);
+    alert('Ocorreu um erro ao processar o exame com a IA: ' + error.message);
   } finally {
     btn.disabled = false;
     loader.style.display = 'none';
