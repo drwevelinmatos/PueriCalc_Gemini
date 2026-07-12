@@ -6,27 +6,34 @@ export function calcHollidaySegarBase(pesoKg) {
   return 1500 + 20 * (pesoKg - 20);
 }
 
-export function calcHollidayCompleto(p) {
+// 1A. Método Tradicional (Usa SG5% como base + Eletrólitos em mEq/100mL)
+export function calcHolTradicional(p) {
   const volTotal = calcHollidaySegarBase(p.peso) * (p.pctHol / 100);
   
-  // Eletrólitos com suporte a múltiplas unidades
-  let na_mEq_total = 0;
-  if (p.naUnit === 'meq_l') na_mEq_total = p.naVal * (volTotal / 1000);
-  else if (p.naUnit === 'meq_kg') na_mEq_total = p.naVal * p.peso;
-  else if (p.naUnit === 'meq_100') na_mEq_total = p.naVal * (volTotal / 100);
-
-  let k_mEq_total = 0;
-  if (p.kUnit === 'meq_l') k_mEq_total = p.kVal * (volTotal / 1000);
-  else if (p.kUnit === 'meq_kg') k_mEq_total = p.kVal * p.peso;
-  else if (p.kUnit === 'meq_100') k_mEq_total = p.kVal * (volTotal / 100);
-
-  const nacl20_vol = na_mEq_total / 3.4; // 1 mL NaCl 20% = 3.4 mEq
-  const kcl19_vol = k_mEq_total / 2.5; // 1 mL KCl 19.1% = 2.5 mEq
+  const nacl20_vol = (p.na100 * (volTotal / 100)) / 3.4; // 1 mL NaCl 20% = 3.4 mEq
+  const kcl19_vol = (p.k100 * (volTotal / 100)) / 2.5; // 1 mL KCl 19.1% = 2.5 mEq
+  const ca_vol = p.caKg * p.peso; // Gluconato Ca 10%
+  const mg_vol = (p.mgKg * p.peso) / 0.8; // MgSO4 10% = 0.8 mEq/mL
   
-  const ca_vol = p.caMlKg * p.peso; // Gluconato Ca 10%
-  const mg_vol = (p.mgMeqKg * p.peso) / 0.8; // MgSO4 10% = 0.8 mEq/mL
-  const glic_vol = (p.glicGKg * p.peso) / 0.5; // Glicose 50% = 0.5 g/mL
+  // No método tradicional o solvente é SG 5%
+  const sg5_vol = volTotal - (nacl20_vol + kcl19_vol + ca_vol + mg_vol);
+
+  return {
+    volTotal, nacl20_vol, kcl19_vol, ca_vol, mg_vol, sg5_vol
+  };
+}
+
+// 1B. Método Planilha Avançada (Usa Água Destilada + G50% + Eletrólitos em mEq/L)
+export function calcHolPlanilha(p) {
+  const volTotal = calcHollidaySegarBase(p.peso) * (p.pctHol / 100);
   
+  const nacl20_vol = (p.naL * (volTotal / 1000)) / 3.4;
+  const kcl19_vol = (p.kL * (volTotal / 1000)) / 2.5;
+  const ca_vol = p.caKg * p.peso;
+  const mg_vol = (p.mgKg * p.peso) / 0.8;
+  const glic_vol = (p.glicKg * p.peso) / 0.5; // Glicose 50% = 0.5 g/mL
+  
+  // No método da planilha o solvente é Água Destilada
   const ad_vol = volTotal - (nacl20_vol + kcl19_vol + ca_vol + mg_vol + glic_vol);
 
   return {
@@ -34,6 +41,7 @@ export function calcHollidayCompleto(p) {
   };
 }
 
+// 2. VIG Diária (Solução para 24h)
 export function calcVIGCompleto(p) {
   const volTotal = p.volMlKgDia * p.peso;
   
@@ -52,13 +60,12 @@ export function calcVIGCompleto(p) {
   };
 }
 
+// 3. Mistura SG
 export function calcMisturaSG(vol, alvo, sgA, sgB) {
   const cLow = Math.min(sgA, sgB);
   const cHigh = Math.max(sgA, sgB);
   
-  if (alvo < cLow || alvo > cHigh) {
-      return { error: 'Concentração alvo fora do intervalo possível.' };
-  }
+  if (alvo < cLow || alvo > cHigh) return { error: 'Concentração alvo fora do intervalo possível.' };
   
   const vHigh = vol * (alvo - cLow) / (cHigh - cLow);
   const vLow = vol - vHigh;
@@ -66,10 +73,9 @@ export function calcMisturaSG(vol, alvo, sgA, sgB) {
   return { vLow, vHigh, cLow, cHigh };
 }
 
+// 4. Água Livre
 export function calcAguaLivre(peso, naAtual, naAlvo) {
-  if (naAtual <= naAlvo) {
-      return { error: 'Sódio atual não indica déficit de água livre (Na Atual ≤ Na Alvo).' };
-  }
+  if (naAtual <= naAlvo) return { error: 'Sódio atual não indica déficit de água livre (Na Atual ≤ Na Alvo).' };
   const tbw = peso * 0.6; 
   const deficitL = tbw * ((naAtual / naAlvo) - 1);
   return { deficitL, deficitMl: deficitL * 1000 };
