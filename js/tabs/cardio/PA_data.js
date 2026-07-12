@@ -1,4 +1,4 @@
-// tabs/cardio/sbp_data.js
+// tabs/cardio/PA_data.js
 export const SBP_DATA = {
     "M": {
     1: { 5: { pas90: 98, pas95: 102, pad90: 52, pad95: 54 }, 10: { pas90: 99, pas95: 102, pad90: 52, pad95: 54 }, 25: { pas90: 99, pas95: 103, pad90: 53, pad95: 55 }, 50: { pas90: 100, pas95: 103, pad90: 53, pad95: 55 }, 75: { pas90: 100, pas95: 104, pad90: 54, pad95: 56 }, 90: { pas90: 101, pas95: 105, pad90: 54, pad95: 57 }, 95: { pas90: 101, pas95: 105, pad90: 54, pad95: 57 } },
