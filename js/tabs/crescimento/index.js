@@ -42,29 +42,8 @@ export function renderCrescimento() {
     </div>
   ` : '';
 
-  // === RAIO-X DO BANCO DE DADOS ===
-  let dbStatus = '';
-  if (WHO_DATA && !erroDados) {
-    const contar = (sexo, param, prefixo) => Object.keys(WHO_DATA[sexo]?.[param] || {}).filter(k => k.startsWith(prefixo)).length;
-    dbStatus = `
-      <div style="font-size: 0.8rem; background: #eef2f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px dashed #285a81; color: #333;">
-        <strong>📊 Diagnóstico do Ficheiro WHO_DATA:</strong><br>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
-            <div>• Peso (0-5 anos): <strong>${contar('M', 'peso', 'd')}</strong>M / <strong>${contar('F', 'peso', 'd')}</strong>F</div>
-            <div>• Peso (>5 anos): <strong>${contar('M', 'peso', 'm')}</strong>M / <strong>${contar('F', 'peso', 'm')}</strong>F</div>
-            <div>• Estatura (0-5 anos): <strong>${contar('M', 'estatura', 'd')}</strong>M / <strong>${contar('F', 'estatura', 'd')}</strong>F</div>
-            <div>• Estatura (>5 anos): <strong>${contar('M', 'estatura', 'm')}</strong>M / <strong>${contar('F', 'estatura', 'm')}</strong>F</div>
-            <div>• IMC (0-5 anos): <strong>${contar('M', 'imc', 'd')}</strong>M / <strong>${contar('F', 'imc', 'd')}</strong>F</div>
-            <div>• IMC (>5 anos): <strong>${contar('M', 'imc', 'm')}</strong>M / <strong>${contar('F', 'imc', 'm')}</strong>F</div>
-        </div>
-        <small style="display:block; margin-top: 8px; color: #d32f2f;">*Se algum valor estiver "0", significa que o conversor ignorou esse ficheiro Excel.</small>
-      </div>
-    `;
-  }
-
   container.innerHTML = `
     ${avisoErro}
-    ${dbStatus}
     <div class="card">
       <div class="card-header">
         <h2>Dados do Paciente e Medidas</h2>
@@ -176,7 +155,13 @@ export function renderCrescimento() {
     <div id="res-cresc" class="result-box"></div>
   `;
 
-  document.getElementById('cresc-data2').valueAsDate = new Date();
+  // === CORREÇÃO DO FUSO HORÁRIO LOCAL PARA A DATA ATUAL ===
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  document.getElementById('cresc-data2').value = `${ano}-${mes}-${dia}`;
+
   document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
 
   const p1 = document.getElementById('cresc-peso1');
