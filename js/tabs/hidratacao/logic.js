@@ -63,15 +63,63 @@ export function calcMisturaSG(vol, alvo, sgA, sgB) {
   return { vLow, vHigh, cLow, cHigh };
 }
 
-// 4. Água Livre Atualizado com ACT Dinâmica
-export function calcAguaLivre(peso, naAtual, naAlvo, perfil) {
-  if (naAtual <= naAlvo) return { error: 'Sódio atual não indica déficit de água livre (Na Atual ≤ Na Alvo).' };
+// 4. Central de Distúrbios Hidroeletrolíticos
+export function calcDisturbios(p) {
+  const { tipo, peso, perfil, naAtual, naAlvo, kDose } = p;
   
-  let tbwFactor = 0.6; // Padrão: Lactentes, Crianças e Adolescentes Masculinos
-  if (perfil === 'rn') tbwFactor = 0.75;
-  else if (perfil === 'adol_f') tbwFactor = 0.5;
+  if (!peso || peso <= 0) return { error: 'Peso inválido.' };
 
-  const tbw = peso * tbwFactor; 
-  const deficitL = tbw * ((naAtual / naAlvo) - 1);
-  return { deficitL, deficitMl: deficitL * 1000, tbwFactor };
+  // Constantes de Água Corporal Total (ACT)
+  let actFator = 0.6;
+  if (perfil === 'rn') actFator = 0.75;
+  else if (perfil === 'adol_f') actFator = 0.5;
+
+  const act = peso * actFator;
+
+  if (tipo === 'hiponatremia') {
+    if (!naAtual || !naAlvo) return { error: 'Preencha Na⁺ Atual e Alvo.' };
+    if (naAtual >= naAlvo) return { error: 'O Na⁺ Atual já é maior ou igual ao Alvo.' };
+    
+    const deficitMeq = act * (naAlvo - naAtual);
+    const nacl20Vol = deficitMeq / 3.4;
+    
+    // Regra da Hiponatremia Sintomática: 3 mL/kg de NaCl 3%
+    const bolus3pct = 3 * peso; 
+    const nacl3_nacl20 = bolus3pct * 0.15; // 15% de NaCl 20%
+    const nacl3_ad = bolus3pct * 0.85; // 85% de Água Destilada / SG5%
+
+    return { tipo, deficitMeq, nacl20Vol, bolus3pct, nacl3_nacl20, nacl3_ad };
+  }
+  
+  if (tipo === 'hipernatremia') {
+    if (!naAtual || !naAlvo) return { error: 'Preencha Na⁺ Atual e Alvo.' };
+    if (naAtual <= naAlvo) return { error: 'O Na⁺ Atual já é menor ou igual ao Alvo.' };
+    
+    const deficitL = act * ((naAtual / naAlvo) - 1);
+    return { tipo, deficitL, deficitMl: deficitL * 1000, actFator };
+  }
+
+  if (tipo === 'hipopotassemia') {
+    if (!kDose || kDose <= 0) return { error: 'Preencha a dose de K⁺ (mEq/kg).' };
+    const meqTotais = peso * kDose;
+    const kcl19Vol = meqTotais / 2.5;
+    // Volume mínimo para garantir diluição máxima de 40 mEq/L
+    const volMinDiluicao = (meqTotais / 40) * 1000;
+    
+    return { tipo, meqTotais, kcl19Vol, volMinDiluicao };
+  }
+
+  if (tipo === 'hiperpotassemia') {
+    const glucCa = peso * 0.5; 
+    const glucCaMax = Math.min(peso * 1.0, 20); // Máx de 20 mL
+    
+    const insulina = peso * 0.1;
+    const g50 = peso * 1; // 1 ml/kg G50% = 0.5 g/kg
+    const g10 = peso * 5; // 5 ml/kg G10% = 0.5 g/kg
+    
+    const bicarb = peso * 1; 
+    const furo = peso * 1; 
+
+    return { tipo, glucCa, glucCaMax, insulina, g50, g10, bicarb, furo };
+  }
 }
