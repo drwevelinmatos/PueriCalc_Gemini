@@ -104,7 +104,90 @@ export function renderNeonato() {
       <button class="calc-btn" id="btn-neo-intergrowth">Classificar (PIG/AIG/GIG)</button>
       <div id="res-neo-lub" class="result-box"></div>
     </div>
+// Adicione isto à função renderNeonato() na sua aba de Neonatologia
 
+export function renderNeonato() {
+  const container = document.getElementById('tab-neonato');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h2>Calculadora de Perda de Peso Neonatal</h2>
+      </div>
+      
+      <form id="form_cresc_neo">
+        <div class="grid-2">
+            <div class="col">
+                <label>Peso ao Nascer (kg ou g)</label>
+                <input type="number" step="0.001" id="start_birth_weight" placeholder="Ex: 3.200" required />
+            </div>
+            <div class="col">
+                <label>Data/Hora Nascimento</label>
+                <input type="datetime-local" id="start_birth_datetime" required />
+            </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 15px;">
+            <div class="col">
+                <label>Peso Atual (kg ou g)</label>
+                <input type="number" step="0.001" id="start_measurement_weight" placeholder="Ex: 2.950" required />
+            </div>
+            <div class="col">
+                <label>Data/Hora Medição</label>
+                <input type="datetime-local" id="start_measurement_datetime" required />
+            </div>
+        </div>
+
+        <button type="button" class="calc-btn" id="btn-calc-peso-neo" style="margin-top: 20px;">Calcular Gráfico</button>
+      </form>
+
+      <div style="margin-top: 25px; padding: 10px;">
+        <canvas id="weightChart" style="max-height: 300px;"></canvas>
+      </div>
+      <div id="res-perda-peso" class="result-box" style="margin-top: 15px; font-weight: bold;"></div>
+    </div>
+  `;
+
+  // Inicializar o gráfico após o carregamento da aba
+  setTimeout(() => initWeightChart(), 100);
+  document.getElementById('btn-calc-peso-neo').addEventListener('click', processarCalculoNeo);
+}
+
+// === LÓGICA DO GRÁFICO E CÁLCULO ===
+let weightChart = null;
+
+function initWeightChart() {
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    const datasets = [
+        { label: 'P95 (Alerta)', data: [{x:0,y:0}, {x:24,y:5}, {x:48,y:8}, {x:72,y:10}, {x:96,y:10.5}], borderColor: '#e74c3c', fill: false },
+        { label: 'P50 (Média)', data: [{x:0,y:0}, {x:24,y:2.5}, {x:48,y:4.5}, {x:72,y:5.5}, {x:96,y:6}], borderColor: '#27ae60', fill: false },
+        { label: 'Paciente', data: [], type: 'scatter', backgroundColor: '#2980b9', pointRadius: 8 }
+    ];
+
+    weightChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: { responsive: true, scales: { x: { title: { display: true, text: 'Horas de Vida' } }, y: { title: { display: true, text: 'Perda (%)' } } } }
+    });
+}
+
+function processarCalculoNeo() {
+    const bW = parseFloat(document.getElementById('start_birth_weight').value);
+    const cW = parseFloat(document.getElementById('start_measurement_weight').value);
+    const bD = new Date(document.getElementById('start_birth_datetime').value);
+    const cD = new Date(document.getElementById('start_measurement_datetime').value);
+
+    if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos.");
+
+    const perda = ((bW - cW) / bW) * 100;
+    const horas = (cD - bD) / (1000 * 60 * 60);
+
+    weightChart.data.datasets[2].data = [{ x: horas, y: perda }];
+    weightChart.update();
+
+    document.getElementById('res-perda-peso').innerHTML = `Perda de Peso: ${perda.toFixed(1)}% em ${Math.floor(horas)} horas de vida.`;
+}
     <div class="card">
       <div class="card-header"><h2>Icterícia Neonatal (parâmetros SBP)</h2></div>
 
