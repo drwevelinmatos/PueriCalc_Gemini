@@ -32,8 +32,8 @@ header {
 .foto {
   position:absolute;
   right:20px;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
@@ -41,7 +41,7 @@ header {
 .app-header h1 {
   left:200px;
   color: var(--primary);
-  margin: 200px;
+  margin: 20px;
   font-size: 28px;
 }
 
