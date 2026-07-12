@@ -11,7 +11,7 @@ export function renderHidratacao() {
     <!-- BLOCO 1A: HOLLIDAY-SEGAR TRADICIONAL -->
     <div class="card" style="border-left: 5px solid var(--primary);">
       <div class="card-header" style="border: none; padding-left: 0;">
-        <h2 style="color: var(--primary);">1A. Soro de Manutenção Padrão (mEq/100mL)</h2>
+        <h2 style="color: var(--primary);">1A. Manutenção Padrão (Por Peso - mEq/kg)</h2>
         <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Usa Soro Glicosado 5% como base (Prático Enfermaria).</p>
       </div>
       
@@ -30,8 +30,8 @@ export function renderHidratacao() {
       </div>
 
       <div class="grid-2" style="margin-bottom: 12px;">
-        <div><label>Na⁺ (mEq/100mL)</label><input type="number" id="ht-na" value="3" step="0.1"></div>
-        <div><label>K⁺ (mEq/100mL)</label><input type="number" id="ht-k" value="2" step="0.1"></div>
+        <div><label>Na⁺ (mEq/kg/dia)</label><input type="number" id="ht-na" value="3" step="0.1"></div>
+        <div><label>K⁺ (mEq/kg/dia)</label><input type="number" id="ht-k" value="2" step="0.1"></div>
       </div>
       <div class="grid-2">
         <div><label>Ca²⁺ 10% (mL/kg/dia)</label><input type="number" id="ht-ca" value="1" step="0.1"></div>
@@ -45,7 +45,7 @@ export function renderHidratacao() {
     <!-- BLOCO 1B: HOLLIDAY-SEGAR PLANILHA (UTI) -->
     <div class="card" style="border-left: 5px solid #8e44ad;">
       <div class="card-header" style="border: none; padding-left: 0;">
-        <h2 style="color: #8e44ad;">1B. Soro de Manutenção Avançado (mEq/L)</h2>
+        <h2 style="color: #8e44ad;">1B. Manutenção Avançada (Por Litro - mEq/L)</h2>
         <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Usa Água Destilada + Glicose 50% (Padrão Planilha CTI).</p>
       </div>
       
@@ -190,8 +190,8 @@ function handleHolTradicional() {
   const p = {
     peso: parseFloat(byId('ht-peso').value),
     pctHol: parseFloat(byId('ht-pct').value),
-    na100: parseFloat(byId('ht-na').value),
-    k100: parseFloat(byId('ht-k').value),
+    naKg: parseFloat(byId('ht-na').value),
+    kKg: parseFloat(byId('ht-k').value),
     caKg: parseFloat(byId('ht-ca').value),
     mgKg: parseFloat(byId('ht-mg').value)
   };
