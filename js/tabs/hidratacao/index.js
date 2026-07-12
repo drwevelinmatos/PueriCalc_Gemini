@@ -1,14 +1,13 @@
 // tabs/hidratacao/index.js
 
 import { byId } from '../../utils/dom.js';
-import { calcHolTradicional, calcHolPlanilha, calcVIGCompleto, calcMisturaSG, calcAguaLivre } from './logic.js';
+import { calcHolTradicional, calcHolPlanilha, calcVIGCompleto, calcMisturaSG, calcDisturbios } from './logic.js';
 
 export function renderHidratacao() {
   const container = byId('tab-hidra');
   if (!container) return;
 
   container.innerHTML = `
-    <!-- BLOCO 1A: HOLLIDAY-SEGAR TRADICIONAL -->
     <div class="card" style="border-left: 5px solid var(--primary);">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: var(--primary);">1A. Manutenção Padrão (Por Peso - mEq/kg)</h2>
@@ -20,11 +19,11 @@ export function renderHidratacao() {
         <div><label>% Holliday</label><input type="number" id="ht-pct" value="100"></div>
         <div><label>Etapas em 24h</label>
           <select id="ht-etapas" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-            <option value="1">1 de 24h</option>
-            <option value="2">2 de 12h</option>
-            <option value="3">3 de 8h</option>
-            <option value="4" selected>4 de 6h</option>
-            <option value="6">6 de 4h</option>
+            <option value=\"1\">1 de 24h</option>
+            <option value=\"2\">2 de 12h</option>
+            <option value=\"3\">3 de 8h</option>
+            <option value=\"4\" selected>4 de 6h</option>
+            <option value=\"6\">6 de 4h</option>
           </select>
         </div>
       </div>
@@ -42,7 +41,6 @@ export function renderHidratacao() {
       <div id="res-ht" class="result-box"></div>
     </div>
 
-    <!-- BLOCO 1B: HOLLIDAY-SEGAR PLANILHA (UTI) -->
     <div class="card" style="border-left: 5px solid #8e44ad;">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: #8e44ad;">1B. Manutenção Avançada (Por Litro - mEq/L)</h2>
@@ -54,11 +52,11 @@ export function renderHidratacao() {
         <div><label>% Holliday</label><input type="number" id="hp-pct" value="100"></div>
         <div><label>Etapas em 24h</label>
           <select id="hp-etapas" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-            <option value="1">1 de 24h</option>
-            <option value="2">2 de 12h</option>
-            <option value="3">3 de 8h</option>
-            <option value="4" selected>4 de 6h</option>
-            <option value="6">6 de 4h</option>
+            <option value=\"1\">1 de 24h</option>
+            <option value=\"2\">2 de 12h</option>
+            <option value=\"3\">3 de 8h</option>
+            <option value=\"4\" selected>4 de 6h</option>
+            <option value=\"6\">6 de 4h</option>
           </select>
         </div>
       </div>
@@ -77,13 +75,88 @@ export function renderHidratacao() {
       <div id="res-hp" class="result-box"></div>
     </div>
 
-    <!-- BLOCO REFERÊNCIA: DIRETRIZES E DOSES -->
+    <div class="card" style="border-left: 5px solid #27ae60;">
+      <div class="card-header" style="border: none; padding-left: 0;">
+        <h2 style="color: #27ae60;">2. Hidratação Venosa (VIG e Volume)</h2>
+      </div>
+      
+      <div class="grid-3" style="margin-bottom: 12px;">
+        <div><label>Peso (kg)</label><input type="number" step="0.1" id="vig-peso" placeholder="Ex: 3.2"></div>
+        <div><label>VIG Alvo (mg/kg/min)</label><input type="number" id="vig-alvo" value="4" step="0.1"></div>
+        <div><label>Vol. Alvo (mL/kg/dia)</label><input type="number" id="vig-vol" value="80"></div>
+      </div>
+
+      <div class="grid-2">
+        <div><label>Na⁺ (mEq/kg/dia)</label><input type="number" id="vig-na" value="3" step="0.1"></div>
+        <div><label>K⁺ (mEq/kg/dia)</label><input type="number" id="vig-k" value="2" step="0.1"></div>
+        <div><label>Ca²⁺ 10% (mL/kg/dia)</label><input type="number" id="vig-ca" value="1" step="0.1"></div>
+        <div><label>Mg²⁺ 10% (mEq/kg/dia)</label><input type="number" id="vig-mg" value="0.2" step="0.1"></div>
+      </div>
+
+      <button class="calc-btn" id="btn-calc-vig" style="background: #27ae60;">Calcular VIG Diária</button>
+      <div id="res-vig" class="result-box"></div>
+    </div>
+
+    <div class="card" style="border-left: 5px solid #d35400;">
+      <div class="card-header" style="border: none; padding-left: 0;">
+        <h2 style="color: #d35400;">3. Preparo de Soro Glicosado (Mistura)</h2>
+      </div>
+      <div class="grid-2" style="margin-bottom: 12px;">
+        <div><label>Volume Total (mL)</label><input type="number" id="mix-vol" placeholder=\"Ex: 100\"></div>
+        <div><label>Concentração Alvo (%)</label><input type="number" id="mix-alvo" placeholder=\"Ex: 10\"></div>
+        <div><label>Solução A Disponível (%)</label><input type="number" id="mix-sga" value=\"5\"></div>
+        <div><label>Solução B Disponível (%)</label><input type="number" id="mix-sgb" value=\"50\"></div>
+      </div>
+      <button class="calc-btn" id="btn-calc-mix" style="background: #d35400;">Calcular Mistura de SG</button>
+      <div id="res-mix" class="result-box"></div>
+    </div>
+
+    <div class="card" style="border-left: 5px solid #e74c3c;">
+      <div class="card-header" style="border: none; padding-left: 0;">
+        <h2 style="color: #e74c3c;">4. Correção Aguda de Distúrbios Eletrolíticos</h2>
+      </div>
+      
+      <div class="grid-2" style="margin-bottom: 15px;">
+        <div>
+          <label>Tipo de Emergência</label>
+          <select id="dist-tipo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; color: #c0392b;">
+            <option value="hiponatremia">Hiponatremia (Déficit & Bolus)</option>
+            <option value="hipernatremia">Hipernatremia (Água Livre)</option>
+            <option value="hipopotassemia">Hipopotassemia (Reposição IV)</option>
+            <option value="hiperpotassemia">Hiperpotassemia (Medidas Anti-K⁺)</option>
+          </select>
+        </div>
+        <div><label>Peso (kg)</label><input type="number" id="dist-peso" step="0.1" placeholder="Ex: 15"></div>
+      </div>
+
+      <div id="dist-na-group" class="grid-3" style="margin-bottom: 12px;">
+        <div>
+          <label>Perfil (ACT)</label>
+          <select id="dist-perfil" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+            <option value="rn">RN (até 28d) - 75%</option>
+            <option value="lactente_crianca" selected>Lactente/Criança - 60%</option>
+            <option value="adol_m">Adol. Masc - 60%</option>
+            <option value="adol_f">Adol. Fem - 50%</option>
+          </select>
+        </div>
+        <div><label>Na⁺ Atual (mEq/L)</label><input type="number" id="dist-na-atual" placeholder="Ex: 120"></div>
+        <div><label>Na⁺ Alvo (mEq/L)</label><input type="number" id="dist-na-alvo" value="135"></div>
+      </div>
+
+      <div id="dist-k-group" class="grid-2" style="margin-bottom: 12px; display: none;">
+        <div><label>K⁺ Atual (mEq/L) <span style="font-weight: normal;">(Opcional)</span></label><input type="number" id="dist-k-atual" placeholder="Ex: 2.8"></div>
+        <div><label>Dose K⁺ (mEq/kg)</label><input type="number" id="dist-k-dose" value="0.5" step="0.1"></div>
+      </div>
+
+      <button class="calc-btn" id="btn-calc-dist" style="background: #e74c3c;">Gerar Plano de Correção</button>
+      <div id="res-dist" class="result-box"></div>
+    </div>
+
     <div class="card" style="background: #fffdf5; border: 1px solid #f39c12;">
       <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
         <h2 style="color: #945d00; font-size: 1rem;">📌 Doses Sugeridas & Diretrizes Clínicas</h2>
       </div>
       
-      <!-- Tabela Importada do Excel -->
       <div style="overflow-x: auto; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
         <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; background: #fff; min-width: 650px;">
           <thead>
@@ -122,80 +195,37 @@ export function renderHidratacao() {
         • <strong>Hiper-osmolar</strong>: Usado em correções específicas e VIG muito alto (pode requerer acesso central).</p>
       </div>
     </div>
-
-    <!-- BLOCO 2: VIG E VOLUME (NEONATAL/CTI) -->
-    <div class="card" style="border-left: 5px solid #27ae60;">
-      <div class="card-header" style="border: none; padding-left: 0;">
-        <h2 style="color: #27ae60;">2. Hidratação Venosa (VIG e Volume)</h2>
-      </div>
-      
-      <div class="grid-3" style="margin-bottom: 12px;">
-        <div><label>Peso (kg)</label><input type="number" step="0.1" id="vig-peso" placeholder="Ex: 3.2"></div>
-        <div><label>VIG Alvo (mg/kg/min)</label><input type="number" id="vig-alvo" value="4" step="0.1"></div>
-        <div><label>Vol. Alvo (mL/kg/dia)</label><input type="number" id="vig-vol" value="80"></div>
-      </div>
-
-      <div class="grid-2">
-        <div><label>Na⁺ (mEq/kg/dia)</label><input type="number" id="vig-na" value="3" step="0.1"></div>
-        <div><label>K⁺ (mEq/kg/dia)</label><input type="number" id="vig-k" value="2" step="0.1"></div>
-        <div><label>Ca²⁺ 10% (mL/kg/dia)</label><input type="number" id="vig-ca" value="1" step="0.1"></div>
-        <div><label>Mg²⁺ 10% (mEq/kg/dia)</label><input type="number" id="vig-mg" value="0.2" step="0.1"></div>
-      </div>
-
-      <button class="calc-btn" id="btn-calc-vig" style="background: #27ae60;">Calcular VIG Diária</button>
-      <div id="res-vig" class="result-box"></div>
-    </div>
-
-    <!-- BLOCO 3: MISTURA DE SORO GLICOSADO -->
-    <div class="card" style="border-left: 5px solid #d35400;">
-      <div class="card-header" style="border: none; padding-left: 0;">
-        <h2 style="color: #d35400;">3. Preparo de Soro Glicosado (Mistura)</h2>
-      </div>
-      <div class="grid-2" style="margin-bottom: 12px;">
-        <div><label>Volume Total (mL)</label><input type="number" id="mix-vol" placeholder="Ex: 100"></div>
-        <div><label>Concentração Alvo (%)</label><input type="number" id="mix-alvo" placeholder="Ex: 10"></div>
-        <div><label>Solução A Disponível (%)</label><input type="number" id="mix-sga" value="5"></div>
-        <div><label>Solução B Disponível (%)</label><input type="number" id="mix-sgb" value="50"></div>
-      </div>
-      <button class="calc-btn" id="btn-calc-mix" style="background: #d35400;">Calcular Mistura de SG</button>
-      <div id="res-mix" class="result-box"></div>
-    </div>
-
-    <!-- BLOCO 4: DÉFICIT DE ÁGUA LIVRE (ATUALIZADO) -->
-    <div class="card" style="border-left: 5px solid #2980b9;">
-      <div class="card-header" style="border: none; padding-left: 0;">
-        <h2 style="color: #2980b9;">4. Déficit de Água Livre (Hipernatremia)</h2>
-      </div>
-      
-      <div class="grid-2" style="margin-bottom: 12px;">
-        <div>
-          <label>Perfil do Paciente</label>
-          <select id="agua-perfil" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-            <option value="rn">RN (até 28 dias) - ACT 75%</option>
-            <option value="lactente_crianca" selected>Lactente / Criança - ACT 60%</option>
-            <option value="adol_m">Adol. Masculino - ACT 60%</option>
-            <option value="adol_f">Adol. Feminino - ACT 50%</option>
-          </select>
-        </div>
-        <div><label>Peso (kg)</label><input type="number" id="agua-peso" step="0.1" placeholder="Ex: 15"></div>
-      </div>
-
-      <div class="grid-2">
-        <div><label>Na⁺ Atual (mEq/L)</label><input type="number" id="agua-na-atual" placeholder="Ex: 155"></div>
-        <div><label>Na⁺ Alvo (mEq/L)</label><input type="number" id="agua-na-alvo" value="140"></div>
-      </div>
-      
-      <button class="calc-btn" id="btn-calc-agua" style="background: #2980b9; margin-top: 15px;">Calcular Déficit e Plano</button>
-      <div id="res-agua" class="result-box"></div>
-    </div>
   `;
+
+  // === LÓGICA DE UI DOS DISTÚRBIOS ===
+  byId('dist-tipo')?.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const naGroup = byId('dist-na-group');
+    const kGroup = byId('dist-k-group');
+    
+    if (val === 'hiponatremia') {
+      naGroup.style.display = 'grid';
+      kGroup.style.display = 'none';
+      byId('dist-na-alvo').value = 135; // Alvo padrão seguro para déficit
+    } else if (val === 'hipernatremia') {
+      naGroup.style.display = 'grid';
+      kGroup.style.display = 'none';
+      byId('dist-na-alvo').value = 140; // Alvo padrão
+    } else if (val === 'hipopotassemia') {
+      naGroup.style.display = 'none';
+      kGroup.style.display = 'grid';
+    } else if (val === 'hiperpotassemia') {
+      naGroup.style.display = 'none';
+      kGroup.style.display = 'none';
+    }
+  });
 
   // Listeners
   byId('btn-calc-ht')?.addEventListener('click', handleHolTradicional);
   byId('btn-calc-hp')?.addEventListener('click', handleHolPlanilha);
   byId('btn-calc-vig')?.addEventListener('click', handleVIG);
   byId('btn-calc-mix')?.addEventListener('click', handleMix);
-  byId('btn-calc-agua')?.addEventListener('click', handleAgua);
+  byId('btn-calc-dist')?.addEventListener('click', handleDist);
 }
 
 // === HANDLERS DE CÁLCULO ===
@@ -330,31 +360,77 @@ function handleMix() {
   renderHTML('res-mix', html);
 }
 
-function handleAgua() {
-  const peso = parseFloat(byId('agua-peso').value);
-  const naAtual = parseFloat(byId('agua-na-atual').value);
-  const naAlvo = parseFloat(byId('agua-na-alvo').value);
-  const perfil = byId('agua-perfil').value;
+function handleDist() {
+  const p = {
+    tipo: byId('dist-tipo').value,
+    peso: parseFloat(byId('dist-peso').value),
+    perfil: byId('dist-perfil').value,
+    naAtual: parseFloat(byId('dist-na-atual').value),
+    naAlvo: parseFloat(byId('dist-na-alvo').value),
+    kDose: parseFloat(byId('dist-k-dose').value)
+  };
 
-  if (!peso || !naAtual || !naAlvo) return renderHTML('res-agua', 'Preencha peso e os valores de Sódio.');
+  const res = calcDisturbios(p);
+  if (res.error) return renderHTML('res-dist', `<span style="color:#c0392b; font-weight:bold;">${res.error}</span>`);
 
-  const res = calcAguaLivre(peso, naAtual, naAlvo, perfil);
-  if (res.error) return renderHTML('res-agua', `<span style="color:#c0392b; font-weight:bold;">${res.error}</span>`);
+  let html = '';
 
-  let html = `<strong>💧 Déficit de Água Livre Estimado</strong><br><br>`;
-  html += `• Fração de Água Corporal (ACT): <strong>${res.tbwFactor * 100}%</strong><br>`;
-  html += `• Volume a repor: <strong style="color: #2980b9; font-size: 1.1rem;">${res.deficitL.toFixed(2)} Litros (${res.deficitMl.toFixed(0)} mL)</strong><br><br>`;
+  if (p.tipo === 'hiponatremia') {
+    html += `<strong>📉 Hiponatremia: Correção Aguda</strong><br><br>`;
+    html += `<strong>1. Bolus Sintomático (Convulsão/Coma):</strong><br>`;
+    html += `• Bolus NaCl 3%: <strong style="color: #e74c3c;">${res.bolus3pct.toFixed(1)} mL</strong> IV em 20 minutos.<br>`;
+    html += `<span class="muted" style="font-size:0.8rem;">(Preparo do NaCl 3%: ${res.nacl3_ad.toFixed(1)} mL Água Destilada + ${res.nacl3_nacl20.toFixed(1)} mL NaCl 20%)</span><br><br>`;
+    
+    html += `<strong>2. Correção do Déficit Total (Lento):</strong><br>`;
+    html += `• Déficit Total de Sódio: <strong>${res.deficitMeq.toFixed(1)} mEq</strong><br>`;
+    html += `• Volume de NaCl 20%: <strong>${res.nacl20Vol.toFixed(1)} mL</strong><br>`;
+    html += `<span class="muted" style="font-size:0.8rem;">Adicionar ao volume de manutenção. Não corrigir mais que 10-12 mEq/L em 24h (Risco de Mielinólise Pontina).</span>`;
+  }
 
-  html += `<strong>📝 Orientações Clínicas de Reposição:</strong><br>`;
-  html += `<ul style="margin: 5px 0 0 15px; padding: 0; font-size: 0.9rem; line-height: 1.5; color: #34495e;">`;
-  html += `<li><strong style="color:#c0392b;">Hipovolemia?</strong> Se o paciente estiver instável, faça expansão com <strong>SF 0,9% (10-20 mL/kg)</strong> ANTES de repor água livre.</li>`;
-  html += `<li><strong>Solução recomendada:</strong> Soro Glicosado 5% (SG 5%) ou NaCl 0,45% (se houver déficit de sódio associado).</li>`;
-  html += `<li><strong>Tempo de infusão:</strong> Distribuir uniformemente ao longo de <strong>48 a 72 horas</strong>.</li>`;
-  html += `<li><strong>Velocidade de Redução:</strong> Queda máxima do Na⁺ de <strong>10 a 12 mEq/L em 24h</strong> (aprox. 0,5 mEq/L/hora). Evite correções rápidas (Risco de Edema Cerebral).</li>`;
-  html += `<li><strong>Atenção:</strong> Adicione este volume ao soro de manutenção basal do paciente.</li>`;
-  html += `</ul>`;
+  if (p.tipo === 'hipernatremia') {
+    html += `<strong>💧 Hipernatremia: Déficit de Água Livre</strong><br><br>`;
+    html += `• Fração de Água Corporal (ACT): <strong>${res.actFator * 100}%</strong><br>`;
+    html += `• Volume a repor: <strong style="color: #e74c3c; font-size: 1.1rem;">${res.deficitL.toFixed(2)} Litros (${res.deficitMl.toFixed(0)} mL)</strong><br><br>`;
+    
+    html += `<strong>📝 Orientações Clínicas:</strong><br>`;
+    html += `<ul style="margin: 5px 0 0 15px; padding: 0; font-size: 0.85rem; line-height: 1.5; color: #34495e;">`;
+    html += `<li><strong>Hipovolemia?</strong> Expanda primeiro com <strong>SF 0,9% (10-20 mL/kg)</strong>.</li>`;
+    html += `<li><strong>Solução:</strong> Água Livre (oral/SNE) ou SG 5% / NaCl 0,45% EV.</li>`;
+    html += `<li><strong>Tempo:</strong> Distribuir ao longo de <strong>48 a 72 horas</strong> + Manutenção basal.</li>`;
+    html += `<li><strong>Velocidade:</strong> Redução máxima de <strong>10 a 12 mEq/L em 24h</strong> (Risco de Edema Cerebral).</li>`;
+    html += `</ul>`;
+  }
 
-  renderHTML('res-agua', html);
+  if (p.tipo === 'hipopotassemia') {
+    html += `<strong>📉 Hipopotassemia: Reposição IV</strong><br><br>`;
+    html += `• Dose Total de K⁺: <strong>${res.meqTotais.toFixed(1)} mEq</strong><br>`;
+    html += `• Volume de KCl 19,1%: <strong style="color: #e74c3c;">${res.kcl19Vol.toFixed(1)} mL</strong><br><br>`;
+    html += `<strong>Regras de Infusão Periférica:</strong><br>`;
+    html += `• Diluir em no MÍNIMO: <strong>${res.volMinDiluicao.toFixed(0)} mL</strong> de SF 0,9%<br>`;
+    html += `• Concentração Máxima Periférica: 40 mEq/L<br>`;
+    html += `• Correr em <strong>2 a 4 horas</strong> (Velocidade máx: 0.3 a 0.5 mEq/kg/h).<br>`;
+    html += `<span class="muted" style="font-size:0.8rem;">* Em acesso central (CTI c/ ECG) pode-se usar concentrações maiores e velocidade até 1 mEq/kg/h.</span>`;
+  }
+
+  if (p.tipo === 'hiperpotassemia') {
+    html += `<strong>🚨 Hiperpotassemia Grave (Medidas Anti-K⁺)</strong><br><br>`;
+    
+    html += `<strong>1. Estabilização Miocárdica (Se alteração no ECG):</strong><br>`;
+    html += `• Gluconato de Cálcio 10%: <strong style="color: #e74c3c;">${res.glucCa.toFixed(1)} a ${res.glucCaMax.toFixed(1)} mL</strong> IV lento (5-10 min).<br>`;
+    html += `<span class="muted" style="font-size:0.8rem;">* Pode repetir em 5 min se ECG não normalizar.</span><br><br>`;
+    
+    html += `<strong>2. Deslocamento Intracelular (Glicoinsulina):</strong><br>`;
+    html += `• Insulina Regular: <strong>${res.insulina.toFixed(1)} UI</strong> IV<br>`;
+    html += `• Glicose: <strong>${res.g50.toFixed(1)} mL de Glicose 50%</strong> (ou ${res.g10.toFixed(0)} mL de Glicose 10%)<br>`;
+    html += `<span class="muted" style="font-size:0.8rem;">* Infundir em 30 minutos. Monitorizar HGT.</span><br><br>`;
+    
+    html += `<strong>3. Adjuvantes:</strong><br>`;
+    html += `• Bicarbonato de Sódio 8,4%: <strong>${res.bicarb.toFixed(1)} a ${(res.bicarb*2).toFixed(1)} mL</strong> IV (se acidose).<br>`;
+    html += `• Furosemida: <strong>${res.furo.toFixed(1)} a ${(res.furo*2).toFixed(1)} mg</strong> IV.<br>`;
+    html += `• Salbutamol: Nebulização (10 a 20mg).<br>`;
+  }
+
+  renderHTML('res-dist', html);
 }
 
 function renderHTML(elementId, htmlString) {
