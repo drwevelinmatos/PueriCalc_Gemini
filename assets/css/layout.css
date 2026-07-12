@@ -28,7 +28,7 @@ header {
 .app-header h1 {
   color: var(--primary);
   margin: 0;
-  font-size: 36px;
+  font-size: 28px;
 }
 
 .main-nav {
