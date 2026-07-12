@@ -31,18 +31,16 @@ header {
 
 .foto {
   position:absolute;
-  height: 100%;
-  padding-top: 20px;
   right:20px;
+  height: 100%;
   width: 200px;
-  height: 200px;
   object-fit: contain;
   flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
 
 .app-header h1 {
   color: var(--primary);
-  margin: 200px;
+  margin: 160px;
   font-size: 28px;
 }
 
