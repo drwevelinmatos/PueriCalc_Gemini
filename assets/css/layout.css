@@ -1,7 +1,6 @@
 .app-header {
   background: var(--white);
   padding: 20px 20px 20px;
-  /* Usamos flexbox para alinhar o ícone e o h1 perfeitamente lado a lado */
   display: flex;
   align-items: center;
   gap: 12px; 
@@ -23,6 +22,7 @@ header {
 
 .icon {
   position:absolute;
+  left:20px;
   width: 120px;
   height: 120px;
   object-fit: contain;
@@ -31,6 +31,7 @@ header {
 
 .foto {
   position:absolute;
+  right:20px;
   width: 120px;
   height: 120px;
   object-fit: contain;
