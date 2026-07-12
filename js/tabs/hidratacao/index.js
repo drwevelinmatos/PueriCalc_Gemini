@@ -8,6 +8,7 @@ export function renderHidratacao() {
   if (!container) return;
 
   container.innerHTML = `
+    <!-- BLOCO 1: HOLLIDAY-SEGAR -->
     <div class="card" style="border-left: 5px solid var(--primary);">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: var(--primary);">1. Soro de Manutenção (Holliday-Segar)</h2>
@@ -28,9 +29,29 @@ export function renderHidratacao() {
       </div>
 
       <div class="grid-3" style="margin-bottom: 12px;">
-        <div><label>Na⁺ (mEq/L)</label><input type="number" id="hol-na" value="130"></div>
-        <div><label>K⁺ (mEq/L)</label><input type="number" id="hol-k" value="30"></div>
-        <div><label>Mg²⁺ 10% (mEq/kg)</label><input type="number" id="hol-mg" value="0" step="0.1"></div>
+        <div>
+          <label>Na⁺</label>
+          <div style="display:flex; gap:5px;">
+            <input type="number" id="hol-na" value="130" style="width: 50%;">
+            <select id="hol-na-unit" style="width: 50%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.75rem;">
+              <option value="meq_l">mEq/L</option>
+              <option value="meq_kg">mEq/kg/dia</option>
+              <option value="meq_100">mEq/100mL</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>K⁺</label>
+          <div style="display:flex; gap:5px;">
+            <input type="number" id="hol-k" value="30" style="width: 50%;">
+            <select id="hol-k-unit" style="width: 50%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.75rem;">
+              <option value="meq_l">mEq/L</option>
+              <option value="meq_kg">mEq/kg/dia</option>
+              <option value="meq_100">mEq/100mL</option>
+            </select>
+          </div>
+        </div>
+        <div><label>Mg²⁺ 10% (mEq/kg)</label><input type="number" id="hol-mg" value="0" step="0.1" style="width: 100%;"></div>
       </div>
 
       <div class="grid-2">
@@ -42,6 +63,7 @@ export function renderHidratacao() {
       <div id="res-hol" class="result-box"></div>
     </div>
 
+    <!-- BLOCO 2: VIG E VOLUME (NEONATAL/CTI) -->
     <div class="card" style="border-left: 5px solid #27ae60;">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: #27ae60;">2. Hidratação Venosa (VIG e Volume)</h2>
@@ -64,6 +86,7 @@ export function renderHidratacao() {
       <div id="res-vig" class="result-box"></div>
     </div>
 
+    <!-- BLOCO 3: MISTURA DE SORO GLICOSADO -->
     <div class="card" style="border-left: 5px solid #8e44ad;">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: #8e44ad;">3. Preparo de Soro Glicosado (Mistura)</h2>
@@ -78,6 +101,7 @@ export function renderHidratacao() {
       <div id="res-mix" class="result-box"></div>
     </div>
 
+    <!-- BLOCO 4: DÉFICIT DE ÁGUA LIVRE -->
     <div class="card" style="border-left: 5px solid #2980b9;">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: #2980b9;">4. Déficit de Água Livre (Hipernatremia)</h2>
@@ -91,25 +115,61 @@ export function renderHidratacao() {
       <div id="res-agua" class="result-box"></div>
     </div>
 
+    <!-- BLOCO 5: OBSERVAÇÕES E DIRETRIZES -->
     <div class="card" style="background: #fffdf5; border: 1px solid #f39c12;">
       <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
-        <h2 style="color: #945d00; font-size: 1rem;">📌 Diretrizes e Observações Clínicas</h2>
+        <h2 style="color: #945d00; font-size: 1rem;">📌 Doses Sugeridas por Faixa Etária</h2>
       </div>
+      
+      <!-- Tabela Importada do Excel -->
+      <div style="overflow-x: auto; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; background: #fff; min-width: 650px;">
+          <thead>
+            <tr style="background: #f39c12; color: #fff;">
+              <th style="padding: 8px; border-right: 1px solid #ddd;">Idade</th>
+              <th style="padding: 8px; border-right: 1px solid #ddd;">Glicose<br>(g/kg/dia)</th>
+              <th style="padding: 8px; border-right: 1px solid #ddd;">NaCl 20%<br>(mEq/L)</th>
+              <th style="padding: 8px; border-right: 1px solid #ddd;">KCl 19,1%<br>(mEq/L)</th>
+              <th style="padding: 8px; border-right: 1px solid #ddd;">Ca²⁺ 10%<br>(mL/kg/dia)</th>
+              <th style="padding: 8px; border-right: 1px solid #ddd;">Mg²⁺ 10%<br>(mEq/kg/dia)</th>
+              <th style="padding: 8px;">Solução mais usada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">RN pré-termo</td><td style="padding: 8px; border-right: 1px solid #eee;">10–12</td><td style="padding: 8px; border-right: 1px solid #eee;">30–40</td><td style="padding: 8px; border-right: 1px solid #eee;">10–15</td><td style="padding: 8px; border-right: 1px solid #eee;">0,5–1,0</td><td style="padding: 8px; border-right: 1px solid #eee;">0,3–0,5</td><td style="padding: 8px;">SG 10% ou 5% + NaCl 0,3–0,45% + KCl</td></tr>
+            <tr style="border-bottom: 1px solid #eee; background: #fafafa;"><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">RN a termo</td><td style="padding: 8px; border-right: 1px solid #eee;">8–10</td><td style="padding: 8px; border-right: 1px solid #eee;">30–50</td><td style="padding: 8px; border-right: 1px solid #eee;">10–20</td><td style="padding: 8px; border-right: 1px solid #eee;">0,3–0,5</td><td style="padding: 8px; border-right: 1px solid #eee;">0,3–0,5</td><td style="padding: 8px;">SG 5% + NaCl 0,45% + KCl</td></tr>
+            <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">Lactentes</td><td style="padding: 8px; border-right: 1px solid #eee;">7–9</td><td style="padding: 8px; border-right: 1px solid #eee;">30–50</td><td style="padding: 8px; border-right: 1px solid #eee;">10–20</td><td style="padding: 8px; border-right: 1px solid #eee;">0,3–0,4</td><td style="padding: 8px; border-right: 1px solid #eee;">0,25–0,4</td><td style="padding: 8px;">SG 5% + NaCl 0,45% + KCl</td></tr>
+            <tr style="border-bottom: 1px solid #eee; background: #fafafa;"><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">Pré-escolar</td><td style="padding: 8px; border-right: 1px solid #eee;">6–7</td><td style="padding: 8px; border-right: 1px solid #eee;">30–50</td><td style="padding: 8px; border-right: 1px solid #eee;">10–20</td><td style="padding: 8px; border-right: 1px solid #eee;">0,2–0,3</td><td style="padding: 8px; border-right: 1px solid #eee;">0,2–0,3</td><td style="padding: 8px;">SG 5% + NaCl 0,45% ou 0,9% + KCl</td></tr>
+            <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">Escolar</td><td style="padding: 8px; border-right: 1px solid #eee;">5–6</td><td style="padding: 8px; border-right: 1px solid #eee;">40–60</td><td style="padding: 8px; border-right: 1px solid #eee;">10–20</td><td style="padding: 8px; border-right: 1px solid #eee;">0,2–0,25</td><td style="padding: 8px; border-right: 1px solid #eee;">0,2–0,25</td><td style="padding: 8px;">SG 5% + NaCl 0,9% + KCl</td></tr>
+            <tr><td style="padding: 8px; border-right: 1px solid #eee; font-weight: bold;">Adolescente</td><td style="padding: 8px; border-right: 1px solid #eee;">4–5</td><td style="padding: 8px; border-right: 1px solid #eee;">50–70</td><td style="padding: 8px; border-right: 1px solid #eee;">10–20</td><td style="padding: 8px; border-right: 1px solid #eee;">0,15–0,2</td><td style="padding: 8px; border-right: 1px solid #eee;">0,15–0,2</td><td style="padding: 8px;">SG 5% + NaCl 0,9% + KCl</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <div style="font-size: 0.85rem; line-height: 1.5; color: #5f7382;">
-        <p><strong>👶 Dicas Clínicas:</strong><br>
-        • RN e lactentes pequenos possuem maior risco de sobrecarga hídrica, avalie rigorosamente o volume.<br>
-        • Pacientes neurológicos, pós-operatórios ou sépticos: Preferir soluções isotônicas (ex: NaCl 0,9%) para evitar hiponatremia.</p>
-        
         <p><strong>💧 Soro Clássico Pediátrico ("1000/40/10"):</strong><br>
         1000 mL de SG 5% + 40 mEq de Na⁺ + 10 mEq de K⁺</p>
-
         <p><strong>⚖️ Osmolaridade de Manutenção:</strong><br>
-        • <strong>Hipo-osmolar</strong> (Ex: SG5% + NaCl 0,2%): Uso cada vez mais restrito (risco de hiponatremia iatrogênica).<br>
-        • <strong>Iso/Normo-osmolar</strong> (Ex: SG5% + NaCl 0,9%): Recomendado pelas diretrizes modernas (AAP) para manutenção hospitalar e profilaxia de hiponatremia.<br>
-        • <strong>Hiper-osmolar</strong>: Usado em correções específicas e VIG muito alto (pode requerer acesso central).</p>
+        • <strong>Hipo-osmolar</strong>: Uso restrito (risco de hiponatremia iatrogênica).<br>
+        • <strong>Iso/Normo-osmolar</strong>: Recomendado pelas diretrizes (AAP) para profilaxia de hiponatremia hospitalar.</p>
       </div>
     </div>
   `;
+
+  // === PROTEÇÕES DE SEGURANÇA: Alterar os inputs quando a unidade muda ===
+  byId('hol-na-unit')?.addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (v === 'meq_l') byId('hol-na').value = 130;
+    else if (v === 'meq_kg') byId('hol-na').value = 3;
+    else if (v === 'meq_100') byId('hol-na').value = 3;
+  });
+
+  byId('hol-k-unit')?.addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (v === 'meq_l') byId('hol-k').value = 30;
+    else if (v === 'meq_kg') byId('hol-k').value = 2;
+    else if (v === 'meq_100') byId('hol-k').value = 2;
+  });
 
   // Listeners dos Botões
   byId('btn-calc-hol')?.addEventListener('click', handleHol);
@@ -124,8 +184,10 @@ function handleHol() {
   const params = {
     peso: parseFloat(byId('hol-peso').value),
     pctHol: parseFloat(byId('hol-pct').value),
-    naMeqL: parseFloat(byId('hol-na').value),
-    kMeqL: parseFloat(byId('hol-k').value),
+    naVal: parseFloat(byId('hol-na').value),
+    naUnit: byId('hol-na-unit').value,
+    kVal: parseFloat(byId('hol-k').value),
+    kUnit: byId('hol-k-unit').value,
     caMlKg: parseFloat(byId('hol-ca').value),
     mgMeqKg: parseFloat(byId('hol-mg').value),
     glicGKg: parseFloat(byId('hol-glic').value)
