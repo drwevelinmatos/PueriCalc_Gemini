@@ -28,7 +28,7 @@ header {
 .app-header h1 {
   color: var(--primary);
   margin: 0;
-  /* Como não declaramos font-size aqui, ele vai manter exatamente o tamanho que já estava assumindo por padrão */
+  font-size: 36px;
 }
 
 .main-nav {
