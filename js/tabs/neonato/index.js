@@ -1,3 +1,4 @@
+// tabs/neonato/index.js
 import { byId, showResult } from '../../utils/dom.js';
 import {
   calculateIGAndDPP,
@@ -6,6 +7,8 @@ import {
   calculateIctericiaSBP2021
 } from './logic.js';
 
+let weightChart = null;
+
 export function renderNeonato() {
   const root = byId('tab-neo');
   if (!root) return;
@@ -13,217 +16,104 @@ export function renderNeonato() {
   root.innerHTML = `
     <div class="card">
       <div class="card-header"><h2>Idade Gestacional e DPP</h2></div>
-
       <label>Modo de Entrada</label>
       <select id="neo-modo">
         <option value="dum">DUM (Data Última Menstruação)</option>
         <option value="usg">USG 1º Trimestre</option>
       </select>
-
-      <div id="box-dum">
-        <label>Data da DUM</label>
-        <input type="date" id="neo-dum">
-      </div>
-
+      <div id="box-dum"><label>Data da DUM</label><input type="date" id="neo-dum"></div>
       <div id="box-usg" style="display:none">
-        <label>Data do USG</label>
-        <input type="date" id="neo-usg-data">
-
+        <label>Data do USG</label><input type="date" id="neo-usg-data">
         <div class="grid-2">
-          <div>
-            <label>Semanas no USG</label>
-            <input type="number" id="neo-usg-sem" min="0" step="1">
-          </div>
-          <div>
-            <label>Dias no USG</label>
-            <input type="number" id="neo-usg-dias" min="0" max="6" step="1">
-          </div>
+          <div><label>Semanas no USG</label><input type="number" id="neo-usg-sem" min="0" step="1"></div>
+          <div><label>Dias no USG</label><input type="number" id="neo-usg-dias" min="0" max="6" step="1"></div>
         </div>
       </div>
-
       <label>Data para cálculo</label>
       <input type="date" id="neo-ig-calc">
-
       <button class="calc-btn" id="btn-neo-ig">Calcular IG e DPP</button>
       <div id="res-neo-ig" class="result-box"></div>
     </div>
 
     <div class="card">
       <div class="card-header"><h2>Idade Gestacional Corrigida Pós-Nascimento</h2></div>
-
       <div class="grid-2">
-        <div>
-          <label>IG ao nascimento (semanas)</label>
-          <input type="number" id="neo-ig-nasc-sem" min="0" step="1">
-        </div>
-        <div>
-          <label>IG ao nascimento (dias)</label>
-          <input type="number" id="neo-ig-nasc-dias" min="0" max="6" step="1">
-        </div>
+        <div><label>IG ao nascimento (semanas)</label><input type="number" id="neo-ig-nasc-sem" min="0" step="1"></div>
+        <div><label>IG ao nascimento (dias)</label><input type="number" id="neo-ig-nasc-dias" min="0" max="6" step="1"></div>
       </div>
-
       <div class="grid-2">
-        <div>
-          <label>Data de nascimento</label>
-          <input type="date" id="neo-data-nasc">
-        </div>
-        <div>
-          <label>Data para cálculo</label>
-          <input type="date" id="neo-data-posnatal">
-        </div>
+        <div><label>Data de nascimento</label><input type="date" id="neo-data-nasc"></div>
+        <div><label>Data para cálculo</label><input type="date" id="neo-data-posnatal"></div>
       </div>
-
       <button class="calc-btn" id="btn-neo-igcorr">Calcular Corrigida Pós-Natal</button>
       <div id="res-neo-igcorr" class="result-box"></div>
     </div>
 
     <div class="card">
       <div class="card-header"><h2>Peso para Idade Gestacional (INTERGROWTH-21st)</h2></div>
-
       <div class="grid-3">
-        <div>
-          <label>Sexo</label>
-          <select id="neo-ig-sexo">
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-          </select>
-        </div>
-        <div>
-          <label>IG ao nascer (semanas)</label>
-          <input type="number" id="neo-lub-ig-sem" min="24" max="44" step="1">
-        </div>
-        <div>
-          <label>IG ao nascer (dias)</label>
-          <input type="number" id="neo-lub-ig-dias" min="0" max="6" step="1">
-        </div>
+        <div><label>Sexo</label><select id="neo-ig-sexo"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+        <div><label>IG ao nascer (semanas)</label><input type="number" id="neo-lub-ig-sem" min="24" max="44" step="1"></div>
+        <div><label>IG ao nascer (dias)</label><input type="number" id="neo-lub-ig-dias" min="0" max="6" step="1"></div>
       </div>
-
       <label>Peso ao nascer (g)</label>
       <input type="number" id="neo-lub-peso" min="200" step="1">
-
       <button class="calc-btn" id="btn-neo-intergrowth">Classificar (PIG/AIG/GIG)</button>
       <div id="res-neo-lub" class="result-box"></div>
     </div>
-// Adicione isto à função renderNeonato() na sua aba de Neonatologia
 
-export function renderNeonato() {
-  const container = document.getElementById('tab-neonato');
-  if (!container) return;
-
-  container.innerHTML = `
     <div class="card">
-      <div class="card-header">
-        <h2>Calculadora de Perda de Peso Neonatal</h2>
+      <div class="card-header"><h2>Calculadora de Perda de Peso Neonatal</h2></div>
+      <div class="grid-2">
+        <div><label>Peso ao Nascer (kg)</label><input type="number" step="0.001" id="start_birth_weight" placeholder="Ex: 3.200"></div>
+        <div><label>Data/Hora Nascimento</label><input type="datetime-local" id="start_birth_datetime"></div>
       </div>
-      
-      <form id="form_cresc_neo">
-        <div class="grid-2">
-            <div class="col">
-                <label>Peso ao Nascer (kg ou g)</label>
-                <input type="number" step="0.001" id="start_birth_weight" placeholder="Ex: 3.200" required />
-            </div>
-            <div class="col">
-                <label>Data/Hora Nascimento</label>
-                <input type="datetime-local" id="start_birth_datetime" required />
-            </div>
-        </div>
-
-        <div class="grid-2" style="margin-top: 15px;">
-            <div class="col">
-                <label>Peso Atual (kg ou g)</label>
-                <input type="number" step="0.001" id="start_measurement_weight" placeholder="Ex: 2.950" required />
-            </div>
-            <div class="col">
-                <label>Data/Hora Medição</label>
-                <input type="datetime-local" id="start_measurement_datetime" required />
-            </div>
-        </div>
-
-        <button type="button" class="calc-btn" id="btn-calc-peso-neo" style="margin-top: 20px;">Calcular Gráfico</button>
-      </form>
-
-      <div style="margin-top: 25px; padding: 10px;">
-        <canvas id="weightChart" style="max-height: 300px;"></canvas>
+      <div class="grid-2" style="margin-top: 10px;">
+        <div><label>Peso Atual (kg)</label><input type="number" step="0.001" id="start_measurement_weight" placeholder="Ex: 2.950"></div>
+        <div><label>Data/Hora Medição</label><input type="datetime-local" id="start_measurement_datetime"></div>
       </div>
-      <div id="res-perda-peso" class="result-box" style="margin-top: 15px; font-weight: bold;"></div>
+      <button class="calc-btn" id="btn-calc-peso-neo" style="margin-top: 15px;">Calcular Gráfico</button>
+      <div style="margin-top: 20px;"><canvas id="weightChart" style="max-height: 250px;"></canvas></div>
+      <div id="res-perda-peso" class="result-box" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
-  `;
 
-  // Inicializar o gráfico após o carregamento da aba
-  setTimeout(() => initWeightChart(), 100);
-  document.getElementById('btn-calc-peso-neo').addEventListener('click', processarCalculoNeo);
-}
-
-// === LÓGICA DO GRÁFICO E CÁLCULO ===
-let weightChart = null;
-
-function initWeightChart() {
-    const ctx = document.getElementById('weightChart').getContext('2d');
-    const datasets = [
-        { label: 'P95 (Alerta)', data: [{x:0,y:0}, {x:24,y:5}, {x:48,y:8}, {x:72,y:10}, {x:96,y:10.5}], borderColor: '#e74c3c', fill: false },
-        { label: 'P50 (Média)', data: [{x:0,y:0}, {x:24,y:2.5}, {x:48,y:4.5}, {x:72,y:5.5}, {x:96,y:6}], borderColor: '#27ae60', fill: false },
-        { label: 'Paciente', data: [], type: 'scatter', backgroundColor: '#2980b9', pointRadius: 8 }
-    ];
-
-    weightChart = new Chart(ctx, {
-        type: 'line',
-        data: { datasets },
-        options: { responsive: true, scales: { x: { title: { display: true, text: 'Horas de Vida' } }, y: { title: { display: true, text: 'Perda (%)' } } } }
-    });
-}
-
-function processarCalculoNeo() {
-    const bW = parseFloat(document.getElementById('start_birth_weight').value);
-    const cW = parseFloat(document.getElementById('start_measurement_weight').value);
-    const bD = new Date(document.getElementById('start_birth_datetime').value);
-    const cD = new Date(document.getElementById('start_measurement_datetime').value);
-
-    if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos.");
-
-    const perda = ((bW - cW) / bW) * 100;
-    const horas = (cD - bD) / (1000 * 60 * 60);
-
-    weightChart.data.datasets[2].data = [{ x: horas, y: perda }];
-    weightChart.update();
-
-    document.getElementById('res-perda-peso').innerHTML = `Perda de Peso: ${perda.toFixed(1)}% em ${Math.floor(horas)} horas de vida.`;
-}
     <div class="card">
       <div class="card-header"><h2>Icterícia Neonatal (parâmetros SBP)</h2></div>
-
       <div class="grid-2">
-        <div>
-          <label>IG (semanas)</label>
-          <input type="number" id="ict-ig" min="24" step="1">
-        </div>
-        <div>
-          <label>Horas de vida</label>
-          <input type="number" id="ict-horas" min="0" step="1">
-        </div>
+        <div><label>IG (semanas)</label><input type="number" id="ict-ig" min="24" step="1"></div>
+        <div><label>Horas de vida</label><input type="number" id="ict-horas" min="0" step="1"></div>
       </div>
-
       <label>Bilirrubina Total (mg/dL)</label>
       <input type="number" id="ict-bt" step="0.1" min="0">
-
       <label>Fatores de risco</label>
       <div style="margin-top:8px">
-        <label style="font-weight:600;color:#2c3e50"><input type="checkbox" class="ict-risk"> Hemólise</label>
-        <label style="font-weight:600;color:#2c3e50"><input type="checkbox" class="ict-risk"> Sepse / instabilidade clínica</label>
-        <label style="font-weight:600;color:#2c3e50"><input type="checkbox" class="ict-risk"> Prematuridade limítrofe</label>
-        <label style="font-weight:600;color:#2c3e50"><input type="checkbox" class="ict-risk"> Hipoalbuminemia</label>
+        <label><input type="checkbox" class="ict-risk"> Hemólise</label>
+        <label><input type="checkbox" class="ict-risk"> Sepse / instabilidade clínica</label>
+        <label><input type="checkbox" class="ict-risk"> Prematuridade limítrofe</label>
+        <label><input type="checkbox" class="ict-risk"> Hipoalbuminemia</label>
       </div>
-
       <button class="calc-btn" id="btn-neo-ict">Avaliar Conduta</button>
       <div id="res-ict" class="result-box"></div>
-
-      <div class="muted warn">
-        O bloco ≥35 semanas continua pronto para receber a tabela oficial completa por horas de vida.
-      </div>
     </div>
   `;
 
+  initWeightChart();
   bindNeonatoEvents();
   toggleNeoInputMode();
+}
+
+function initWeightChart() {
+  const ctx = document.getElementById('weightChart')?.getContext('2d');
+  if(!ctx) return;
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: [
+      { label: 'P95 (Alerta)', data: [{x:0,y:0}, {x:24,y:5}, {x:48,y:8}, {x:72,y:10}, {x:96,y:10.5}], borderColor: '#e74c3c', fill: false },
+      { label: 'P50 (Média)', data: [{x:0,y:0}, {x:24,y:2.5}, {x:48,y:4.5}, {x:72,y:5.5}, {x:96,y:6}], borderColor: '#27ae60', fill: false },
+      { label: 'Paciente', data: [], type: 'scatter', backgroundColor: '#2980b9', pointRadius: 8 }
+    ]},
+    options: { responsive: true, scales: { x: { title: { display: true, text: 'Horas de Vida' } }, y: { title: { display: true, text: 'Perda (%)' } } } }
+  });
 }
 
 function bindNeonatoEvents() {
@@ -232,15 +122,26 @@ function bindNeonatoEvents() {
   byId('btn-neo-igcorr')?.addEventListener('click', handleCalculateCorrectedIG);
   byId('btn-neo-intergrowth')?.addEventListener('click', handleCalculateIntergrowth);
   byId('btn-neo-ict')?.addEventListener('click', handleCalculateIctericia);
+  byId('btn-calc-peso-neo')?.addEventListener('click', processarCalculoNeo);
 }
 
 function toggleNeoInputMode() {
   const mode = byId('neo-modo')?.value || 'dum';
-  const dumBox = byId('box-dum');
-  const usgBox = byId('box-usg');
+  byId('box-dum').style.display = mode === 'dum' ? 'block' : 'none';
+  byId('box-usg').style.display = mode === 'usg' ? 'block' : 'none';
+}
 
-  if (dumBox) dumBox.style.display = mode === 'dum' ? 'block' : 'none';
-  if (usgBox) usgBox.style.display = mode === 'usg' ? 'block' : 'none';
+function processarCalculoNeo() {
+    const bW = parseFloat(byId('start_birth_weight').value);
+    const cW = parseFloat(byId('start_measurement_weight').value);
+    const bD = new Date(byId('start_birth_datetime').value);
+    const cD = new Date(byId('start_measurement_datetime').value);
+    if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos.");
+    const perda = ((bW - cW) / bW) * 100;
+    const horas = (cD - bD) / (1000 * 60 * 60);
+    weightChart.data.datasets[2].data = [{ x: horas, y: perda }];
+    weightChart.update();
+    byId('res-perda-peso').innerHTML = `Perda: ${perda.toFixed(1)}% em ${Math.floor(horas)}h de vida.`;
 }
 
 function handleCalculateIGDPP() {
@@ -252,15 +153,8 @@ function handleCalculateIGDPP() {
     usgDays: Number(byId('neo-usg-dias')?.value),
     calcDate: byId('neo-ig-calc')?.value
   });
-
-  if (result.error) {
-    return showResult('res-neo-ig', result.error);
-  }
-
-  showResult(
-    'res-neo-ig',
-    `IG na data informada: ${result.weeks} semanas e ${result.days} dias\nDPP estimada: ${result.dpp.toLocaleDateString('pt-BR')}`
-  );
+  if (result.error) return showResult('res-neo-ig', result.error);
+  showResult('res-neo-ig', `IG: ${result.weeks} sem ${result.days} dias. DPP: ${result.dpp.toLocaleDateString('pt-BR')}`);
 }
 
 function handleCalculateCorrectedIG() {
@@ -270,15 +164,8 @@ function handleCalculateCorrectedIG() {
     birthDate: byId('neo-data-nasc')?.value,
     calcDate: byId('neo-data-posnatal')?.value
   });
-
-  if (result.error) {
-    return showResult('res-neo-igcorr', result.error);
-  }
-
-  showResult(
-    'res-neo-igcorr',
-    `IG corrigida: ${result.weeks} semanas e ${result.days} dias\nTempo pós-natal considerado: ${result.postnatalDays} dia(s)`
-  );
+  if (result.error) return showResult('res-neo-igcorr', result.error);
+  showResult('res-neo-igcorr', `IG Corrigida: ${result.weeks} sem ${result.days} dias.`);
 }
 
 function handleCalculateIntergrowth() {
@@ -288,95 +175,18 @@ function handleCalculateIntergrowth() {
     days: Number(byId('neo-lub-ig-dias')?.value),
     weightGrams: Number(byId('neo-lub-peso')?.value)
   });
-
-  if (result.error) {
-    return showResult('res-neo-lub', result.error);
-  }
-
-  const sexLabel = byId('neo-ig-sexo')?.value === 'M' ? 'Meninos' : 'Meninas';
-  const weightGrams = Number(byId('neo-lub-peso')?.value);
-
-  showResult(
-    'res-neo-lub',
-    [
-      `INTERGROWTH-21st (${sexLabel} • ${result.domain === 'veryPreterm' ? 'Very-Preterm' : 'Newborn'})`,
-      `IG: ${result.key}`,
-      `Peso: ${weightGrams} g (${(weightGrams / 1000).toFixed(3)} kg)`,
-      '',
-      `P10: ${result.p10Kg.toFixed(2)} kg (${Math.round(result.p10Kg * 1000)} g)`,
-      `P90: ${result.p90Kg.toFixed(2)} kg (${Math.round(result.p90Kg * 1000)} g)`,
-      '',
-      `Classificação: ${result.classification}`
-    ].join('\n')
-  );
+  if (result.error) return showResult('res-neo-lub', result.error);
+  showResult('res-neo-lub', `Classificação: ${result.classification}`);
 }
 
 function handleCalculateIctericia() {
-  const hasRisk = Array.from(document.querySelectorAll('.ict-risk')).some((el) => el.checked);
-
+  const hasRisk = Array.from(document.querySelectorAll('.ict-risk')).some(el => el.checked);
   const result = calculateIctericiaSBP2021({
     gaWeeks: Number(byId('ict-ig')?.value),
     hours: Number(byId('ict-horas')?.value),
     bt: Number(byId('ict-bt')?.value),
     hasRisk
   });
-
-  if (result.error) {
-    return showResult('res-ict', result.error);
-  }
-
-  const bt = Number(byId('ict-bt')?.value);
-  const ga = Number(byId('ict-ig')?.value);
-  const hours = Number(byId('ict-horas')?.value);
-
-  if (result.group === 'pre35') {
-    return showResult(
-      'res-ict',
-      [
-        'SBP 2021 — RN <35 semanas',
-        `IG: ${ga} sem | Horas: ${hours}h | Risco: ${hasRisk ? 'Sim (limite inferior)' : 'Não (limite superior)'}`,
-        `BT: ${bt.toFixed(1)} mg/dL`,
-        '',
-        `Limiar fototerapia: ${result.photoThreshold.toFixed(1)} mg/dL`,
-        `Limiar exsanguíneo: ${result.exchThreshold.toFixed(1)} mg/dL`,
-        '',
-        `Conduta: ${result.recommendation}`,
-        '',
-        result.guidance || ''
-      ].join('\n')
-    );
-  }
-
-  if (result.group === 'ge35-unfilled') {
-    return showResult(
-      'res-ict',
-      [
-        'SBP 2021 — RN ≥35 semanas',
-        'Sem tabela preenchida para essa idade em horas/IG.',
-        '',
-        `Conduta: ${result.recommendation || 'Revisar manualmente.'}`
-      ].join('\n')
-    );
-  }
-
-  return showResult(
-    'res-ict',
-    [
-      'SBP 2021 — RN ≥35 semanas',
-      `Grupo IG: ${result.igGroupName}`,
-      `Horas: ${hours}h`,
-      `BT: ${bt.toFixed(1)} mg/dL`,
-      '',
-      `Limiar fototerapia: ${result.photoThreshold.toFixed(1)} mg/dL`,
-      `Limiar exsanguíneo: ${result.exchThreshold.toFixed(1)} mg/dL`,
-      '',
-      hasRisk
-        ? `Fator de risco: Sim — limiares reduzidos em ${result.riskReduction} mg/dL`
-        : 'Fator de risco: Não',
-      '',
-      `Conduta: ${result.recommendation}`,
-      '',
-      result.guidance || ''
-    ].join('\n')
-  );
+  if (result.error) return showResult('res-ict', result.error);
+  showResult('res-ict', `Conduta: ${result.recommendation}`);
 }
