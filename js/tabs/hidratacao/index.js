@@ -161,17 +161,31 @@ export function renderHidratacao() {
       <div id="res-mix" class="result-box"></div>
     </div>
 
-    <!-- BLOCO 4: DÉFICIT DE ÁGUA LIVRE -->
+    <!-- BLOCO 4: DÉFICIT DE ÁGUA LIVRE (ATUALIZADO) -->
     <div class="card" style="border-left: 5px solid #2980b9;">
       <div class="card-header" style="border: none; padding-left: 0;">
         <h2 style="color: #2980b9;">4. Déficit de Água Livre (Hipernatremia)</h2>
       </div>
-      <div class="grid-3">
-        <div><label>Peso (kg)</label><input type="number" id="agua-peso" step="0.1"></div>
+      
+      <div class="grid-2" style="margin-bottom: 12px;">
+        <div>
+          <label>Perfil do Paciente</label>
+          <select id="agua-perfil" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+            <option value="rn">RN (até 28 dias) - ACT 75%</option>
+            <option value="lactente_crianca" selected>Lactente / Criança - ACT 60%</option>
+            <option value="adol_m">Adol. Masculino - ACT 60%</option>
+            <option value="adol_f">Adol. Feminino - ACT 50%</option>
+          </select>
+        </div>
+        <div><label>Peso (kg)</label><input type="number" id="agua-peso" step="0.1" placeholder="Ex: 15"></div>
+      </div>
+
+      <div class="grid-2">
         <div><label>Na⁺ Atual (mEq/L)</label><input type="number" id="agua-na-atual" placeholder="Ex: 155"></div>
         <div><label>Na⁺ Alvo (mEq/L)</label><input type="number" id="agua-na-alvo" value="140"></div>
       </div>
-      <button class="calc-btn" id="btn-calc-agua" style="background: #2980b9;">Calcular Déficit</button>
+      
+      <button class="calc-btn" id="btn-calc-agua" style="background: #2980b9; margin-top: 15px;">Calcular Déficit e Plano</button>
       <div id="res-agua" class="result-box"></div>
     </div>
   `;
@@ -320,15 +334,25 @@ function handleAgua() {
   const peso = parseFloat(byId('agua-peso').value);
   const naAtual = parseFloat(byId('agua-na-atual').value);
   const naAlvo = parseFloat(byId('agua-na-alvo').value);
+  const perfil = byId('agua-perfil').value;
 
-  if (!peso || !naAtual || !naAlvo) return renderHTML('res-agua', 'Preencha todos os campos para o déficit.');
+  if (!peso || !naAtual || !naAlvo) return renderHTML('res-agua', 'Preencha peso e os valores de Sódio.');
 
-  const res = calcAguaLivre(peso, naAtual, naAlvo);
-  if (res.error) return renderHTML('res-agua', `<span style="color:#f39c12; font-weight:bold;">${res.error}</span>`);
+  const res = calcAguaLivre(peso, naAtual, naAlvo, perfil);
+  if (res.error) return renderHTML('res-agua', `<span style="color:#c0392b; font-weight:bold;">${res.error}</span>`);
 
   let html = `<strong>💧 Déficit de Água Livre Estimado</strong><br><br>`;
+  html += `• Fração de Água Corporal (ACT): <strong>${res.tbwFactor * 100}%</strong><br>`;
   html += `• Volume a repor: <strong style="color: #2980b9; font-size: 1.1rem;">${res.deficitL.toFixed(2)} Litros (${res.deficitMl.toFixed(0)} mL)</strong><br><br>`;
-  html += `<span style="font-size:0.85rem; color: #7f8c8d;"><strong>Atenção:</strong> A correção da hipernatremia deve ser lenta (redução máxima de 10-12 mEq/L em 24h) para evitar edema cerebral. Distribua este volume ao longo de 48 a 72 horas associado ao volume de manutenção basal.</span>`;
+
+  html += `<strong>📝 Orientações Clínicas de Reposição:</strong><br>`;
+  html += `<ul style="margin: 5px 0 0 15px; padding: 0; font-size: 0.9rem; line-height: 1.5; color: #34495e;">`;
+  html += `<li><strong style="color:#c0392b;">Hipovolemia?</strong> Se o paciente estiver instável, faça expansão com <strong>SF 0,9% (10-20 mL/kg)</strong> ANTES de repor água livre.</li>`;
+  html += `<li><strong>Solução recomendada:</strong> Soro Glicosado 5% (SG 5%) ou NaCl 0,45% (se houver déficit de sódio associado).</li>`;
+  html += `<li><strong>Tempo de infusão:</strong> Distribuir uniformemente ao longo de <strong>48 a 72 horas</strong>.</li>`;
+  html += `<li><strong>Velocidade de Redução:</strong> Queda máxima do Na⁺ de <strong>10 a 12 mEq/L em 24h</strong> (aprox. 0,5 mEq/L/hora). Evite correções rápidas (Risco de Edema Cerebral).</li>`;
+  html += `<li><strong>Atenção:</strong> Adicione este volume ao soro de manutenção basal do paciente.</li>`;
+  html += `</ul>`;
 
   renderHTML('res-agua', html);
 }
