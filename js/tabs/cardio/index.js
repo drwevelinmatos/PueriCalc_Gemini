@@ -116,7 +116,7 @@ function classificarPA() {
 // === LÓGICA < 1 ANO (TASKFORCE_DATA) ===
 function processarMenor1Ano(idadeMeses, sexo, pas, pad) {
     const c = TASKFORCE_DATA[sexo];
-    if (!c) return showResult('res-pa', "Dados de lactente não encontrados no banco.");
+    if (!c) return renderHTML('res-pa', "Dados de lactente não encontrados no banco.");
 
     // Interpolação para encontrar as referências exatas baseadas nos meses decimais
     const ref = {
@@ -188,11 +188,11 @@ function processarMaior1Ano(idadeAnos, est, sexo, pas, pad) {
 
     // 2. Buscar Referência no Banco de Dados
     if (!SBP_DATA[sexo] || !SBP_DATA[sexo][idadeTabela]) {
-        return showResult('res-pa', "Dados de referência não encontrados no SBP_DATA.");
+        return renderHTML('res-pa', "Dados de referência não encontrados no SBP_DATA.");
     }
     const ref = SBP_DATA[sexo][idadeTabela][pctEstTabela];
     if (!ref) {
-        return showResult('res-pa', `Faltam os dados para P${pctEstTabela} na idade de ${idadeTabela} anos no SBP_DATA.`);
+        return renderHTML('res-pa', `Faltam os dados para P${pctEstTabela} na idade de ${idadeTabela} anos no SBP_DATA.`);
     }
 
     // 3. Classificação Rigorosa SBP (Aplica regra do "O que for menor")
@@ -239,13 +239,22 @@ function processarMaior1Ano(idadeAnos, est, sexo, pas, pad) {
     // 4. Exibir
     const p50Str = (ref.pas50 && ref.pad50) ? `${ref.pas50} / ${ref.pad50}` : `Indisponível`;
     
+    const pas95Mais12 = ref.pas95 + 12;
+    const pad95Mais12 = ref.pad95 + 12;
+
+    let avisoAdolescente = "";
+    if (idadeAnos >= 13) {
+        avisoAdolescente = `\n<span style="font-size: 0.85em; color: #5f7382; display: block; margin-top: 10px;">*Nota: Para pacientes ≥ 13 anos, a classificação SBP utiliza limites fixos (Estágio 1: ≥130/80 mmHg; Estágio 2: ≥140/90 mmHg).</span>`;
+    }
+    
     const html = `<strong>📋 RESULTADOS (Criança/Adolescente ≥ 1 ano)</strong>
 • <strong>Estatura do Paciente:</strong> Percentil ${pctEstBruto} (Ajustado para P${pctEstTabela} na tabela)
 • <strong>PA Esperada (P50):</strong> ${p50Str} mmHg
 • <strong>Limite Elevada (P90):</strong> PAS ${ref.pas90} / PAD ${ref.pad90} mmHg
 • <strong>Limite Estágio 1 (P95):</strong> PAS ${ref.pas95} / PAD ${ref.pad95} mmHg
+• <strong>Limite Estágio 2 (P95+12):</strong> PAS ${pas95Mais12} / PAD ${pad95Mais12} mmHg
 
-<strong>🚨 Classificação (SBP 2021):</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>`;
+<strong>🚨 Classificação (SBP 2021):</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>${avisoAdolescente}`;
 
     renderHTML('res-pa', html);
 }
@@ -255,7 +264,7 @@ function renderHTML(elementId, htmlString) {
     const box = byId(elementId);
     if (box) {
         box.innerHTML = htmlString;
-        box.style.display = 'block'; // Mostra a caixa de resultado
+        box.style.display = 'block';
     }
 }
 
