@@ -31,17 +31,17 @@ header {
 
 .foto {
   position:absolute;
+  padding-top: 20px;
   right:20px;
-  width: 140px;
-  height: 140px;
+  width: 200px;
+  height: 200px;
   object-fit: contain;
   flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
 
 .app-header h1 {
-  left:200px;
   color: var(--primary);
-  margin: 20px;
+  margin: 200px;
   font-size: 28px;
 }
 
