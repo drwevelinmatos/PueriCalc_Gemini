@@ -4,20 +4,23 @@
   /* Usamos flexbox para alinhar o ícone e o h1 perfeitamente lado a lado */
   display: flex;
   align-items: center;
-  justify-content: center; /* Garante que fiquem no centro da tela */
-  gap: 12px;
+  gap: 12px; 
   box-shadow: var(--shadow);
   border-bottom: 3px solid var(--primary);
 }
 
-/* Mantemos a tag header limpa caso você esteja usando <header class="app-header"> */
 header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
   background-color: #ffffff;
+  border-bottom: 1px solid #d9e2e8;
 }
 
 .icon {
-  width: 2cm; /* Tamanho exato de 2x2cm solicitado */
-  height: 2cm;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
