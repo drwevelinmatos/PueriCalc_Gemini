@@ -1,4 +1,5 @@
 // tabs/emergencia/index.js
+import { byId } from '../../utils/dom.js';
 
 export function renderEmergencia() {
   const container = document.getElementById('tab-emergencia') || document.getElementById('tab-emerg');
