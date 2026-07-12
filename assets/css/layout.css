@@ -1,28 +1,31 @@
 .app-header {
   background: var(--white);
   padding: 28px 20px 16px;
-  text-align: center;
+  /* Usamos flexbox para alinhar o ícone e o h1 perfeitamente lado a lado */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Garante que fiquem no centro da tela */
+  gap: 12px;
   box-shadow: var(--shadow);
   border-bottom: 3px solid var(--primary);
 }
+
+/* Mantemos a tag header limpa caso você esteja usando <header class="app-header"> */
 header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
   background-color: #ffffff;
-  border-bottom: 1px solid #d9e2e8;
 }
+
 .icon {
-  text-align: center;
-  width: 60px;
-  height: 60px;
+  width: 2cm; /* Tamanho exato de 2x2cm solicitado */
+  height: 2cm;
   object-fit: contain;
+  flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
+
 .app-header h1 {
-  text-align: center;
   color: var(--primary);
   margin: 0;
+  /* Como não declaramos font-size aqui, ele vai manter exatamente o tamanho que já estava assumindo por padrão */
 }
 
 .main-nav {
