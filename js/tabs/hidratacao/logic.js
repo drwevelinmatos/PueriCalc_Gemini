@@ -6,16 +6,17 @@ export function calcHollidaySegarBase(pesoKg) {
   return 1500 + 20 * (pesoKg - 20);
 }
 
-// 1A. Método Tradicional (Usa SG5% como base + Eletrólitos em mEq/100mL)
+// 1A. Método Tradicional (SG 5% + mEq/kg)
 export function calcHolTradicional(p) {
   const volTotal = calcHollidaySegarBase(p.peso) * (p.pctHol / 100);
   
-  const nacl20_vol = (p.na100 * (volTotal / 100)) / 3.4; // 1 mL NaCl 20% = 3.4 mEq
-  const kcl19_vol = (p.k100 * (volTotal / 100)) / 2.5; // 1 mL KCl 19.1% = 2.5 mEq
+  // Cálculo puro por peso (mEq/kg -> mL)
+  const nacl20_vol = (p.naKg * p.peso) / 3.4; // 1 mL NaCl 20% = 3.4 mEq
+  const kcl19_vol = (p.kKg * p.peso) / 2.5; // 1 mL KCl 19.1% = 2.5 mEq
   const ca_vol = p.caKg * p.peso; // Gluconato Ca 10%
   const mg_vol = (p.mgKg * p.peso) / 0.8; // MgSO4 10% = 0.8 mEq/mL
   
-  // No método tradicional o solvente é SG 5%
+  // Solvente é SG 5%
   const sg5_vol = volTotal - (nacl20_vol + kcl19_vol + ca_vol + mg_vol);
 
   return {
@@ -23,17 +24,18 @@ export function calcHolTradicional(p) {
   };
 }
 
-// 1B. Método Planilha Avançada (Usa Água Destilada + G50% + Eletrólitos em mEq/L)
+// 1B. Método Planilha (Água Destilada + mEq/L)
 export function calcHolPlanilha(p) {
   const volTotal = calcHollidaySegarBase(p.peso) * (p.pctHol / 100);
   
+  // Cálculo por Concentração no Litro (mEq/L -> mL)
   const nacl20_vol = (p.naL * (volTotal / 1000)) / 3.4;
   const kcl19_vol = (p.kL * (volTotal / 1000)) / 2.5;
   const ca_vol = p.caKg * p.peso;
   const mg_vol = (p.mgKg * p.peso) / 0.8;
   const glic_vol = (p.glicKg * p.peso) / 0.5; // Glicose 50% = 0.5 g/mL
   
-  // No método da planilha o solvente é Água Destilada
+  // Solvente é Água Destilada
   const ad_vol = volTotal - (nacl20_vol + kcl19_vol + ca_vol + mg_vol + glic_vol);
 
   return {
@@ -41,7 +43,6 @@ export function calcHolPlanilha(p) {
   };
 }
 
-// 2. VIG Diária (Solução para 24h)
 export function calcVIGCompleto(p) {
   const volTotal = p.volMlKgDia * p.peso;
   
@@ -60,12 +61,11 @@ export function calcVIGCompleto(p) {
   };
 }
 
-// 3. Mistura SG
 export function calcMisturaSG(vol, alvo, sgA, sgB) {
   const cLow = Math.min(sgA, sgB);
   const cHigh = Math.max(sgA, sgB);
   
-  if (alvo < cLow || alvo > cHigh) return { error: 'Concentração alvo fora do intervalo possível.' };
+  if (alvo < cLow || alvo > cHigh) return { error: 'Concentração alvo fora do intervalo possível das soluções disponíveis.' };
   
   const vHigh = vol * (alvo - cLow) / (cHigh - cLow);
   const vLow = vol - vHigh;
@@ -73,7 +73,6 @@ export function calcMisturaSG(vol, alvo, sgA, sgB) {
   return { vLow, vHigh, cLow, cHigh };
 }
 
-// 4. Água Livre
 export function calcAguaLivre(peso, naAtual, naAlvo) {
   if (naAtual <= naAlvo) return { error: 'Sódio atual não indica déficit de água livre (Na Atual ≤ Na Alvo).' };
   const tbw = peso * 0.6; 
