@@ -16,8 +16,8 @@ header {
 
 .icon {
   text-align: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 .app-header h1 {
