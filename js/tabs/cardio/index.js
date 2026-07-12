@@ -62,7 +62,7 @@ export function renderCardio() {
         </div>
         
         <button class="calc-btn" id="btn-calc-pa" style="margin-top:20px;">Classificar PA</button>
-        <div id="res-pa" class="result-box" style="margin-top:15px; white-space:pre-wrap; line-height: 1.6;"></div>
+        <div id="res-pa" class="result-box" style="margin-top:15px; white-space:pre-wrap; line-height: 1.6; display: none;"></div>
     </div>
     `;
 
@@ -139,17 +139,25 @@ function processarMenor1Ano(idadeMeses, sexo, pas, pad) {
     const maxPct = Math.max(pasPct, padPct);
 
     let classificacao = "Normal";
-    if (maxPct >= 95) classificacao = "Elevada (> P95) - Investigar e Confirmar";
-    else if (maxPct >= 90) classificacao = "Limítrofe (P90 - P95)";
+    let color = "#27ae60"; // Verde
+
+    if (maxPct >= 95) {
+        classificacao = "Elevada (> P95) - Investigar e Confirmar";
+        color = "#c0392b"; // Vermelho
+    }
+    else if (maxPct >= 90) {
+        classificacao = "Limítrofe (P90 - P95)";
+        color = "#f39c12"; // Laranja
+    }
 
     const html = `<strong>📋 RESULTADOS (Lactente < 1 ano)</strong>
 • <strong>Percentil Estimado:</strong> PAS ~P${Math.round(pasPct)} / PAD ~P${Math.round(padPct)}
 • <strong>Referência (P50):</strong> PAS ${Math.round(ref.sbp.p50)} / PAD ${Math.round(ref.dbp.p50)} mmHg
 • <strong>Referência (P90):</strong> PAS ${Math.round(ref.sbp.p90)} / PAD ${Math.round(ref.dbp.p90)} mmHg
 
-<strong>🚨 Classificação (Task Force):</strong> <span style="color: var(--azul); font-weight: 800;">${classificacao}</span>`;
+<strong>🚨 Classificação (Task Force):</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>`;
 
-    showResult('res-pa', html);
+    renderHTML('res-pa', html);
 }
 
 function interpCurve(arr, m) {
@@ -189,12 +197,22 @@ function processarMaior1Ano(idadeAnos, est, sexo, pas, pad) {
 
     // 3. Classificação Rigorosa SBP (Aplica regra do "O que for menor")
     let classificacao = "Normal";
+    let color = "#27ae60"; // Verde
 
     if (idadeAnos >= 13) {
         // Regra para >= 13 anos (Limites absolutos dominam)
-        if (pas >= 140 || pad >= 90) classificacao = "Hipertensão Estágio 2";
-        else if ((pas >= 130 && pas <= 139) || (pad >= 80 && pad <= 89)) classificacao = "Hipertensão Estágio 1";
-        else if (pas >= 120 && pas <= 129 && pad < 80) classificacao = "Pressão Arterial Elevada";
+        if (pas >= 140 || pad >= 90) {
+            classificacao = "Hipertensão Estágio 2";
+            color = "#c0392b"; // Vermelho
+        }
+        else if ((pas >= 130 && pas <= 139) || (pad >= 80 && pad <= 89)) {
+            classificacao = "Hipertensão Estágio 1";
+            color = "#e67e22"; // Laranja escuro
+        }
+        else if (pas >= 120 && pas <= 129 && pad < 80) {
+            classificacao = "Pressão Arterial Elevada";
+            color = "#f39c12"; // Laranja
+        }
     } else {
         // Regra para 1 a 12 anos
         const tElevadaPas = Math.min(ref.pas90, 120);
@@ -204,13 +222,22 @@ function processarMaior1Ano(idadeAnos, est, sexo, pas, pad) {
         const tEstagio2Pas = Math.min(ref.pas95 + 12, 140);
         const tEstagio2Pad = Math.min(ref.pad95 + 12, 90);
 
-        if (pas >= tEstagio2Pas || pad >= tEstagio2Pad) classificacao = "Hipertensão Estágio 2";
-        else if (pas >= tEstagio1Pas || pad >= tEstagio1Pad) classificacao = "Hipertensão Estágio 1";
-        else if (pas >= tElevadaPas || pad >= tElevadaPad) classificacao = "Pressão Arterial Elevada";
+        if (pas >= tEstagio2Pas || pad >= tEstagio2Pad) {
+            classificacao = "Hipertensão Estágio 2";
+            color = "#c0392b"; // Vermelho
+        }
+        else if (pas >= tEstagio1Pas || pad >= tEstagio1Pad) {
+            classificacao = "Hipertensão Estágio 1";
+            color = "#e67e22"; // Laranja escuro
+        }
+        else if (pas >= tElevadaPas || pad >= tElevadaPad) {
+            classificacao = "Pressão Arterial Elevada";
+            color = "#f39c12"; // Laranja
+        }
     }
 
     // 4. Exibir
-    const p50Str = (ref.pas50 && ref.pad50) ? `${ref.pas50} / ${ref.pad50}` : `Indisponível (Preencha pas50/pad50 no PA_data.js)`;
+    const p50Str = (ref.pas50 && ref.pad50) ? `${ref.pas50} / ${ref.pad50}` : `Indisponível`;
     
     const html = `<strong>📋 RESULTADOS (Criança/Adolescente ≥ 1 ano)</strong>
 • <strong>Estatura do Paciente:</strong> Percentil ${pctEstBruto} (Ajustado para P${pctEstTabela} na tabela)
@@ -218,9 +245,18 @@ function processarMaior1Ano(idadeAnos, est, sexo, pas, pad) {
 • <strong>Limite Elevada (P90):</strong> PAS ${ref.pas90} / PAD ${ref.pad90} mmHg
 • <strong>Limite Estágio 1 (P95):</strong> PAS ${ref.pas95} / PAD ${ref.pad95} mmHg
 
-<strong>🚨 Classificação (SBP 2021):</strong> <span style="color: var(--azul); font-weight: 800;">${classificacao}</span>`;
+<strong>🚨 Classificação (SBP 2021):</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>`;
 
-    showResult('res-pa', html);
+    renderHTML('res-pa', html);
+}
+
+// === FUNÇÃO DE APOIO PARA RENDERIZAR HTML ===
+function renderHTML(elementId, htmlString) {
+    const box = byId(elementId);
+    if (box) {
+        box.innerHTML = htmlString;
+        box.style.display = 'block'; // Mostra a caixa de resultado
+    }
 }
 
 // Matemática de Apoio OMS
