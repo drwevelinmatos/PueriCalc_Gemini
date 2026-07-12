@@ -158,7 +158,7 @@ export function renderCrescimento() {
   document.getElementById('cresc-data2').valueAsDate = new Date();
   document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
 
-  // === LISTENERS PARA CÁLCULO DE IMC AUTOMÁTICO NA INTERFACE ===
+  // === LISTENERS PARA CÁLCULO DE IMC AUTOMÁTICO ===
   const p1 = document.getElementById('cresc-peso1');
   const e1 = document.getElementById('cresc-est1');
   const u1 = document.getElementById('cresc-unidade-peso1');
@@ -191,6 +191,7 @@ function parseHTMLDate(str) {
   return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
 }
 
+// === NOVO MOTOR DE BUSCA COM TOLERÂNCIA DE ERRO ===
 function obterDadosProximosPrefixo(tabelaParametro, idadeAlvo, prefixo) {
   if (!tabelaParametro) return null;
   const chavesFiltradas = Object.keys(tabelaParametro)
@@ -210,6 +211,12 @@ function obterDadosProximosPrefixo(tabelaParametro, idadeAlvo, prefixo) {
       chaveMaisProxima = chavesFiltradas[i];
     }
   }
+
+  // TRAVA DE SEGURANÇA: Se a chave mais próxima estiver a mais de 45 dias 
+  // (ou 2 meses) de distância, rejeita para evitar diagnósticos falsos.
+  const limiteTolerancia = prefixo === 'd' ? 45 : 2;
+  if (menorDiff > limiteTolerancia) return null;
+
   return tabelaParametro[prefixo + chaveMaisProxima];
 }
 
@@ -219,7 +226,6 @@ function calcularZScoreOMS(medida, l, m, s) {
   return (Math.pow(medida / m, l) - 1) / (l * s);
 }
 
-// Converte Z-Score em Percentil (Aproximação de erro de Gauss)
 function zParaPercentil(z) {
   if (z === null || isNaN(z)) return null;
   let sign = (z < 0) ? -1 : 1;
@@ -227,7 +233,12 @@ function zParaPercentil(z) {
   let t = 1.0 / (1.0 + 0.3275911 * x);
   let a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
   let erf = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-  return 0.5 * (1.0 + sign * erf) * 100;
+  let percentil = 0.5 * (1.0 + sign * erf) * 100;
+  
+  // Limites visuais para P0.1 e P99.9
+  if (percentil < 0.1) return 0.1;
+  if (percentil > 99.9) return 99.9;
+  return percentil;
 }
 
 function obterRefVelocidade(tipo, idadeMeses) {
@@ -238,7 +249,6 @@ function obterRefVelocidade(tipo, idadeMeses) {
   return faixaEncontrada ? faixaEncontrada.ref : "Fora da faixa";
 }
 
-// === INTELIGÊNCIA CLÍNICA OMS ===
 function classificarPC(z) {
   if (z === null) return "";
   if (z < -2) return "Microcefalia";
@@ -267,14 +277,14 @@ function classificarEstatura(z) {
 
 function classificarIMC(z, idadeMeses) {
   if (z === null) return "";
-  if (idadeMeses <= 60) { // 0 a 5 anos
+  if (idadeMeses <= 60) {
     if (z < -3) return "Magreza acentuada";
     if (z < -2) return "Magreza";
     if (z <= 1) return "Eutrofia";
     if (z <= 2) return "Risco de sobrepeso";
     if (z <= 3) return "Sobrepeso";
     return "Obesidade";
-  } else { // 5 a 19 anos
+  } else {
     if (z < -3) return "Magreza acentuada";
     if (z < -2) return "Magreza";
     if (z <= 1) return "Eutrofia";
@@ -313,7 +323,6 @@ function calcularCrescimento() {
   const icRxAnos = parseInt(document.getElementById('cresc-ic-rx-anos').value) || 0;
   const icRxMeses = parseInt(document.getElementById('cresc-ic-rx-meses').value) || 0;
 
-  // CÁLCULO DE TEMPO CONTÍNUO E VELOCIDADE
   let diffDias = 0;
   if (d1 && d2 && d2 > d1) diffDias = (d2 - d1) / (1000 * 60 * 60 * 24);
 
@@ -336,56 +345,59 @@ function calcularCrescimento() {
   const refPeso = obterRefVelocidade('peso_g_dia', idadeTotalMeses);
   const refEst = obterRefVelocidade('alt_cm_ano', idadeTotalMeses);
 
-  // Alvo Parental
   let alvo = (mae > 0 && pai > 0) ? (sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2) : 0;
-
-  // CÁLCULO DO IMC
   const imcAtual = (peso2Kg > 0 && est2 > 0) ? (peso2Kg / Math.pow(est2 / 100, 2)) : 0;
 
- // === PROCESSAMENTO DOS Z-SCORES COM BUSCA INTELIGENTE ===
+  // === NOVO CÉREBRO DE BUSCA DA OMS ===
   let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
 
   if (nasc && WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
-    const idadeBusca = idadeTotalDias; // Usamos dias para evitar erros de conversão mês/dia
-    
-    // Função auxiliar que busca 'd' se idade < 61 meses, ou 'm' se >= 61 meses
-    const buscarRef = (param, idDias) => {
-        const prefixo = (idDias / 30.4375) < 61 ? 'd' : 'm';
-        const idBusca = (prefixo === 'd') ? idDias : Math.floor(idDias / 30.4375);
+
+    // Função interna que cruza automaticamente entre Meses e Dias garantindo o ID correto
+    const buscarReferenciaDaTabela = (parametroTabela) => {
+        if (!parametroTabela) return null;
         
-        let ref = obterDadosProximosPrefixo(tabelas[param], idBusca, prefixo);
-        // Fallback: se não encontrar no prefixo preferencial, tenta o outro
-        if (!ref) {
-            const prefixoAlt = (prefixo === 'd') ? 'm' : 'd';
-            ref = obterDadosProximosPrefixo(tabelas[param], idBusca, prefixoAlt);
+        const idMeses = Math.floor(idadeTotalDias / 30.4375);
+        // Regra de Ouro: < 5 anos usa dias ('d'), >= 5 anos usa meses ('m')
+        let prefixos = idMeses < 61 ? ['d', 'm'] : ['m', 'd'];
+        
+        for (let pref of prefixos) {
+            let idBusca = pref === 'd' ? idadeTotalDias : idMeses;
+            let ref = obterDadosProximosPrefixo(parametroTabela, idBusca, pref);
+            if (ref) return ref;
         }
-        return ref;
+        return null;
     };
 
-    if (pc2 > 0 && tabelas.pc) {
-      const ref = buscarRef('pc', idadeTotalDias);
+    if (pc2 > 0) {
+      const ref = buscarReferenciaDaTabela(tabelas.pc);
       if (ref) zPC = calcularZScoreOMS(pc2, ref.l, ref.m, ref.s);
     }
     
-    // Peso: Tenta buscar em qualquer tabela disponível
-    if (peso2Kg > 0 && tabelas.peso) {
-      const ref = buscarRef('peso', idadeTotalDias);
+    // Peso: Força o bloqueio em 120 meses (10 anos) como a OMS manda
+    if (peso2Kg > 0 && idadeTotalMeses <= 120) {
+      const ref = buscarReferenciaDaTabela(tabelas.peso);
       if (ref) zPeso = calcularZScoreOMS(peso2Kg, ref.l, ref.m, ref.s);
     }
     
-    if (est2 > 0 && tabelas.estatura) {
-      const ref = buscarRef('estatura', idadeTotalDias);
+    if (est2 > 0) {
+      const ref = buscarReferenciaDaTabela(tabelas.estatura);
       if (ref) zEst = calcularZScoreOMS(est2, ref.l, ref.m, ref.s);
     }
     
-    if (imcAtual > 0 && tabelas.imc) {
-      const ref = buscarRef('imc', idadeTotalDias);
+    if (imcAtual > 0) {
+      const ref = buscarReferenciaDaTabela(tabelas.imc);
       if (ref) zIMC = calcularZScoreOMS(imcAtual, ref.l, ref.m, ref.s);
     }
-  }
     
-  // === RENDERIZAÇÃO DA TELA FINAL ===
+    if (alvo > 0 && tabelas.estatura && tabelas.estatura['m228']) {
+      const refAlvo = tabelas.estatura['m228']; 
+      zAlvo = calcularZScoreOMS(alvo, refAlvo.l, refAlvo.m, refAlvo.s);
+    }
+  }
+
+  // === FORMATAÇÃO E RENDERIZAÇÃO ===
   const fmtZ = (val, isRaw = false) => {
     if (!document.getElementById('cresc-nasc').value) return "Requer idade";
     if (val === null || isNaN(val)) return "S/ Ref.";
@@ -397,7 +409,11 @@ function calcularCrescimento() {
     if (z === null) return "--";
     const p = zParaPercentil(z);
     if (p === null) return "--";
-    return "P" + Math.round(p);
+    // Evitar que P99.9 apareça como P100 ou P0.1 como P0
+    let roundP = Math.round(p);
+    if (roundP === 100) return "P>99";
+    if (roundP === 0) return "P<1";
+    return "P" + roundP;
   };
 
   const fmtVel = (val, tipo, refEsperada) => {
@@ -420,7 +436,7 @@ function calcularCrescimento() {
   if (idadeTotalMeses !== null && idadeTotalMeses <= 24) {
     html += `- PC: ${fmtPerc(zPC)} <span style="color:#666;">(${classificarPC(zPC)})</span><br>`;
   } else {
-    html += `- PC: <span style="color:#666;">(Classificação aplicável até aos 2 anos)</span><br>`;
+    html += `- PC: <span style="color:#666;">(Aplicável até aos 2 anos)</span><br>`;
   }
   
   html += `- Peso: ${fmtPerc(zPeso)} <span style="color:#666;">(${classificarPeso(zPeso, idadeTotalMeses)})</span><br>`;
