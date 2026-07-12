@@ -41,7 +41,7 @@ header {
 .app-header h1 {
   left:200px;
   color: var(--primary);
-  margin: 0;
+  margin: 200px;
   font-size: 28px;
 }
 
