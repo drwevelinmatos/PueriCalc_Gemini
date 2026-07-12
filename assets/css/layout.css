@@ -5,7 +5,20 @@
   box-shadow: var(--shadow);
   border-bottom: 3px solid var(--primary);
 }
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #d9e2e8;
+}
 
+.icon {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
 .app-header h1 {
   text-align: center;
   color: var(--primary);
