@@ -37,13 +37,34 @@ export function renderCrescimento() {
 
   const avisoErro = erroDados ? `
     <div style="background: #fff5f5; border: 1px solid #d32f2f; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left;">
-      <strong>⚠️ Atenção:</strong> O arquivo <code>who_data.js</code> não foi detetado.<br>
+      <strong>⚠️ Atenção:</strong> O ficheiro <code>who_data.js</code> não foi detetado.<br>
       <small>Erro: ${erroDados}</small>
     </div>
   ` : '';
 
+  // === RAIO-X DO BANCO DE DADOS ===
+  let dbStatus = '';
+  if (WHO_DATA && !erroDados) {
+    const contar = (sexo, param, prefixo) => Object.keys(WHO_DATA[sexo]?.[param] || {}).filter(k => k.startsWith(prefixo)).length;
+    dbStatus = `
+      <div style="font-size: 0.8rem; background: #eef2f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px dashed #285a81; color: #333;">
+        <strong>📊 Diagnóstico do Ficheiro WHO_DATA:</strong><br>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+            <div>• Peso (0-5 anos): <strong>${contar('M', 'peso', 'd')}</strong>M / <strong>${contar('F', 'peso', 'd')}</strong>F</div>
+            <div>• Peso (>5 anos): <strong>${contar('M', 'peso', 'm')}</strong>M / <strong>${contar('F', 'peso', 'm')}</strong>F</div>
+            <div>• Estatura (0-5 anos): <strong>${contar('M', 'estatura', 'd')}</strong>M / <strong>${contar('F', 'estatura', 'd')}</strong>F</div>
+            <div>• Estatura (>5 anos): <strong>${contar('M', 'estatura', 'm')}</strong>M / <strong>${contar('F', 'estatura', 'm')}</strong>F</div>
+            <div>• IMC (0-5 anos): <strong>${contar('M', 'imc', 'd')}</strong>M / <strong>${contar('F', 'imc', 'd')}</strong>F</div>
+            <div>• IMC (>5 anos): <strong>${contar('M', 'imc', 'm')}</strong>M / <strong>${contar('F', 'imc', 'm')}</strong>F</div>
+        </div>
+        <small style="display:block; margin-top: 8px; color: #d32f2f;">*Se algum valor estiver "0", significa que o conversor ignorou esse ficheiro Excel.</small>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     ${avisoErro}
+    ${dbStatus}
     <div class="card">
       <div class="card-header">
         <h2>Dados do Paciente e Medidas</h2>
@@ -158,7 +179,6 @@ export function renderCrescimento() {
   document.getElementById('cresc-data2').valueAsDate = new Date();
   document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
 
-  // === LISTENERS PARA CÁLCULO DE IMC AUTOMÁTICO ===
   const p1 = document.getElementById('cresc-peso1');
   const e1 = document.getElementById('cresc-est1');
   const u1 = document.getElementById('cresc-unidade-peso1');
@@ -191,7 +211,6 @@ function parseHTMLDate(str) {
   return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
 }
 
-// === NOVO MOTOR DE BUSCA COM TOLERÂNCIA DE ERRO ===
 function obterDadosProximosPrefixo(tabelaParametro, idadeAlvo, prefixo) {
   if (!tabelaParametro) return null;
   const chavesFiltradas = Object.keys(tabelaParametro)
@@ -212,8 +231,6 @@ function obterDadosProximosPrefixo(tabelaParametro, idadeAlvo, prefixo) {
     }
   }
 
-  // TRAVA DE SEGURANÇA: Se a chave mais próxima estiver a mais de 45 dias 
-  // (ou 2 meses) de distância, rejeita para evitar diagnósticos falsos.
   const limiteTolerancia = prefixo === 'd' ? 45 : 2;
   if (menorDiff > limiteTolerancia) return null;
 
@@ -235,7 +252,6 @@ function zParaPercentil(z) {
   let erf = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
   let percentil = 0.5 * (1.0 + sign * erf) * 100;
   
-  // Limites visuais para P0.1 e P99.9
   if (percentil < 0.1) return 0.1;
   if (percentil > 99.9) return 99.9;
   return percentil;
@@ -348,18 +364,16 @@ function calcularCrescimento() {
   let alvo = (mae > 0 && pai > 0) ? (sexo === 'M' ? (pai + mae + 13) / 2 : (pai + mae - 13) / 2) : 0;
   const imcAtual = (peso2Kg > 0 && est2 > 0) ? (peso2Kg / Math.pow(est2 / 100, 2)) : 0;
 
-  // === NOVO CÉREBRO DE BUSCA DA OMS ===
+  // === MOTOR INTELIGENTE CÉREBRO OMS ===
   let zPC = null, zPeso = null, zEst = null, zAlvo = null, zIMC = null;
 
   if (nasc && WHO_DATA && WHO_DATA[sexo]) {
     const tabelas = WHO_DATA[sexo];
 
-    // Função interna que cruza automaticamente entre Meses e Dias garantindo o ID correto
     const buscarReferenciaDaTabela = (parametroTabela) => {
         if (!parametroTabela) return null;
         
         const idMeses = Math.floor(idadeTotalDias / 30.4375);
-        // Regra de Ouro: < 5 anos usa dias ('d'), >= 5 anos usa meses ('m')
         let prefixos = idMeses < 61 ? ['d', 'm'] : ['m', 'd'];
         
         for (let pref of prefixos) {
@@ -375,7 +389,6 @@ function calcularCrescimento() {
       if (ref) zPC = calcularZScoreOMS(pc2, ref.l, ref.m, ref.s);
     }
     
-    // Peso: Força o bloqueio em 120 meses (10 anos) como a OMS manda
     if (peso2Kg > 0 && idadeTotalMeses <= 120) {
       const ref = buscarReferenciaDaTabela(tabelas.peso);
       if (ref) zPeso = calcularZScoreOMS(peso2Kg, ref.l, ref.m, ref.s);
@@ -409,7 +422,6 @@ function calcularCrescimento() {
     if (z === null) return "--";
     const p = zParaPercentil(z);
     if (p === null) return "--";
-    // Evitar que P99.9 apareça como P100 ou P0.1 como P0
     let roundP = Math.round(p);
     if (roundP === 100) return "P>99";
     if (roundP === 0) return "P<1";
