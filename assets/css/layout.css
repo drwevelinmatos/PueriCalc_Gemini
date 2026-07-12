@@ -27,6 +27,13 @@ header {
   flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
 }
 
+.foto {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0; /* Muito importante: impede que o ícone encolha se o título for grande */
+}
+
 .app-header h1 {
   color: var(--primary);
   margin: 0;
