@@ -1,80 +1,76 @@
-export function calculateHollidaySegar({
-  weightKg,
-  sodium,
-  potassium,
-  chloride,
-  glucose,
-  electrolyteMode
-}) {
-  if (!Number.isFinite(weightKg) || weightKg <= 0) {
-    return { error: 'Informe peso (kg).' };
-  }
+// tabs/hidratacao/logic.js
 
-  let volume24h = 0;
+export function calcHollidaySegarBase(pesoKg) {
+  if (pesoKg <= 10) return 100 * pesoKg;
+  if (pesoKg <= 20) return 1000 + 50 * (pesoKg - 10);
+  return 1500 + 20 * (pesoKg - 20);
+}
 
-  if (weightKg <= 10) {
-    volume24h = 100 * weightKg;
-  } else if (weightKg <= 20) {
-    volume24h = 1000 + 50 * (weightKg - 10);
-  } else {
-    volume24h = 1500 + 20 * (weightKg - 20);
-  }
-
-  const rateMlH = volume24h / 24;
+export function calcHollidayCompleto(p) {
+  // p: peso, pctHol, naMeqL, kMeqL, caMlKg, mgMeqKg, glicGKg
+  const volTotal = calcHollidaySegarBase(p.peso) * (p.pctHol / 100);
+  
+  // Eletrólitos baseados em mEq/L
+  const nacl20_vol = (p.naMeqL * (volTotal / 1000)) / 3.4; // 1 mL NaCl 20% = 3.4 mEq
+  const kcl19_vol = (p.kMeqL * (volTotal / 1000)) / 2.5; // 1 mL KCl 19.1% = 2.5 mEq
+  
+  // Componentes baseados no Peso (mL/kg ou g/kg)
+  const ca_vol = p.caMlKg * p.peso; // Gluconato Ca 10%
+  const mg_vol = (p.mgMeqKg * p.peso) / 0.8; // MgSO4 10% = 0.8 mEq/mL
+  const glic_vol = (p.glicGKg * p.peso) / 0.5; // Glicose 50% = 0.5 g/mL
+  
+  // Veículo (Água Destilada)
+  const ad_vol = volTotal - (nacl20_vol + kcl19_vol + ca_vol + mg_vol + glic_vol);
 
   return {
-    volume24h,
-    rateMlH,
-    sodium,
-    potassium,
-    chloride,
-    glucose,
-    electrolyteMode
+    volTotal, nacl20_vol, kcl19_vol, ca_vol, mg_vol, glic_vol, ad_vol
   };
 }
 
-export function calculateVIG({
-  weightKg,
-  targetMlKgH,
-  sodium,
-  potassium,
-  chloride,
-  glucose
-}) {
-  if (!Number.isFinite(weightKg) || weightKg <= 0) {
-    return { error: 'Informe peso (kg).' };
-  }
-
-  if (!Number.isFinite(targetMlKgH) || targetMlKgH <= 0) {
-    return { error: 'Informe VIG alvo (mL/kg/h).' };
-  }
-
-  const rateMlH = targetMlKgH * weightKg;
-  const volume24h = rateMlH * 24;
+export function calcVIGCompleto(p) {
+  // p: peso, vig, volMlKgDia, naMeqKg, kMeqKg, caMlKg, mgMeqKg
+  const volTotal = p.volMlKgDia * p.peso;
+  
+  // Cálculo Glicose
+  const glicoseG = (p.vig * p.peso * 1440) / 1000;
+  const glic_vol = glicoseG / 0.5; // Glicose 50%
+  
+  // Eletrólitos diários
+  const nacl20_vol = (p.naMeqKg * p.peso) / 3.4;
+  const kcl19_vol = (p.kMeqKg * p.peso) / 2.5;
+  const ca_vol = p.caMlKg * p.peso;
+  const mg_vol = (p.mgMeqKg * p.peso) / 0.8;
+  
+  // Veículo
+  const ad_vol = volTotal - (glic_vol + nacl20_vol + kcl19_vol + ca_vol + mg_vol);
 
   return {
-    rateMlH,
-    volume24h,
-    sodium,
-    potassium,
-    chloride,
-    glucose
+    volTotal, glicoseG, glic_vol, nacl20_vol, kcl19_vol, ca_vol, mg_vol, ad_vol
   };
 }
 
-export function calculateSchwartz({
-  creatinineMgDl,
-  heightCm
-}) {
-  if (!Number.isFinite(creatinineMgDl) || creatinineMgDl <= 0) {
-    return { error: 'Informe creatinina.' };
+export function calcMisturaSG(vol, alvo, sgA, sgB) {
+  const cLow = Math.min(sgA, sgB);
+  const cHigh = Math.max(sgA, sgB);
+  
+  if (alvo < cLow || alvo > cHigh) {
+      return { error: 'Concentração alvo fora do intervalo possível das soluções disponíveis.' };
   }
+  
+  // Regra da Mistura (Cruzadinha / Equação)
+  const vHigh = vol * (alvo - cLow) / (cHigh - cLow);
+  const vLow = vol - vHigh;
+  
+  return { vLow, vHigh, cLow, cHigh };
+}
 
-  if (!Number.isFinite(heightCm) || heightCm <= 0) {
-    return { error: 'Informe estatura (cm).' };
+export function calcAguaLivre(peso, naAtual, naAlvo) {
+  if (naAtual <= naAlvo) {
+      return { error: 'O Sódio atual não indica déficit de água livre (Na Atual ≤ Na Alvo).' };
   }
-
-  const eGFR = (0.413 * heightCm) / creatinineMgDl;
-
-  return { eGFR };
+  // TBW Pediátrica/Masculina Padrão (60% do peso)
+  const tbw = peso * 0.6; 
+  const deficitL = tbw * ((naAtual / naAlvo) - 1);
+  
+  return { deficitL, deficitMl: deficitL * 1000 };
 }
