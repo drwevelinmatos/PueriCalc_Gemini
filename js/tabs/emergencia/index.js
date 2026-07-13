@@ -76,10 +76,11 @@ export function renderEmergencia() {
             <h2 style="color: #27ae60; margin-top: 0; font-size: 1.15rem;">Drogas Vasoativas (Infusão Contínua em BIC)</h2>
           </div>
           <div class="grid-2">
+            
             <div style="background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
               <h3 style="color: #27ae60; margin-top: 0; font-size: 1.05rem;">Adrenalina (Epinefrina)</h3>
               <p style="font-size: 0.8rem; margin-top: 0; color: #5f7382; line-height: 1.4;">
-                Diluição: <strong>2 mL (2mg) + 48 mL SF 0,9%</strong><br>Concentração: 40 mcg/mL
+                Diluição: <strong>2 mg + 48 mL SF 0,9%</strong><br>Concentração: 40 mcg/mL
               </p>
               <label style="font-weight: bold; font-size: 0.85rem;">Dose (mcg/kg/min):</label>
               <div style="display:flex; gap:10px; align-items:center; margin-top: 5px;">
@@ -87,11 +88,23 @@ export function renderEmergencia() {
                 <strong style="color: #c0392b; font-size: 1.25rem; margin-left: auto; text-align: right;" id="vaso-epi-mlh">- mL/h</strong>
               </div>
             </div>
+
+            <div style="background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
+              <h3 style="color: #27ae60; margin-top: 0; font-size: 1.05rem;">Noradrenalina</h3>
+              <p style="font-size: 0.8rem; margin-top: 0; color: #5f7382; line-height: 1.4;">
+                Diluição: <strong>2 mg + 48 mL SG 5%</strong><br>Concentração: 40 mcg/mL
+              </p>
+              <label style="font-weight: bold; font-size: 0.85rem;">Dose (mcg/kg/min):</label>
+              <div style="display:flex; gap:10px; align-items:center; margin-top: 5px;">
+                <input type="number" id="vaso-nora-dose" step="0.05" value="0.1" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; color: var(--texto);">
+                <strong style="color: #c0392b; font-size: 1.25rem; margin-left: auto; text-align: right;" id="vaso-nora-mlh">- mL/h</strong>
+              </div>
+            </div>
             
             <div style="background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
               <h3 style="color: #27ae60; margin-top: 0; font-size: 1.05rem;">Dobutamina</h3>
               <p style="font-size: 0.8rem; margin-top: 0; color: #5f7382; line-height: 1.4;">
-                Diluição: <strong>20 mL (250mg) + 230 mL SG 5%</strong><br>Concentração: 1000 mcg/mL (1 mg/mL)
+                Diluição: <strong>250 mg + 230 mL SG 5%</strong><br>Concentração: 1000 mcg/mL (1 mg/mL)
               </p>
               <label style="font-weight: bold; font-size: 0.85rem;">Dose (mcg/kg/min):</label>
               <div style="display:flex; gap:10px; align-items:center; margin-top: 5px;">
@@ -99,6 +112,31 @@ export function renderEmergencia() {
                 <strong style="color: #c0392b; font-size: 1.25rem; margin-left: auto; text-align: right;" id="vaso-dob-mlh">- mL/h</strong>
               </div>
             </div>
+
+            <div style="background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
+              <h3 style="color: #27ae60; margin-top: 0; font-size: 1.05rem;">Dopamina</h3>
+              <p style="font-size: 0.8rem; margin-top: 0; color: #5f7382; line-height: 1.4;">
+                Diluição: <strong>50 mg + 40 mL SG 5%</strong><br>Concentração: 1000 mcg/mL (1 mg/mL)
+              </p>
+              <label style="font-weight: bold; font-size: 0.85rem;">Dose (mcg/kg/min):</label>
+              <div style="display:flex; gap:10px; align-items:center; margin-top: 5px;">
+                <input type="number" id="vaso-dopa-dose" step="1" value="5" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; color: var(--texto);">
+                <strong style="color: #c0392b; font-size: 1.25rem; margin-left: auto; text-align: right;" id="vaso-dopa-mlh">- mL/h</strong>
+              </div>
+            </div>
+
+            <div style="background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
+              <h3 style="color: #27ae60; margin-top: 0; font-size: 1.05rem;">Milrinona</h3>
+              <p style="font-size: 0.8rem; margin-top: 0; color: #5f7382; line-height: 1.4;">
+                Diluição: <strong>10 mg + 40 mL SG 5%</strong><br>Concentração: 200 mcg/mL
+              </p>
+              <label style="font-weight: bold; font-size: 0.85rem;">Dose (mcg/kg/min):</label>
+              <div style="display:flex; gap:10px; align-items:center; margin-top: 5px;">
+                <input type="number" id="vaso-mil-dose" step="0.1" value="0.5" style="width: 80px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; color: var(--texto);">
+                <strong style="color: #c0392b; font-size: 1.25rem; margin-left: auto; text-align: right;" id="vaso-mil-mlh">- mL/h</strong>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -144,8 +182,14 @@ export function renderEmergencia() {
 
   // Bind Events
   byId('em-peso').addEventListener('input', runCalculations);
+  
+  // Vasoativas
   byId('vaso-epi-dose').addEventListener('input', runVasoativas);
+  byId('vaso-nora-dose').addEventListener('input', runVasoativas);
   byId('vaso-dob-dose').addEventListener('input', runVasoativas);
+  byId('vaso-dopa-dose').addEventListener('input', runVasoativas);
+  byId('vaso-mil-dose').addEventListener('input', runVasoativas);
+  
   byId('em-idade-eq').addEventListener('change', runEquipments);
 }
 
@@ -246,15 +290,32 @@ function runVasoativas() {
     const p = parseFloat(byId('em-peso').value);
     if (!p || p <= 0) return;
 
-    // Epinefrina: 2mg em 50mL (40mcg/mL). Fórmula: mL/h = (Dose * P * 60) / 40
+    // Fórmula genérica: mL/h = (Dose * Peso * 60) / Concentração (mcg/mL)
+
+    // Adrenalina (40 mcg/mL)
     const epiDose = parseFloat(byId('vaso-epi-dose').value) || 0.1;
     const epiMlh = (epiDose * p * 60) / 40;
     byId('vaso-epi-mlh').innerHTML = `<span style="font-size:1.5rem;">${epiMlh.toFixed(1)}</span> mL/h`;
 
-    // Dobutamina: 250mg em 250mL (1000mcg/mL). Fórmula: mL/h = (Dose * P * 60) / 1000
+    // Noradrenalina (40 mcg/mL)
+    const noraDose = parseFloat(byId('vaso-nora-dose').value) || 0.1;
+    const noraMlh = (noraDose * p * 60) / 40;
+    byId('vaso-nora-mlh').innerHTML = `<span style="font-size:1.5rem;">${noraMlh.toFixed(1)}</span> mL/h`;
+
+    // Dobutamina (1000 mcg/mL)
     const dobDose = parseFloat(byId('vaso-dob-dose').value) || 5;
     const dobMlh = (dobDose * p * 60) / 1000;
     byId('vaso-dob-mlh').innerHTML = `<span style="font-size:1.5rem;">${dobMlh.toFixed(1)}</span> mL/h`;
+
+    // Dopamina (1000 mcg/mL)
+    const dopaDose = parseFloat(byId('vaso-dopa-dose').value) || 5;
+    const dopaMlh = (dopaDose * p * 60) / 1000;
+    byId('vaso-dopa-mlh').innerHTML = `<span style="font-size:1.5rem;">${dopaMlh.toFixed(1)}</span> mL/h`;
+
+    // Milrinona (200 mcg/mL)
+    const milDose = parseFloat(byId('vaso-mil-dose').value) || 0.5;
+    const milMlh = (milDose * p * 60) / 200;
+    byId('vaso-mil-mlh').innerHTML = `<span style="font-size:1.5rem;">${milMlh.toFixed(1)}</span> mL/h`;
 }
 
 // === BANCO DE EQUIPAMENTOS POR IDADE ===
