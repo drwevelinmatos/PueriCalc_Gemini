@@ -1,14 +1,22 @@
 // tabs/crescimento/index.js
 
 let WHO_DATA = null;
+let INTERGROWTH_DATA = null;
 let erroDados = null;
 
 try {
-  const modulo = await import('./who_data.js');
-  WHO_DATA = modulo.WHO_DATA;
+  const moduloWHO = await import('./who_data.js');
+  WHO_DATA = moduloWHO.WHO_DATA;
 } catch (e) {
   erroDados = e.message;
-  console.warn("Aviso: Não foi possível carregar o arquivo who_data.js", e);
+  console.warn("Aviso: Não foi possível carregar who_data.js", e);
+}
+
+try {
+  const moduloIG = await import('./intergrowth_data.js');
+  INTERGROWTH_DATA = moduloIG.INTERGROWTH_DATA;
+} catch (e) {
+  console.warn("Aviso: Não foi possível carregar intergrowth_data.js", e);
 }
 
 // === REFERÊNCIAS CLÍNICAS DE VELOCIDADE ===
@@ -38,7 +46,6 @@ export function renderCrescimento() {
   const avisoErro = erroDados ? `
     <div style="background: #fff5f5; border: 1px solid #d32f2f; color: #d32f2f; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left;">
       <strong>⚠️ Atenção:</strong> O ficheiro <code>who_data.js</code> não foi detetado.<br>
-      <small>Erro: ${erroDados}</small>
     </div>
   ` : '';
 
@@ -120,8 +127,8 @@ export function renderCrescimento() {
 
     <div class="card" style="border-left: 5px solid #8e44ad; background: #faf5fc; margin-bottom: 15px;">
       <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
-        <h2 style="color: #8e44ad; margin-top: 0; font-size: 1.15rem;">👶 2. Avaliação de Prematuros (Intergrowth / Fenton)</h2>
-        <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Preencha a Idade Gestacional ao nascer para ativar o cálculo de <strong>Idade Corrigida</strong> e habilitar as curvas neonatais específicas de UTIN.</p>
+        <h2 style="color: #8e44ad; margin-top: 0; font-size: 1.15rem;">👶 2. Avaliação de Prematuros (Curvas Específicas)</h2>
+        <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Preencha a IG para ativar o cálculo de <strong>Idade Corrigida (OMS)</strong> e as <strong>Curvas Neonatais de UTIN</strong> (para pacientes < 50 semanas).</p>
       </div>
       <div class="grid-2">
         <div>
@@ -173,7 +180,6 @@ export function renderCrescimento() {
     <div id="res-cresc" class="result-box"></div>
   `;
 
-  // Corrige a data local atual
   const hoje = new Date();
   const ano = hoje.getFullYear();
   const mes = String(hoje.getMonth() + 1).padStart(2, '0');
@@ -182,7 +188,6 @@ export function renderCrescimento() {
 
   document.getElementById('btn-calc-cresc').addEventListener('click', calcularCrescimento);
 
-  // Lógica de IMC Automático
   const p1 = document.getElementById('cresc-peso1');
   const e1 = document.getElementById('cresc-est1');
   const u1 = document.getElementById('cresc-unidade-peso1');
@@ -238,7 +243,6 @@ function obterDadosProximosPrefixo(tabelaParametro, idadeAlvo, prefixo) {
 
   const limiteTolerancia = prefixo === 'd' ? 45 : 2;
   if (menorDiff > limiteTolerancia) return null;
-
   return tabelaParametro[prefixo + chaveMaisProxima];
 }
 
@@ -315,7 +319,7 @@ function classificarIMC(z, idadeMeses) {
   }
 }
 
-// === FUNÇÃO PRINCIPAL DE CÁLCULO ===
+// === FUNÇÃO PRINCIPAL ===
 function calcularCrescimento() {
   const d1 = parseHTMLDate(document.getElementById('cresc-data1').value);
   const d2 = parseHTMLDate(document.getElementById('cresc-data2').value);
@@ -345,7 +349,6 @@ function calcularCrescimento() {
   const icRxAnos = parseInt(document.getElementById('cresc-ic-rx-anos').value) || 0;
   const icRxMeses = parseInt(document.getElementById('cresc-ic-rx-meses').value) || 0;
 
-  // DADOS DE PREMATURIDADE
   const igSem = parseInt(document.getElementById('cresc-ig-sem').value);
   const igDias = parseInt(document.getElementById('cresc-ig-dias').value) || 0;
 
@@ -360,7 +363,7 @@ function calcularCrescimento() {
     idadeTotalMeses = mesesTotais;
   }
 
-  // === CÉREBRO: LÓGICA DE IDADE CORRIGIDA ===
+  // === CÉREBRO: IDADE CORRIGIDA E NEONATAL ===
   let isPrematuro = false;
   let diasCorrecao = 0;
   let idadeDiasPesoPC = idadeTotalDias;
@@ -370,11 +373,8 @@ function calcularCrescimento() {
   if (!isNaN(igSem) && igSem < 37 && idadeTotalDias !== null) {
       isPrematuro = true;
       diasCorrecao = (40 * 7) - (igSem * 7 + igDias);
-      
-      // Idade Pós-Menstrual (Para uso do Intergrowth/Fenton futuramente)
       idadePosMenstrualSemanas = igSem + (igDias / 7) + (idadeTotalDias / 7);
 
-      // Correção para Curva OMS
       if (idadeTotalDias <= 24 * 30.4375) idadeDiasPesoPC = Math.max(0, idadeTotalDias - diasCorrecao);
       if (idadeTotalDias <= 40 * 30.4375) idadeDiasEstIMC = Math.max(0, idadeTotalDias - diasCorrecao);
   }
@@ -438,6 +438,21 @@ function calcularCrescimento() {
     }
   }
 
+  // === CÉREBRO: PREMATUROS (FENTON / INTERGROWTH) ===
+  let zPCPrem = null, zPesoPrem = null, zEstPrem = null;
+  if (isPrematuro && idadePosMenstrualSemanas >= 24 && idadePosMenstrualSemanas <= 50 && INTERGROWTH_DATA && INTERGROWTH_DATA[sexo]) {
+      let semRef = Math.round(idadePosMenstrualSemanas);
+      let tabIG = INTERGROWTH_DATA[sexo];
+      
+      let refPesoP = tabIG.peso['s' + semRef];
+      let refEstP = tabIG.estatura['s' + semRef];
+      let refPCP = tabIG.pc['s' + semRef];
+
+      if (refPesoP && peso2Kg > 0) zPesoPrem = calcularZScoreOMS(peso2Kg, refPesoP.l, refPesoP.m, refPesoP.s);
+      if (refEstP && est2 > 0) zEstPrem = calcularZScoreOMS(est2, refEstP.l, refEstP.m, refEstP.s);
+      if (refPCP && pc2 > 0) zPCPrem = calcularZScoreOMS(pc2, refPCP.l, refPCP.m, refPCP.s);
+  }
+
   // === EMISSÃO DE RESULTADOS UI ===
   const fmtZ = (val, isRaw = false) => {
     if (!document.getElementById('cresc-nasc').value) return "Requer idade";
@@ -469,11 +484,15 @@ function calcularCrescimento() {
   let html = ``;
 
   // Alerta de Janela do Intergrowth / Fenton
-  if (isPrematuro && idadePosMenstrualSemanas <= 64) {
+  if (isPrematuro && idadePosMenstrualSemanas <= 50) {
       html += `<div style="background: #faf5fc; border-left: 5px solid #8e44ad; color: #8e44ad; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-        <strong style="font-size: 1.05rem;">🧬 Análise Neonatal Específica (Idade Pós-Menstrual: ${idadePosMenstrualSemanas.toFixed(1)} semanas)</strong><br>
-        <span style="font-size: 0.9rem; color: #5f7382;">O paciente encontra-se na janela de avaliação ideal do <strong>Intergrowth-21st / Fenton</strong>.</span><br>
-        <span style="font-size: 0.85rem; font-weight: bold;">(Módulo em construção: Pronto para receber a nova base de dados.)</span>
+        <strong style="font-size: 1.05rem;">🧬 Análise Neonatal Rigorosa (Padrão UTIN)</strong><br>
+        <span style="font-size: 0.9rem; color: #5f7382;">Idade Pós-Menstrual: <strong>${idadePosMenstrualSemanas.toFixed(1)} semanas</strong></span><br>
+        <ul style="margin: 8px 0 0 20px; padding: 0; font-size: 0.95rem; font-weight: 500;">
+          <li style="margin-bottom: 4px;">Peso: <strong style="color: var(--texto);">${fmtPerc(zPesoPrem)}</strong> <span style="font-weight: normal; color: #7f8c8d;">(Z: ${fmtZ(zPesoPrem, true)})</span></li>
+          <li style="margin-bottom: 4px;">Estatura: <strong style="color: var(--texto);">${fmtPerc(zEstPrem)}</strong> <span style="font-weight: normal; color: #7f8c8d;">(Z: ${fmtZ(zEstPrem, true)})</span></li>
+          <li>Per. Cefálico: <strong style="color: var(--texto);">${fmtPerc(zPCPrem)}</strong> <span style="font-weight: normal; color: #7f8c8d;">(Z: ${fmtZ(zPCPrem, true)})</span></li>
+        </ul>
       </div>`;
   }
 
@@ -486,7 +505,7 @@ function calcularCrescimento() {
       let mCorrEst = Math.floor(idadeDiasEstIMC / 30.4375);
 
       html += `<div style="background: #fffdf5; border-left: 5px solid #f39c12; color: #d35400; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-          <strong style="font-size: 1.05rem;">⚠️ Ajuste de Prematuridade Ativo na Curva OMS (${igSem} semanas)</strong><br>
+          <strong style="font-size: 1.05rem;">⚠️ Ajuste de Prematuridade na Curva OMS Ambulatorial</strong><br>
           <span style="color:#7f8c8d; font-size: 0.85rem;">Idade Cronológica: ${mCrono} meses e ${mCronoD} dias</span><br>`;
       
       if (idadeTotalDias <= 24 * 30.4375) {
