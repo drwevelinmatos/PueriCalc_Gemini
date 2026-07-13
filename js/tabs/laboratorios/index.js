@@ -2,7 +2,7 @@
 import { GoogleGenAI } from 'https://esm.run/@google/genai';
 
 // ============================================================================
-// 1. BANCO DE DADOS: BIOQUÍMICA, HEMOGRAMA E GASOMETRIA
+// 1. BANCO DE DADOS: BIOQUÍMICA, HEMOGRAMA
 // ============================================================================
 const examesList = [
   "albumina","alt","ast","bilirrubinaDireta","bilirrubinaTotal","calcio",
@@ -105,21 +105,46 @@ export function renderLaboratorios() {
 
     <div id="lab-gerais" class="lab-sub-panel" style="display: block;">
       
-      <div class="card">
-        <div class="card-header"><h2>Diagnóstico Gasométrico Pediátrico</h2></div>
-        <div class="grid-3" style="margin-bottom: 10px;">
-          <div><label>Idade (anos):</label><input type="number" id="gaso-idade" min="0" max="18"></div>
-          <div><label>pH:</label><input type="number" step="0.01" id="gaso-ph"></div>
-          <div><label>PaCO2 (mmHg):</label><input type="number" step="0.1" id="gaso-paco2"></div>
-          <div><label>HCO3- (mEq/L):</label><input type="number" step="0.1" id="gaso-hco3"></div>
-          <div><label>Na+ (mEq/L):</label><input type="number" step="0.1" id="gaso-na"></div>
-          <div><label>Cl- (mEq/L):</label><input type="number" step="0.1" id="gaso-cl"></div>
-          <div><label>PaO2 (Opcional):</label><input type="number" step="0.1" id="gaso-pao2"></div>
-          <div><label>Albumina (Opcional):</label><input type="number" step="0.1" id="gaso-alb"></div>
+      <div class="card" style="border-left: 5px solid #2980b9;">
+            <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
+                <h2 style="color: #2980b9; margin-top: 0; font-size: 1.15rem;">Diagnóstico Gasométrico Avançado</h2>
+                <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Interpretador completo de distúrbios ácido-base, compensações, Ânion Gap e oxigenação.</p>
+            </div>
+
+            <div class="grid-3" style="margin-bottom: 12px;">
+                <div>
+                    <label>Tipo de Amostra</label>
+                    <select id="gaso-tipo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="arterial">Arterial</option>
+                        <option value="venosa">Venosa</option>
+                        <option value="capilar">Capilar</option>
+                    </select>
+                </div>
+                <div><label>pH <span style="color:red">*</span></label><input type="number" id="gaso-ph" step="0.01" placeholder="Ex: 7.25"></div>
+                <div><label>pCO₂ (mmHg) <span style="color:red">*</span></label><input type="number" id="gaso-pco2" step="0.1" placeholder="Ex: 50"></div>
+            </div>
+
+            <div class="grid-3" style="margin-bottom: 12px;">
+                <div><label>HCO₃⁻ (mEq/L) <span style="color:red">*</span></label><input type="number" id="gaso-hco3" step="0.1" placeholder="Ex: 18"></div>
+                <div><label>pO₂ (mmHg)</label><input type="number" id="gaso-po2" step="0.1" placeholder="Ex: 85"></div>
+                <div><label>FiO₂ (%)</label><input type="number" id="gaso-fio2" step="1" value="21" placeholder="Ex: 21"></div>
+            </div>
+
+            <div class="card" style="background: #f8fbfd; border: 1px solid #d8e2ea; padding: 12px; margin-bottom: 15px;">
+                <h3 style="font-size: 0.9rem; color: #2980b9; margin-top: 0;">Parâmetros Adicionais (Ânion Gap / Delta Ratio)</h3>
+                <div class="grid-3">
+                    <div><label>Sódio (mEq/L)</label><input type="number" id="gaso-na" step="1" placeholder="Ex: 140"></div>
+                    <div><label>Cloro (mEq/L)</label><input type="number" id="gaso-cl" step="1" placeholder="Ex: 105"></div>
+                    <div><label>Albumina (g/dL)</label><input type="number" id="gaso-alb" step="0.1" placeholder="Ex: 4.0"></div>
+                </div>
+                <div class="grid-3" style="margin-top: 10px;">
+                    <div><label>Lactato (mmol/L)</label><input type="number" id="gaso-lac" step="0.1" placeholder="Ex: 1.5"></div>
+                </div>
+            </div>
+
+            <button class="calc-btn" id="btn-gasometria-avancada" style="background: #2980b9;">Interpretar Gasometria</button>
+            <div id="res-gasometria-avancada" class="result-box"></div>
         </div>
-        <button class="calc-btn" id="btn-gasometria">Diagnosticar Gasometria</button>
-        <div id="res-gasometria" class="result-box" style="white-space: pre-wrap; font-family: monospace;"></div>
-      </div>
 
       <div class="card">
         <div class="card-header"><h2>Interpretador de Hemograma Pediátrico</h2></div>
@@ -196,7 +221,6 @@ export function renderLaboratorios() {
     </div>
 
     <div id="lab-bio" class="lab-sub-panel" style="display: none;">
-      
       <div class="card">
         <div class="card-header"><h2>Avaliação Bioquímica Pediátrica</h2></div>
         <label>Idade do Paciente:</label>
@@ -224,7 +248,6 @@ export function renderLaboratorios() {
           <button class="calc-btn" id="btn-limpar-bio" style="background: #95a5a6;">Limpar Tabela</button>
         </div>
       </div>
-
     </div>
 
     <div id="lab-extrac" class="lab-sub-panel" style="display: none;">
@@ -284,7 +307,7 @@ export function renderLaboratorios() {
   renderizarTabelaBioquimica();
 
   // === ATRELAR EVENTOS (EXAMES GERAIS) ===
-  document.getElementById('btn-gasometria').addEventListener('click', diagnosticarGasometria);
+  document.getElementById('btn-gasometria-avancada').addEventListener('click', handleGasometriaAvancada);
   document.getElementById('btn-hemo').addEventListener('click', interpretarHemograma);
   document.getElementById('btn-liquor').addEventListener('click', avaliarLiquor);
   
@@ -297,7 +320,7 @@ export function renderLaboratorios() {
     if(val) document.getElementById('res-conv-crea').innerText = `= ${(val * 88.4).toFixed(2)} µmol/L`;
   });
 
-  // === ATRELAR EVENTOS (EXAMES LAB / BIOQUÍMICA) ===
+  // === ATRELAR EVENTOS (BIOQUÍMICA) ===
   document.getElementById('btn-avaliar-bio').addEventListener('click', avaliarBioquimica);
   document.getElementById('btn-limpar-bio').addEventListener('click', limparBioquimica);
 
@@ -310,7 +333,238 @@ export function renderLaboratorios() {
 }
 
 // ============================================================================
-// FUNÇÕES: BIOQUÍMICA
+// FUNÇÕES DA NOVA GASOMETRIA AVANÇADA
+// ============================================================================
+function handleGasometriaAvancada() {
+    const rawFio2 = parseFloat(document.getElementById('gaso-fio2').value);
+    const fio2Corrigida = (rawFio2 && rawFio2 > 1) ? rawFio2 / 100 : (rawFio2 || 0.21); 
+
+    const dados = {
+        tipoAmostra: document.getElementById('gaso-tipo').value,
+        pH: parseFloat(document.getElementById('gaso-ph').value),
+        pCO2: parseFloat(document.getElementById('gaso-pco2').value),
+        hco3: parseFloat(document.getElementById('gaso-hco3').value),
+        pO2: parseFloat(document.getElementById('gaso-po2').value) || null,
+        fio2: fio2Corrigida,
+        sodio: parseFloat(document.getElementById('gaso-na').value) || null,
+        cloro: parseFloat(document.getElementById('gaso-cl').value) || null,
+        albumina: parseFloat(document.getElementById('gaso-alb').value) || null,
+        lactato: parseFloat(document.getElementById('gaso-lac').value) || null
+    };
+
+    try {
+        const res = interpretarGasometriaMotor(dados);
+        renderHTMLGasometria(res);
+    } catch (e) {
+        const box = document.getElementById('res-gasometria-avancada');
+        box.style.display = 'block';
+        box.innerHTML = `<span style="color:#c0392b; font-weight:bold;">Erro: ${e.message}</span>`;
+    }
+}
+
+function renderHTMLGasometria(res) {
+    let html = `<div style="font-size: 0.95rem; line-height: 1.6;">`;
+    
+    let colorPH = res.estadoPH === "pH dentro da faixa de referência" ? "#27ae60" : "#c0392b";
+    html += `<strong style="font-size: 1.1rem; color: ${colorPH};">${res.estadoPH}</strong><br>`;
+    
+    if (res.disturbioPrimario.length > 0) {
+        html += `<strong>Distúrbio Primário:</strong> ${res.disturbioPrimario.join(" + ")}<br>`;
+    }
+
+    if (res.compensacao) {
+        const comp = res.compensacao;
+        html += `<div style="background: #fffdf5; border-left: 3px solid #f39c12; padding: 8px; margin: 10px 0; font-size: 0.85rem;">
+            <strong>Análise de Compensação (${comp.tipo}):</strong><br>
+            • ${comp.variavelAvaliada} Esperado: ${comp.esperadoAgudo ? comp.esperadoAgudo + ' (Ag) / ' + comp.esperadoCronico + ' (Cr)' : comp.intervaloEsperado.join(" a ")}<br>
+            • ${comp.variavelAvaliada} Observado: ${comp.observado}<br>
+            <strong style="color:#d35400;">Conclusão: ${comp.interpretacao}</strong>
+        </div>`;
+    }
+
+    if (res.disturbiosMistos.length > 0) {
+        let unicos = [...new Set(res.disturbiosMistos)];
+        html += `<strong>⚠️ Distúrbios Mistos Prováveis:</strong> <span style="color:#e74c3c;">${unicos.join("; ")}</span><br>`;
+    }
+
+    if (res.anionGap !== null) {
+        html += `<hr style="border: 0; border-top: 1px dashed rgba(0,0,0,0.1); margin: 10px 0;">`;
+        html += `<strong>Ânion Gap:</strong> ${res.anionGap} mEq/L<br>`;
+        if (res.anionGapCorrigido !== null) {
+            html += `<strong>AG Corrigido (Albumina):</strong> ${res.anionGapCorrigido} mEq/L<br>`;
+        }
+        if (res.deltaRatio !== null) {
+            html += `<strong>Delta Ratio (ΔAG/ΔHCO3):</strong> ${res.deltaRatio}<br>`;
+        }
+    }
+
+    if (res.oxigenacao) {
+        html += `<hr style="border: 0; border-top: 1px dashed rgba(0,0,0,0.1); margin: 10px 0;">`;
+        html += `<strong>Relação PaO₂/FiO₂:</strong> ${res.oxigenacao.relacaoPF} <br>`;
+        html += `<strong>Oxigenação:</strong> <span style="color:#2980b9;">${res.oxigenacao.classificacao}</span><br>`;
+    }
+
+    if (res.alertas.length > 0) {
+        html += `<div style="background: #fadbd8; color: #c0392b; border-radius: 6px; padding: 10px; margin-top: 12px; font-size: 0.85rem;">
+            <strong>🚨 Alertas Clínicos:</strong><br>
+            <ul style="margin: 5px 0 0 15px; padding: 0;">
+                ${res.alertas.map(a => `<li>${a}</li>`).join("")}
+            </ul>
+        </div>`;
+    }
+
+    html += `</div>`;
+    const box = document.getElementById('res-gasometria-avancada');
+    box.style.display = 'block';
+    box.innerHTML = html;
+}
+
+function interpretarGasometriaMotor(dados) {
+    const { tipoAmostra = "arterial", pH, pCO2, hco3, pO2 = null, fio2 = 0.21, sodio = null, cloro = null, albumina = null, lactato = null } = dados;
+    validarEntradas({ pH, pCO2, hco3, pO2, fio2 });
+
+    const resultado = { tipoAmostra, estadoPH: "", disturbioPrimario: [], compensacao: null, disturbiosMistos: [], anionGap: null, anionGapCorrigido: null, deltaRatio: null, oxigenacao: null, alertas: [], resumo: "" };
+
+    if (pH < 7.35) resultado.estadoPH = "Acidemia";
+    else if (pH > 7.45) resultado.estadoPH = "Alcalemia";
+    else resultado.estadoPH = "pH dentro da faixa de referência";
+
+    const co2Alto = pCO2 > 45;
+    const co2Baixo = pCO2 < 35;
+    const hco3Alto = hco3 > 26;
+    const hco3Baixo = hco3 < 22;
+
+    if (pH < 7.35) {
+        if (hco3Baixo) resultado.disturbioPrimario.push("Acidose metabólica");
+        if (co2Alto) resultado.disturbioPrimario.push("Acidose respiratória");
+    }
+    if (pH > 7.45) {
+        if (hco3Alto) resultado.disturbioPrimario.push("Alcalose metabólica");
+        if (co2Baixo) resultado.disturbioPrimario.push("Alcalose respiratória");
+    }
+    if (pH >= 7.35 && pH <= 7.45) {
+        if (co2Alto && hco3Alto) {
+            if (pH < 7.40) resultado.disturbioPrimario.push("Provável acidose respiratória compensada");
+            else if (pH > 7.40) resultado.disturbioPrimario.push("Provável alcalose metabólica compensada");
+            else resultado.disturbioPrimario.push("Distúrbio compensado ou misto");
+        } else if (co2Baixo && hco3Baixo) {
+            if (pH < 7.40) resultado.disturbioPrimario.push("Provável acidose metabólica compensada");
+            else if (pH > 7.40) resultado.disturbioPrimario.push("Provável alcalose respiratória compensada");
+            else resultado.disturbioPrimario.push("Distúrbio compensado ou misto");
+        } else if (!co2Alto && !co2Baixo && !hco3Alto && !hco3Baixo) {
+            resultado.disturbioPrimario.push("Sem distúrbio ácido-base evidente");
+        }
+    }
+
+    if (resultado.disturbioPrimario.includes("Acidose metabólica")) resultado.compensacao = compensacaoAcidoseMetabolica(pCO2, hco3);
+    else if (resultado.disturbioPrimario.includes("Alcalose metabólica")) resultado.compensacao = compensacaoAlcaloseMetabolica(pCO2, hco3);
+    else if (resultado.disturbioPrimario.includes("Acidose respiratória")) resultado.compensacao = compensacaoAcidoseRespiratoria(pCO2, hco3);
+    else if (resultado.disturbioPrimario.includes("Alcalose respiratória")) resultado.compensacao = compensacaoAlcaloseRespiratoria(pCO2, hco3);
+
+    if (resultado.compensacao && resultado.compensacao.disturbioAssociado) resultado.disturbiosMistos.push(resultado.compensacao.disturbioAssociado);
+
+    if (Number.isFinite(sodio) && Number.isFinite(cloro) && Number.isFinite(hco3)) {
+        resultado.anionGap = arredondar(sodio - cloro - hco3, 1);
+        if (Number.isFinite(albumina)) resultado.anionGapCorrigido = arredondar(resultado.anionGap + 2.5 * (4 - albumina), 1);
+        const agParaAnalise = resultado.anionGapCorrigido ?? resultado.anionGap;
+        if (agParaAnalise > 12 && hco3 < 24) {
+            resultado.deltaRatio = calcularDeltaRatio(agParaAnalise, hco3);
+            resultado.disturbiosMistos.push(interpretarDeltaRatio(resultado.deltaRatio));
+        }
+    }
+
+    if (Number.isFinite(lactato)) {
+        if (lactato >= 4) resultado.alertas.push(`Lactato significativamente elevado: ${lactato} mmol/L`);
+        else if (lactato > 2) resultado.alertas.push(`Lactato elevado: ${lactato} mmol/L`);
+    }
+
+    if (Number.isFinite(pO2)) {
+        if (tipoAmostra === "arterial") resultado.oxigenacao = interpretarOxigenacao(pO2, fio2);
+        else resultado.alertas.push("A pO₂ venosa ou capilar não avalia oxigenação arterial.");
+    }
+
+    if (pH < 7.10) resultado.alertas.push("Acidemia grave: pH menor que 7,10.");
+    if (pH > 7.60) resultado.alertas.push("Alcalemia grave: pH maior que 7,60.");
+    if (pCO2 > 70) resultado.alertas.push("Hipercapnia importante: correlacionar com ventilação e clínica.");
+    if (hco3 < 10) resultado.alertas.push("Bicarbonato muito reduzido: acidose metabólica importante.");
+
+    return resultado;
+}
+
+function compensacaoAcidoseMetabolica(pCO2, hco3) {
+    const esperado = 1.5 * hco3 + 8;
+    const minimo = esperado - 2, maximo = esperado + 2;
+    let interpretacao, disturbioAssociado = null;
+    if (pCO2 < minimo) { interpretacao = "pCO₂ menor que a compensação esperada"; disturbioAssociado = "Alcalose respiratória associada"; }
+    else if (pCO2 > maximo) { interpretacao = "pCO₂ maior que a compensação esperada"; disturbioAssociado = "Acidose respiratória associada"; }
+    else interpretacao = "Compensação respiratória apropriada";
+    return { tipo: "Acidose metabólica", variavelAvaliada: "pCO₂", esperado: arredondar(esperado, 1), intervaloEsperado: [arredondar(minimo, 1), arredondar(maximo, 1)], observado: pCO2, interpretacao, disturbioAssociado };
+}
+
+function compensacaoAlcaloseMetabolica(pCO2, hco3) {
+    const esperado = 40 + 0.7 * (hco3 - 24);
+    const minimo = esperado - 5, maximo = esperado + 5;
+    let interpretacao, disturbioAssociado = null;
+    if (pCO2 < minimo) { interpretacao = "pCO₂ menor que a compensação esperada"; disturbioAssociado = "Alcalose respiratória associada"; }
+    else if (pCO2 > maximo) { interpretacao = "pCO₂ maior que a compensação esperada"; disturbioAssociado = "Acidose respiratória associada"; }
+    else interpretacao = "Compensação respiratória apropriada";
+    return { tipo: "Alcalose metabólica", variavelAvaliada: "pCO₂", esperado: arredondar(esperado, 1), intervaloEsperado: [arredondar(minimo, 1), arredondar(maximo, 1)], observado: pCO2, interpretacao, disturbioAssociado };
+}
+
+function compensacaoAcidoseRespiratoria(pCO2, hco3) {
+    const aumentoCO2 = Math.max(0, pCO2 - 40);
+    return compararRespiratorio({ tipo: "Acidose respiratória", hco3, esperadoAgudo: 24 + (aumentoCO2 / 10) * 1, esperadoCronico: 24 + (aumentoCO2 / 10) * 4, disturbioSeBaixo: "Acidose metabólica associada", disturbioSeAlto: "Alcalose metabólica associada" });
+}
+
+function compensacaoAlcaloseRespiratoria(pCO2, hco3) {
+    const quedaCO2 = Math.max(0, 40 - pCO2);
+    return compararRespiratorio({ tipo: "Alcalose respiratória", hco3, esperadoAgudo: 24 - (quedaCO2 / 10) * 2, esperadoCronico: 24 - (quedaCO2 / 10) * 5, disturbioSeBaixo: "Acidose metabólica associada", disturbioSeAlto: "Alcalose metabólica associada" });
+}
+
+function compararRespiratorio({ tipo, hco3, esperadoAgudo, esperadoCronico, disturbioSeBaixo, disturbioSeAlto }) {
+    const distanciaAgudo = Math.abs(hco3 - esperadoAgudo), distanciaCronico = Math.abs(hco3 - esperadoCronico);
+    const esperadoMaisProximo = distanciaAgudo <= distanciaCronico ? esperadoAgudo : esperadoCronico;
+    let interpretacao, disturbioAssociado = null;
+    if (hco3 < esperadoMaisProximo - 2) { interpretacao = "HCO₃ menor que o esperado para compensação"; disturbioAssociado = disturbioSeBaixo; }
+    else if (hco3 > esperadoMaisProximo + 2) { interpretacao = "HCO₃ maior que o esperado para compensação"; disturbioAssociado = disturbioSeAlto; }
+    else interpretacao = "Compensação metabólica aproximadamente apropriada";
+    return { tipo, variavelAvaliada: "HCO₃", observado: hco3, esperadoAgudo: arredondar(esperadoAgudo, 1), esperadoCronico: arredondar(esperadoCronico, 1), interpretacao, disturbioAssociado };
+}
+
+function calcularDeltaRatio(anionGap, hco3) {
+    const deltaHCO3 = 24 - hco3;
+    if (deltaHCO3 <= 0) return null;
+    return arredondar((anionGap - 12) / deltaHCO3, 2);
+}
+
+function interpretarDeltaRatio(deltaRatio) {
+    if (!Number.isFinite(deltaRatio)) return "Delta ratio não interpretável";
+    if (deltaRatio < 0.4) return "Acidose metabólica hiperclorêmica";
+    if (deltaRatio < 0.8) return "Mista: AG elevado e hiperclorêmica";
+    if (deltaRatio <= 2) return "Acidose metabólica de AG elevado";
+    return "Possível alcalose metabólica associada";
+}
+
+function interpretarOxigenacao(pO2, fio2) {
+    const relacaoPF = pO2 / fio2;
+    let classificacao;
+    if (relacaoPF >= 400) classificacao = "Preservada";
+    else if (relacaoPF >= 300) classificacao = "Discreta redução";
+    else if (relacaoPF >= 200) classificacao = "Moderada (SDRA leve)";
+    else if (relacaoPF >= 100) classificacao = "Importante (SDRA moderada)";
+    else classificacao = "Muito grave (SDRA grave)";
+    return { relacaoPF: arredondar(relacaoPF, 0), classificacao };
+}
+
+function arredondar(valor, casas = 1) { return Math.round(valor * (10**casas)) / (10**casas); }
+function validarEntradas({ pH, pCO2, hco3 }) {
+    if (!Number.isFinite(pH) || pH < 6.5 || pH > 8) throw new Error("pH inválido. Use vírgula ou ponto corretamente.");
+    if (!Number.isFinite(pCO2) || pCO2 <= 0) throw new Error("pCO₂ inválida.");
+    if (!Number.isFinite(hco3) || hco3 <= 0) throw new Error("HCO₃ inválido.");
+}
+
+// ============================================================================
+// FUNÇÕES: BIOQUÍMICA (MANTIDAS EXATAMENTE IGUAIS)
 // ============================================================================
 function renderizarTabelaBioquimica() {
   let html = '';
@@ -360,13 +614,13 @@ function avaliarBioquimica() {
 
     tdFaixa.textContent = `${faixa.min} - ${faixa.max}`;
     if (valor < faixa.min) {
-      tdFaixa.style.backgroundColor = "#ffc107"; // Abaixo (Amarelo)
+      tdFaixa.style.backgroundColor = "#ffc107"; // Abaixo
       tdFaixa.style.color = "#000";
     } else if (valor > faixa.max) {
-      tdFaixa.style.backgroundColor = "#f44336"; // Acima (Vermelho)
+      tdFaixa.style.backgroundColor = "#f44336"; // Acima
       tdFaixa.style.color = "#fff";
     } else {
-      tdFaixa.style.backgroundColor = "#8bc34a"; // Normal (Verde)
+      tdFaixa.style.backgroundColor = "#8bc34a"; // Normal
       tdFaixa.style.color = "#fff";
     }
   });
@@ -382,52 +636,8 @@ function limparBioquimica() {
 }
 
 // ============================================================================
-// FUNÇÕES: GASOMETRIA E HEMOGRAMA E LÍQUOR
+// FUNÇÕES: HEMOGRAMA E LÍQUOR (MANTIDAS EXATAMENTE IGUAIS)
 // ============================================================================
-function diagnosticarGasometria() {
-  const idade = parseInt(document.getElementById('gaso-idade').value);
-  const pH = parseFloat(document.getElementById('gaso-ph').value);
-  const PaCO2 = parseFloat(document.getElementById('gaso-paco2').value);
-  const HCO3 = parseFloat(document.getElementById('gaso-hco3').value);
-  const Na = parseFloat(document.getElementById('gaso-na').value);
-  const Cl = parseFloat(document.getElementById('gaso-cl').value);
-  const PaO2 = parseFloat(document.getElementById('gaso-pao2').value);
-  const albumina = parseFloat(document.getElementById('gaso-alb').value);
-
-  if (isNaN(pH) || isNaN(PaCO2) || isNaN(HCO3) || isNaN(Na) || isNaN(Cl) || isNaN(idade)) {
-    document.getElementById('res-gasometria').innerText = "Preencha pH, PaCO2, HCO3, Na, Cl e Idade.";
-    document.getElementById('res-gasometria').style.display = 'block';
-    return;
-  }
-
-  let ref = { pH: [7.35,7.45], PaCO2: [35,45], HCO3: [22,26] };
-  if (idade === 0) ref = { pH: [7.35,7.45], PaCO2: [32,45], HCO3: [18,24] };
-  else if (idade <= 12) ref = { pH: [7.35,7.45], PaCO2: [34,39], HCO3: [20,24] };
-
-  const gapAnionico = Na - (Cl + HCO3);
-  const gapCorrigido = isNaN(albumina) ? gapAnionico : gapAnionico + 2.5 * (4.0 - albumina);
-
-  let diag = [];
-  if (pH < ref.pH[0]) {
-    if (HCO3 < ref.HCO3[0]) diag.push(`Acidose metabólica (Gap ${gapCorrigido > 12 ? 'Elevado' : 'Normal'})`);
-    else if (PaCO2 > ref.PaCO2[1]) diag.push('Acidose respiratória');
-    else diag.push('Distúrbio misto (Acidose predominante)');
-  } else if (pH > ref.pH[1]) {
-    if (HCO3 > ref.HCO3[1]) diag.push('Alcalose metabólica');
-    else if (PaCO2 < ref.PaCO2[0]) diag.push('Alcalose respiratória');
-    else diag.push('Distúrbio misto (Alcalose predominante)');
-  } else {
-    diag.push('pH Compensado ou Normal');
-  }
-
-  let alertas = [];
-  if (pH < 7.20) alertas.push("🚨 Risco cardiovascular (Avaliar UTI)");
-  if (!isNaN(PaO2) && PaO2 < 60) alertas.push("🚨 Insuficiência Respiratória Hipoxêmica");
-
-  document.getElementById('res-gasometria').innerText = `DIAGNÓSTICO:\n- ${diag.join('\n- ')}\n\nALERTAS:\n${alertas.length ? '- ' + alertas.join('\n- ') : 'Nenhum alerta crítico.'}`;
-  document.getElementById('res-gasometria').style.display = 'block';
-}
-
 function interpretarHemograma() {
   const age = document.getElementById('hemo-idade').value;
   if (!age) return alert("Selecione a faixa etária.");
@@ -494,7 +704,7 @@ function avaliarLiquor() {
 }
 
 // ============================================================================
-// FUNÇÕES: INTELIGÊNCIA ARTIFICIAL (Extração de Laudos)
+// FUNÇÕES: INTELIGÊNCIA ARTIFICIAL (MANTIDAS EXATAMENTE IGUAIS)
 // ============================================================================
 const PADRAO_CONSULTORIO = `
 EXAMES LABORATORIAIS ([DD/MM/AAAA])
