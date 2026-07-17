@@ -8,7 +8,7 @@ export function initMetabolica() {
     slot.innerHTML = `
         <div class="card" style="border-left: 5px solid #8e44ad;">
             <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
-                <h2 style="color: #8e44ad; margin-top: 0; font-size: 1.15rem;">Diagnóstico de Síndrome Metabólica Pediátrica</h2>
+                <h2 style="color: #8e44ad; margin-top: 0; font-size: 1.15rem;">Diagnóstico e Conduta: Síndrome Metabólica</h2>
                 <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Baseado no Consenso da International Diabetes Federation (IDF - 2007) para crianças e adolescentes.</p>
             </div>
 
@@ -53,7 +53,7 @@ export function initMetabolica() {
                 </div>
             </div>
 
-            <button class="calc-btn" id="btn-calc-sm" style="background: #8e44ad;">Gerar Diagnóstico Metabólico</button>
+            <button class="calc-btn" id="btn-calc-sm" style="background: #8e44ad;">Gerar Diagnóstico e Conduta</button>
             <div id="res-sm" class="result-box"></div>
         </div>
     `;
@@ -75,6 +75,7 @@ function calcularSindromeMetabolica() {
     const resBox = byId('res-sm');
     resBox.style.display = 'block';
 
+    // 1. Validação de Idade
     if (isNaN(idade)) {
         resBox.innerHTML = '<span style="color:#c0392b; font-weight:bold;">⚠️ Por favor, preencha a idade do paciente.</span>';
         return;
@@ -83,70 +84,101 @@ function calcularSindromeMetabolica() {
     if (idade < 10) {
         resBox.innerHTML = `
             <strong style="color: var(--azul); font-size: 1.1rem;">🛑 Não Diagnósticável pela IDF (&lt; 10 anos)</strong><br><br>
-            <span style="color:#5f7382;">O diagnóstico formal de Síndrome Metabólica <strong>não deve ser feito em crianças menores de 10 anos</strong>.<br>
-            A conduta clínica recomendada baseia-se fortemente na prevenção, mudança do estilo de vida e redução de peso caso haja obesidade abdominal.</span>
+            <span style="color:#5f7382;">O diagnóstico formal de Síndrome Metabólica <strong>não deve ser feito em crianças menores de 10 anos</strong>.</span><br><br>
+            <strong style="color: #2980b9; font-size: 1.05rem;">📋 Conduta Clínica Recomendada:</strong>
+            <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem;">
+                <li><strong>Foco Preventivo:</strong> A intervenção nesta faixa etária deve ser estritamente comportamental.</li>
+                <li><strong>Mudança do Estilo de Vida (MEV):</strong> Estimular brincadeiras ativas (≥ 60 min/dia), reduzir tempo de ecrã/telas (< 2h/dia) e promover reeducação alimentar familiar.</li>
+                <li>Monitorizar o peso e a circunferência abdominal anualmente. Farmacoterapia metabólica não é recomendada nesta faixa.</li>
+            </ul>
         `;
         return;
     }
 
+    // 2. Critério Obrigatório Ausente
     if (!cinturaElevada) {
         resBox.innerHTML = `
             <strong style="color: #27ae60; font-size: 1.1rem;">✅ Negativo para Síndrome Metabólica</strong><br><br>
-            <span style="color:#5f7382;">A Obesidade Abdominal (circunferência elevada) é o <strong>critério obrigatório primário</strong> no consenso da IDF.<br>Sem ele, a síndrome não está configurada, mesmo que existam outros distúrbios laboratoriais isolados.</span>
+            <span style="color:#5f7382;">A Obesidade Abdominal (circunferência elevada) é o <strong>critério obrigatório primário</strong> no consenso da IDF.<br>Sem ele, a síndrome não está configurada.</span><br><br>
+            <strong style="color: #2980b9; font-size: 1.05rem;">📋 Conduta Clínica:</strong>
+            <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem;">
+                <li>Manter seguimento pediátrico de rotina (Puericultura).</li>
+                <li>Se houver outros exames alterados isoladamente (ex: dislipidemia familiar), tratá-los de acordo com a diretriz específica da patologia.</li>
+            </ul>
         `;
         return;
     }
 
+    // 3. Avaliação dos Critérios Adicionais
     let criteriosAlcancados = 0;
     let achados = [];
 
-    // Triglicérides
     if (tg >= 150) {
         criteriosAlcancados++;
         achados.push(`Triglicérides elevados (≥ 150 mg/dL) → Encontrado: ${tg}`);
     }
 
-    // HDL Colesterol
     let limiarHDL = 40;
     if (idade >= 16 && sexo === 'F') limiarHDL = 50;
-    
     if (hdl < limiarHDL) {
         criteriosAlcancados++;
         achados.push(`HDL reduzido (&lt; ${limiarHDL} mg/dL) → Encontrado: ${hdl}`);
     }
 
-    // Pressão Arterial
     if (pas >= 130 || pad >= 85) {
         criteriosAlcancados++;
         achados.push(`Pressão Arterial elevada (≥ 130/85 mmHg) → Encontrado: ${pas || '--'}/${pad || '--'}`);
     }
 
-    // Glicemia de Jejum
     if (glicose >= 100) {
         criteriosAlcancados++;
         achados.push(`Glicemia de jejum alterada (≥ 100 mg/dL) → Encontrado: ${glicose}`);
     }
 
+    // 4. Montagem da Conduta Dinâmica
+    let condutaHtml = `
+        <br><strong style="color: #2980b9; font-size: 1.05rem;">📋 Plano Terapêutico e Conduta:</strong>
+        <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem; line-height: 1.5;">
+            <li><strong>MEV (Primeira Linha):</strong> Intervenção nutricional (redução drástica de açúcares simples, ultraprocessados e gorduras saturadas) e pelo menos 60 min/dia de atividade física moderada/vigorosa. Meta primária é a redução do peso e da circunferência abdominal.</li>
+    `;
+
+    if (tg >= 150 || hdl < limiarHDL) {
+        condutaHtml += `<li><strong>Dislipidemia:</strong> Manter MEV rigoroso por 3 a 6 meses. Avaliar farmacoterapia (Estatinas) se houver elevação persistente do LDL associado. Fibratos ou Ômega-3 são indicados primariamente se Triglicérides extremamente elevados (> 400-500 mg/dL) pelo risco de pancreatite aguda.</li>`;
+    }
+    if (pas >= 130 || pad >= 85) {
+        condutaHtml += `<li><strong>Pressão Arterial:</strong> Dieta restrita em sódio (DASH) e perda de peso. Se hipertensão estágio 1 refratária pós-MEV ou presença de lesão de órgão-alvo/sintomas, iniciar anti-hipertensivos (iECA, BRA ou Bloqueadores de Canal de Cálcio).</li>`;
+    }
+    if (glicose >= 100) {
+        condutaHtml += `<li><strong>Metabolismo Glicêmico:</strong> Aprofundar investigação com TOTG e HbA1c. Considerar <strong>Metformina</strong> em adolescentes com diagnóstico firmado de DM2 ou intolerância à glicose/resistência insulínica severa refratária ao MEV.</li>`;
+    }
+
+    // Sempre adicionar rastreio de comorbidades para quem tem obesidade central
+    condutaHtml += `<li><strong>Rastreio de Comorbidades:</strong> Solicitar USG de Abdome Total e TGO/TGP (rastreio de Esteatose Hepática - DHGNA). Investigar clínica de Apneia Obstrutiva do Sono e sinais de Síndrome dos Ovários Policísticos (SOP) nas meninas.</li>`;
+    condutaHtml += `</ul>`;
+
+    // 5. Fecho do Diagnóstico
     let htmlFinal = "";
     if (criteriosAlcancados >= 2) {
         htmlFinal = `
             <strong style="color: #c0392b; font-size: 1.15rem;">🚨 Diagnóstico Positivo: Síndrome Metabólica</strong><br>
             <span style="color: #5f7382; font-size: 0.9rem;">O paciente preenche o critério obrigatório + <strong>${criteriosAlcancados}</strong> critérios adicionais.</span><br><br>
             <strong>Achados Positivos:</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0; color: #c0392b; font-weight: bold;">
+            <ul style="margin: 5px 0 0 20px; padding: 0; color: #c0392b; font-weight: bold; font-size: 0.9rem;">
                 <li>Obesidade Abdominal (Critério Obrigatório)</li>
                 ${achados.map(a => `<li>${a}</li>`).join('')}
             </ul>
+            ${condutaHtml}
         `;
     } else {
         htmlFinal = `
-            <strong style="color: #f39c12; font-size: 1.15rem;">⚠️ Atenção: Risco Metabólico</strong><br>
-            <span style="color: #5f7382; font-size: 0.9rem;">O paciente possui obesidade abdominal, mas não cumpre os 2 critérios adicionais exigidos para o diagnóstico formal de Síndrome Metabólica. Acompanhamento rigoroso recomendado.</span><br><br>
+            <strong style="color: #f39c12; font-size: 1.15rem;">⚠️ Atenção: Risco Metabólico / Pré-Síndrome</strong><br>
+            <span style="color: #5f7382; font-size: 0.9rem;">O paciente possui obesidade abdominal, mas não cumpre os 2 critérios adicionais exigidos para o diagnóstico formal. O risco evolutivo é altíssimo.</span><br><br>
             <strong>Achados Positivos (Anormais):</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0; color: #d35400;">
+            <ul style="margin: 5px 0 0 20px; padding: 0; color: #d35400; font-size: 0.9rem;">
                 <li>Obesidade Abdominal (Critério Obrigatório)</li>
-                ${achados.length > 0 ? achados.map(a => `<li>${a}</li>`).join('') : '<li style="color:#7f8c8d; font-weight:normal;">Nenhum outro critério laboratorial ou vital foi preenchido.</li>'}
+                ${achados.length > 0 ? achados.map(a => `<li>${a}</li>`).join('') : '<li style="color:#7f8c8d; font-weight:normal;">Nenhum outro critério laboratorial ou vital alterado.</li>'}
             </ul>
+            ${condutaHtml}
         `;
     }
 
