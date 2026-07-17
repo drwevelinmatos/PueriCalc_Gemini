@@ -3,16 +3,18 @@ import { byId } from '../../utils/dom.js';
 import { initECGCard } from './ecg.js';
 import { initPACard } from './pa.js';
 import { initMRPA } from './mrpa.js';
+import { initMetabolica } from './metabolica.js'; // <-- NOVO IMPORT
 
 export function renderCardio() {
   const root = byId('tab-cardio');
   if (!root) return;
 
   root.innerHTML = `
-    <div class="subnav" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid #d8e2ea; padding-bottom: 10px;">
+    <div class="subnav" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid #d8e2ea; padding-bottom: 10px; flex-wrap: wrap;">
       <button class="active calc-btn" data-cardio-sub="cardio-pa" style="width: auto; margin: 0; padding: 10px 20px;">Pressão Arterial (PA)</button>
       <button class="calc-btn" data-cardio-sub="cardio-ecg" style="width: auto; margin: 0; padding: 10px 20px; background: #eef2f5; color: var(--azul);">Eletrocardiograma (ECG)</button>
       <button class="calc-btn" data-cardio-sub="cardio-mrpa" style="width: auto; margin: 0; padding: 10px 20px; background: #eef2f5; color: var(--azul);">MRPA</button>
+      <button class="calc-btn" data-cardio-sub="cardio-metabolica" style="width: auto; margin: 0; padding: 10px 20px; background: #eef2f5; color: var(--azul);">Síndrome Metabólica</button>
     </div>
 
     <div id="cardio-pa" class="cardio-sub active">
@@ -26,6 +28,10 @@ export function renderCardio() {
     <div id="cardio-mrpa" class="cardio-sub" style="display: none;">
       <div id="cardio-mrpa-slot"></div>
     </div>
+
+    <div id="cardio-metabolica" class="cardio-sub" style="display: none;">
+      <div id="cardio-metabolica-slot"></div>
+    </div>
   `;
 
   initCardioSubtabs(root);
@@ -34,6 +40,7 @@ export function renderCardio() {
   initPACard();
   initECGCard();
   initMRPA();
+  initMetabolica(); // <-- INICIA A NOVA CALCULADORA
 }
 
 // Lógica para alternar as abas dinamicamente
