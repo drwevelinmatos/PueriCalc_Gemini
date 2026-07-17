@@ -7,47 +7,52 @@ export function initECGCard() {
 
     slot.innerHTML = `
         <div class="card" style="border-left: 5px solid #c0392b;">
-            <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
-                <h2 style="color: #c0392b; margin-top: 0; font-size: 1.15rem;">Análise de ECG e Geração de Laudo</h2>
-                <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Preencha os valores diretos ou use a <strong>calculadora de quadradinhos (mm)</strong> para conversão automática (Vel: 25 mm/s).</p>
+            <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 10px;">
+                <h2 style="color: #c0392b; margin-top: 0; font-size: 1.15rem;">ECG Pediátrico Avançado (Davignon / AHA)</h2>
+                <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Utilize os quadradinhos (mm) para conversão automática ou insira os valores diretos.</p>
             </div>
 
             <div class="grid-3" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #d8e2ea;">
-                <div><label>Idade (Anos)</label><input type="number" id="ecg-anos" min="0" placeholder="Ex: 5"></div>
-                <div><label>Meses</label><input type="number" id="ecg-meses" min="0" max="11" placeholder="Ex: 2"></div>
+                <div><label>Idade (Anos) <span style="color:red">*</span></label><input type="number" id="ecg-anos" min="0" placeholder="Ex: 10"></div>
+                <div><label>Meses <span style="color:red">*</span></label><input type="number" id="ecg-meses" min="0" max="11" placeholder="Ex: 9"></div>
                 <div><label>Dias</label><input type="number" id="ecg-dias" min="0" max="31" placeholder="Ex: 0"></div>
             </div>
 
-            <div class="grid-2" style="margin-bottom: 10px;">
+            <h3 style="font-size: 0.95rem; color: var(--azul); margin-top: 0;">2. Ritmo e Frequência</h3>
+            <div class="grid-2" style="margin-bottom: 15px;">
                 <div>
-                    <label>Ritmo <span style="color:red">*</span></label>
+                    <label>Ritmo</label>
                     <select id="ecg-ritmo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                        <option value="sinusal">Sinusal</option>
-                        <option value="nao_sinusal">Não Sinusal / Arritmia</option>
+                        <option value="Sinusal">Sinusal</option>
+                        <option value="Atrial">Atrial</option>
+                        <option value="Nodal / Juncional">Nodal / Juncional</option>
+                        <option value="Fibrilação Atrial">Fibrilação Atrial</option>
+                        <option value="Outro">Outro (Não Sinusal)</option>
                     </select>
                 </div>
                 <div>
-                    <label>Frequência Cardíaca <span style="color:red">*</span></label>
+                    <label>Frequência Cardíaca</label>
                     <div style="display:flex; gap: 5px;">
-                        <input type="number" id="ecg-rr-mm" placeholder="R-R (mm)" style="width: 50%; border-color: #e74c3c;" title="Conte os quadradinhos entre os R-R">
+                        <input type="number" id="ecg-rr-mm" placeholder="R-R (mm)" style="width: 50%; border-color: #e74c3c;">
                         <input type="number" id="ecg-fc" placeholder="BPM" style="width: 50%; font-weight: bold; color: #c0392b; background: #fadbd8;">
                     </div>
                 </div>
             </div>
 
+            <h3 style="font-size: 0.95rem; color: var(--azul); margin-top: 0;">3. Eixo e Intervalos</h3>
             <div class="grid-3" style="margin-bottom: 10px;">
-                <div><label>Ângulo QRS (Graus)</label><input type="number" id="ecg-eixo" placeholder="Ex: 60"></div>
+                <div><label>Eixo SÂQRS (º)</label><input type="number" id="ecg-eixo" placeholder="Ex: 45"></div>
                 <div>
-                    <label>Duração Onda P</label>
+                    <label>Onda P (Duração)</label>
                     <div style="display:flex; gap: 5px;">
                         <input type="number" id="ecg-p-dur-mm" placeholder="mm" style="width: 40%; border-color: #3498db;">
                         <input type="number" id="ecg-p-dur" placeholder="ms" style="width: 60%; background: #ebf5fb;">
                     </div>
                 </div>
-                <div><label>Amplitude Onda P (mm)</label><input type="number" id="ecg-p-amp" step="0.1" placeholder="Ex: 1.5"></div>
+                <div><label>Onda P (Amplitude)</label><input type="number" id="ecg-p-amp" step="0.1" placeholder="mm (Ex: 2.0)"></div>
             </div>
 
-            <div class="grid-3" style="margin-bottom: 15px;">
+            <div class="grid-3" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #d8e2ea;">
                 <div>
                     <label>Intervalo PR</label>
                     <div style="display:flex; gap: 5px;">
@@ -56,7 +61,7 @@ export function initECGCard() {
                     </div>
                 </div>
                 <div>
-                    <label>Duração do QRS</label>
+                    <label>Duração QRS</label>
                     <div style="display:flex; gap: 5px;">
                         <input type="number" id="ecg-qrs-mm" placeholder="mm" style="width: 40%; border-color: #3498db;">
                         <input type="number" id="ecg-qrs" placeholder="ms" style="width: 60%; background: #ebf5fb;">
@@ -65,39 +70,96 @@ export function initECGCard() {
                 <div>
                     <label>Intervalo QT</label>
                     <div style="display:flex; gap: 5px;">
-                        <input type="number" id="ecg-qt-mm" placeholder="QT med (mm)" style="width: 50%; border-color: #9b59b6;" title="QT Medido em quadradinhos">
-                        <input type="number" id="ecg-qtc" placeholder="QTc (ms)" style="width: 50%; background: #f4ecf7; font-weight:bold;" title="Calculado automaticamente por Bazett">
+                        <input type="number" id="ecg-qt-mm" placeholder="QT (mm)" style="width: 50%; border-color: #9b59b6;">
+                        <input type="number" id="ecg-qtc" placeholder="QTc (ms)" style="width: 50%; background: #f4ecf7; font-weight:bold;">
                     </div>
                 </div>
             </div>
 
-            <div class="grid-2" style="margin-bottom: 20px; background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
+            <h3 style="font-size: 0.95rem; color: var(--azul); margin-top: 0;">4. Morfologia, ST e Alterações</h3>
+            <div class="grid-3" style="margin-bottom: 10px;">
                 <div>
-                    <label>Padrão RSR' em V1</label>
-                    <select id="ecg-rsr" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                        <option value="ausente">Ausente</option>
-                        <option value="presente">Presente</option>
+                    <label>Sobrecarga Ventricular</label>
+                    <select id="ecg-sobrecarga-v" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Ausente">Ausente</option>
+                        <option value="SVD">SVD</option>
+                        <option value="SVE">SVE</option>
+                        <option value="Biventricular">Biventricular</option>
                     </select>
                 </div>
                 <div>
-                    <label>Ondas Q Patológicas</label>
+                    <label>Padrão RSR' V1</label>
+                    <select id="ecg-rsr" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Ausente">Ausente</option>
+                        <option value="Presente">Presente</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Onda Q Patológica</label>
                     <select id="ecg-q-pat" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                        <option value="ausente">Ausente</option>
-                        <option value="presente">Presente (Necrose/Isquemia)</option>
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim</option>
                     </select>
                 </div>
             </div>
 
-            <button class="calc-btn" id="btn-calc-ecg" style="background: #c0392b;">Gerar Laudo Detalhado</button>
+            <div class="grid-3" style="margin-bottom: 10px;">
+                <div>
+                    <label>Segmento ST</label>
+                    <select id="ecg-st" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Isoelétrico">Isoelétrico</option>
+                        <option value="Elevado">Elevado</option>
+                        <option value="Deprimido">Deprimido</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Onda T</label>
+                    <select id="ecg-t" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Positiva">Positiva</option>
+                        <option value="Negativa">Negativa</option>
+                        <option value="Bifásica">Bifásica</option>
+                        <option value="Apiculada">Apiculada</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Onda T neg em V1</label>
+                    <select id="ecg-t-v1" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim (Fisiológico < 6 anos)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #d8e2ea;">
+                <div>
+                    <label>Bloqueio AV (Clínico)</label>
+                    <select id="ecg-bav" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Ausente">Ausente</option>
+                        <option value="1º Grau">1º Grau (Apenas PR longo)</option>
+                        <option value="2º Grau Mobitz I">2º Grau Mobitz I</option>
+                        <option value="2º Grau Mobitz II">2º Grau Mobitz II</option>
+                        <option value="3º Grau (Total)">3º Grau (Total)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Extrassístoles</label>
+                    <select id="ecg-extra" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <option value="Ausente">Ausente</option>
+                        <option value="Atriais (EA)">Atriais (EA)</option>
+                        <option value="Ventriculares (EV)">Ventriculares (EV)</option>
+                        <option value="Supraventriculares (ESV)">Supraventriculares (ESV)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="calc-btn" id="btn-calc-ecg" style="background: #c0392b;">Gerar Laudo Final</button>
             <div id="res-ecg" class="result-box" style="display: none; background: #fffdf5; border-left: 5px solid #c0392b;"></div>
         </div>
     `;
 
     // ==========================================
-    // ⚙️ MOTORES DE CÁLCULO AUTOMÁTICO
+    // ⚙️ MOTORES DE CONVERSÃO (Quadradinhos)
     // ==========================================
-    
-    // 1. Função genérica para duração (1 quadradinho = 40ms)
     const setupAutoCalc = (idMm, idMs) => {
         const inputMm = byId(idMm);
         const inputMs = byId(idMs);
@@ -109,12 +171,10 @@ export function initECGCard() {
             });
         }
     };
-
     setupAutoCalc('ecg-p-dur-mm', 'ecg-p-dur');
     setupAutoCalc('ecg-pr-mm', 'ecg-pr');
     setupAutoCalc('ecg-qrs-mm', 'ecg-qrs');
 
-    // 2. Função Complexa: FC (1500) e QTc (Fórmula de Bazett)
     const rrInput = byId('ecg-rr-mm');
     const fcInput = byId('ecg-fc');
     const qtInput = byId('ecg-qt-mm');
@@ -125,21 +185,16 @@ export function initECGCard() {
         const rr_mm = parseFloat(rrInput.value);
         const fc = parseFloat(fcInput.value);
         
-        // Calcular RR em segundos (para o Bazett)
-        if (!isNaN(rr_mm) && rr_mm > 0) {
-            rr_s = rr_mm * 0.04;
-        } else if (!isNaN(fc) && fc > 0) {
-            rr_s = 60 / fc;
-        }
+        if (!isNaN(rr_mm) && rr_mm > 0) rr_s = rr_mm * 0.04;
+        else if (!isNaN(fc) && fc > 0) rr_s = 60 / fc;
 
-        // Se houver QT medido (em mm), calcula o QTc corrigido!
         const qt = parseFloat(qtInput.value);
         if (rr_s !== null && !isNaN(qt)) {
-            const qt_ms = qt * 40; // converte QT medido para ms
-            const qtc = qt_ms / Math.sqrt(rr_s); // Bazett
+            const qt_ms = qt * 40; 
+            const qtc = qt_ms / Math.sqrt(rr_s); // Fórmula de Bazett
             qtcInput.value = Math.round(qtc);
         } else {
-            qtcInput.value = ''; // Limpa se faltarem dados
+            qtcInput.value = '';
         }
     };
 
@@ -153,209 +208,177 @@ export function initECGCard() {
     if(fcInput) fcInput.addEventListener('input', updateFC_QTc);
     if(qtInput) qtInput.addEventListener('input', updateFC_QTc);
 
-    // Liga o botão de Laudo
-    byId('btn-calc-ecg')?.addEventListener('click', avaliarECG);
+    byId('btn-calc-ecg')?.addEventListener('click', gerarLaudoECG);
 }
 
 // ==========================================
-// 🏥 MATRIZ DAVIGNON (AHA)
+// 🏥 MATRIZ DAVIGNON EXTRAÍDA DO EXCEL
 // ==========================================
-const DAVIGNON_REF = [
-    { min: 0, max: 6, fc: [90, 190], eixo: [60, 180], prMax: 160, qrsMax: 80, pDur: 80 }, // 0 a 1 sem
-    { min: 7, max: 29, fc: [105, 195], eixo: [45, 160], prMax: 150, qrsMax: 80, pDur: 80 }, // 1 a 4 sem
-    { min: 30, max: 89, fc: [110, 180], eixo: [30, 135], prMax: 150, qrsMax: 80, pDur: 80 }, // 1 a 3 m
-    { min: 90, max: 179, fc: [105, 180], eixo: [0, 135], prMax: 160, qrsMax: 80, pDur: 80 }, // 3 a 6 m
-    { min: 180, max: 359, fc: [100, 175], eixo: [0, 135], prMax: 160, qrsMax: 80, pDur: 80 }, // 6 a 12 m
-    { min: 360, max: 1094, fc: [90, 150], eixo: [0, 110], prMax: 160, qrsMax: 90, pDur: 90 }, // 1 a 3 a
-    { min: 1095, max: 1824, fc: [65, 135], eixo: [0, 110], prMax: 170, qrsMax: 90, pDur: 90 }, // 3 a 5 a
-    { min: 1825, max: 2919, fc: [60, 130], eixo: [-15, 110], prMax: 170, qrsMax: 90, pDur: 90 }, // 5 a 8 a
-    { min: 2920, max: 4379, fc: [60, 120], eixo: [-15, 110], prMax: 180, qrsMax: 100, pDur: 100 }, // 8 a 12 a
-    { min: 4380, max: 5839, fc: [60, 115], eixo: [-15, 110], prMax: 180, qrsMax: 100, pDur: 100 }, // 12 a 16 a
-    { min: 5840, max: 99999, fc: [60, 100], eixo: [-30, 90], prMax: 200, qrsMax: 100, pDur: 110 } // > 16 a
+const DAVIGNON_DB = [
+    { maxDias: 1, fc: [94, 155], eixo: [59, 189], pr: [80, 120], qtc: [378, 462], qrsMax: 65 },
+    { maxDias: 3, fc: [91, 158], eixo: [64, 197], pr: [80, 140], qtc: [378, 462], qrsMax: 65 },
+    { maxDias: 7, fc: [90, 166], eixo: [76, 191], pr: [70, 150], qtc: [378, 462], qrsMax: 65 },
+    { maxDias: 30, fc: [106, 182], eixo: [70, 160], pr: [70, 140], qtc: [378, 462], qrsMax: 75 },
+    { maxDias: 91, fc: [120, 179], eixo: [30, 115], pr: [70, 130], qtc: [381, 458], qrsMax: 75 },
+    { maxDias: 182, fc: [105, 185], eixo: [7, 105], pr: [70, 150], qtc: [386, 453], qrsMax: 75 },
+    { maxDias: 365, fc: [108, 169], eixo: [6, 98], pr: [70, 160], qtc: [379, 449], qrsMax: 80 },
+    { maxDias: 1095, fc: [89, 152], eixo: [7, 102], pr: [80, 150], qtc: [381, 455], qrsMax: 85 },
+    { maxDias: 1826, fc: [73, 137], eixo: [6, 104], pr: [80, 160], qtc: [377, 448], qrsMax: 85 },
+    { maxDias: 2922, fc: [65, 133], eixo: [10, 139], pr: [90, 160], qtc: [365, 447], qrsMax: 90 },
+    { maxDias: 4383, fc: [62, 130], eixo: [6, 116], pr: [90, 170], qtc: [365, 447], qrsMax: 100 },
+    { maxDias: 5844, fc: [60, 120], eixo: [9, 128], pr: [90, 180], qtc: [362, 449], qrsMax: 100 },
+    { maxDias: 99999, fc: [60, 100], eixo: [-30, 90], pr: [120, 200], qtc: [350, 450], qrsMax: 100 }
 ];
 
-function avaliarECG() {
-    const anos = parseInt(byId('ecg-anos').value) || 0;
-    const meses = parseInt(byId('ecg-meses').value) || 0;
+function gerarLaudoECG() {
+    const anos = parseInt(byId('ecg-anos').value);
+    const meses = parseInt(byId('ecg-meses').value);
     const dias = parseInt(byId('ecg-dias').value) || 0;
     
+    const fc = parseFloat(byId('ecg-fc').value); 
+    const resBox = byId('res-ecg');
+
+    if (isNaN(anos) || isNaN(meses)) {
+        resBox.style.display = 'block';
+        resBox.innerHTML = '<strong style="color:#c0392b;">⚠️ ERRO: Insira pelo menos Anos e Meses (coloque 0 se aplicável).</strong>';
+        return;
+    }
+
+    const idadeDias = (anos * 365.25) + (meses * 30.4) + dias;
+    const ref = DAVIGNON_DB.find(r => idadeDias <= r.maxDias) || DAVIGNON_DB[DAVIGNON_DB.length - 1];
+
+    // Coletores de Texto para o Laudo
+    let diagnósticos = [];
     const ritmo = byId('ecg-ritmo').value;
-    const fc = parseFloat(byId('ecg-fc').value); // Lê o input nativo (já preenchido pela automação)
     const eixo = parseFloat(byId('ecg-eixo').value);
     const pDur = parseFloat(byId('ecg-p-dur').value);
     const pAmp = parseFloat(byId('ecg-p-amp').value);
     const pr = parseFloat(byId('ecg-pr').value);
     const qrs = parseFloat(byId('ecg-qrs').value);
     const qtc = parseFloat(byId('ecg-qtc').value);
+    const sv = byId('ecg-sobrecarga-v').value;
     const rsr = byId('ecg-rsr').value;
     const qPat = byId('ecg-q-pat').value;
-
-    const resBox = byId('res-ecg');
-
-    if (anos === 0 && meses === 0 && dias === 0) {
-        resBox.style.display = 'block';
-        resBox.innerHTML = '<strong style="color:#c0392b;">⚠️ ERRO: Insira a idade do paciente para calcular as referências adequadas.</strong>';
-        return;
-    }
-    if (isNaN(fc)) {
-        resBox.style.display = 'block';
-        resBox.innerHTML = '<strong style="color:#c0392b;">⚠️ ERRO: A Frequência Cardíaca é obrigatória (Digite a FC direta ou use o R-R em mm).</strong>';
-        return;
-    }
-
-    const idadeDias = (anos * 365) + (meses * 30.4) + dias;
-    const ref = DAVIGNON_REF.find(r => idadeDias >= r.min && idadeDias <= r.max) || DAVIGNON_REF[DAVIGNON_REF.length - 1];
-
-    let laudos = []; 
-    let textoRitmo = "";
-    let textoConducao = "";
-    let textoEixo = "";
-    let textoP = "";
-    let textoQRS = "";
-    let textoQT = "";
-    let textoExtra = "";
+    const st = byId('ecg-st').value;
+    const ondaT = byId('ecg-t').value;
+    const tV1 = byId('ecg-t-v1').value;
+    const bav = byId('ecg-bav').value;
+    const extra = byId('ecg-extra').value;
 
     // 1. RITMO E FC
-    let estadoFC = "Normal";
-    if (fc < ref.fc[0]) { estadoFC = "Bradicardia"; laudos.push(`Bradicardia (${fc} bpm)`); }
-    if (fc > ref.fc[1]) { estadoFC = "Taquicardia"; laudos.push(`Taquicardia (${fc} bpm)`); }
-    
-    if (ritmo === 'sinusal') {
-        textoRitmo = `Ritmo Sinusal. Frequência Cardíaca de ${fc} bpm (${estadoFC} para a idade).`;
-    } else {
-        textoRitmo = `Ritmo NÃO Sinusal / Arritmia. Frequência Cardíaca de ${fc} bpm.`;
-        laudos.push("Ritmo Não Sinusal (Investigar Arritmia)");
+    let classFC = "Normal";
+    if (!isNaN(fc)) {
+        if (fc < ref.fc[0]) { classFC = "Bradicardia"; diagnósticos.push(`Bradicardia (${fc} bpm)`); }
+        else if (fc > ref.fc[1]) { classFC = "Taquicardia"; diagnósticos.push(`Taquicardia (${fc} bpm)`); }
     }
+    const strFC = isNaN(fc) ? "--" : `${fc} bpm (${classFC})`;
+    if (ritmo !== 'Sinusal') diagnósticos.push(`Ritmo ${ritmo}`);
 
-    // 2. ONDA P E ÁTRIOS
-    if (!isNaN(pDur) || !isNaN(pAmp)) {
-        let pTxt = [];
-        if (!isNaN(pDur) && pDur > ref.pDur) { pTxt.push(`Duração aumentada (${pDur} ms)`); laudos.push("Sobrecarga Atrial Esquerda (SAE)"); }
-        if (!isNaN(pAmp) && pAmp >= 2.5) { pTxt.push(`Amplitude aumentada (${pAmp} mm)`); laudos.push("Sobrecarga Atrial Direita (SAD)"); }
-        textoP = pTxt.length > 0 ? pTxt.join(". ") + "." : "Onda P com morfologia, duração e amplitude normais.";
-    } else {
-        textoP = "Onda P não avaliada detalhadamente.";
-    }
-
-    // 3. INTERVALO PR
+    // 2. INTERVALOS
+    let classPR = "Normal";
     if (!isNaN(pr)) {
-        let prMin = idadeDias < 365 ? 80 : 100;
-        if (pr < prMin) { 
-            textoConducao = `Intervalo PR curto (${pr} ms).`; 
-            laudos.push("PR Curto (Considerar Síndrome de Pré-excitação / WPW)"); 
-        }
-        else if (pr > ref.prMax) { 
-            textoConducao = `Intervalo PR prolongado (${pr} ms).`; 
-            laudos.push("Bloqueio Atrioventricular (BAV) de 1º Grau"); 
-        }
-        else { textoConducao = `Intervalo PR de ${pr} ms (Normal para a idade).`; }
+        if (pr > ref.pr[1]) { classPR = "Prolongado"; if(bav === 'Ausente') diagnósticos.push("Intervalo PR Prolongado (BAV 1º Grau)"); }
+        else if (pr < ref.pr[0]) { classPR = "Curto"; diagnósticos.push("Intervalo PR Curto"); }
     }
+    const strPR = isNaN(pr) ? "--" : `${pr} ms (${classPR})`;
 
-    // 4. EIXO QRS
-    if (!isNaN(eixo)) {
-        if (eixo < ref.eixo[0]) {
-            textoEixo = `Eixo do QRS desviado à ESQUERDA (${eixo}º).`;
-            laudos.push("Desvio do Eixo QRS à Esquerda");
-        } else if (eixo > ref.eixo[1]) {
-            textoEixo = `Eixo do QRS desviado à DIREITA (${eixo}º).`;
-            laudos.push("Desvio do Eixo QRS à Direita");
-        } else {
-            textoEixo = `Eixo do QRS em ${eixo}º (Dentro dos limites normais).`;
-        }
-    }
+    let classQRS = "Estreito";
+    let brdCompleto = false;
+    let brdIncompleto = false;
+    let breCompleto = false;
 
-    // 5. DURAÇÃO QRS E RSR'
-    let qrsProlongado = false;
     if (!isNaN(qrs)) {
-        if (qrs > ref.qrsMax && qrs < 120) {
-            textoQRS = `Complexo QRS com duração no limite superior / prolongada (${qrs} ms).`;
-            qrsProlongado = true;
-            if (rsr !== 'presente') laudos.push("Distúrbio de Condução Intraventricular (Atraso final)");
-        } else if (qrs >= 120) {
-            textoQRS = `Complexo QRS alargado (${qrs} ms).`;
-            qrsProlongado = true;
-            if (rsr !== 'presente') laudos.push("Bloqueio de Ramo Completo");
-        } else {
-            textoQRS = `Complexo QRS de duração normal (${qrs} ms).`;
+        if (qrs > ref.qrsMax) {
+            classQRS = "Alargado";
+            if (qrs >= 120) {
+                // Adult-level bundle branch blocks logic
+                if (rsr === 'Presente') { brdCompleto = true; diagnósticos.push("Bloqueio de Ramo Direito (BRD)"); }
+                else { breCompleto = true; diagnósticos.push("Bloqueio de Ramo Esquerdo (BRE) provável"); }
+            } else {
+                // Pediatric-level delay
+                if (rsr === 'Presente') { brdIncompleto = true; diagnósticos.push("Distúrbio de condução pelo ramo direito (BRD Incompleto)"); }
+                else { diagnósticos.push("Atraso de condução intraventricular inespecífico"); }
+            }
         }
     }
+    const strQRS = isNaN(qrs) ? "--" : `${qrs} ms (${classQRS})`;
+    if (rsr === 'Presente' && !brdCompleto && !brdIncompleto) diagnósticos.push("Padrão RSR' em V1 (Fisiológico se QRS estreito)");
 
-    if (rsr === 'presente') {
-        textoExtra += "Presença de padrão RSR' em V1. ";
-        if (qrsProlongado) {
-            laudos.push(qrs >= 120 ? "Bloqueio de Ramo Direito (BRD) Completo" : "Bloqueio Incompleto de Ramo Direito (BIRD)");
-        } else {
-            laudos.push("Padrão RSR' em V1 (Pode ser variante do normal se QRS estreito e sem alterações de repolarização)");
-        }
-    }
-
-    // 6. ONDAS Q PATOLÓGICAS
-    if (qPat === 'presente') {
-        textoExtra += "Ondas Q patológicas presentes. ";
-        laudos.push("Ondas Q Patológicas (Investigar área inativa/isquemia ou hipertrofia miocárdica)");
-    }
-
-    // 7. QTc
+    let classQTc = "Normal";
     if (!isNaN(qtc)) {
-        if (qtc >= 460) {
-            textoQT = `QTc Prolongado (${qtc} ms).`;
-            laudos.push("Intervalo QTc Prolongado (Risco de Arritmia / Síndrome do QT Longo)");
-        } else if (qtc <= 340) {
-            textoQT = `QTc Curto (${qtc} ms).`;
-            laudos.push("Intervalo QTc Curto (Investigar Síndrome do QT Curto)");
-        } else {
-            textoQT = `QTc de ${qtc} ms (Normal).`;
-        }
+        if (qtc > ref.qtc[1]) { classQTc = "Longo"; diagnósticos.push(`QTc Prolongado (${qtc} ms)`); }
+        else if (qtc < ref.qtc[0]) { classQTc = "Curto"; diagnósticos.push(`QTc Curto (${qtc} ms)`); }
     }
+    const strQTc = isNaN(qtc) ? "--" : `${qtc} ms (${classQTc})`;
 
-    // MONTAGEM DO LAUDO FINAL
-    let tituloDiagnostico = "";
-    let corDiagnostico = "";
-    
-    if (laudos.length === 0 && ritmo === 'sinusal') {
-        tituloDiagnostico = "ECG DENTRO DOS LIMITES DA NORMALIDADE";
-        corDiagnostico = "#27ae60"; 
-        laudos.push("Exame eletrocardiográfico dentro dos parâmetros fisiológicos para a idade, conforme Davignon/AHA.");
-    } else {
-        tituloDiagnostico = "ECG COM ALTERAÇÕES (VER LAUDO)";
-        corDiagnostico = "#c0392b"; 
+    // 3. EIXO
+    let classEixo = "Normal";
+    if (!isNaN(eixo)) {
+        if (eixo < ref.eixo[0]) { classEixo = "Desvio à Esquerda"; diagnósticos.push("Desvio do SÂQRS à Esquerda"); }
+        else if (eixo > ref.eixo[1]) { classEixo = "Desvio à Direita"; diagnósticos.push("Desvio do SÂQRS à Direita"); }
     }
+    const strEixo = isNaN(eixo) ? "--" : `${eixo}º (${classEixo})`;
+
+    // 4. SOBRECARGAS
+    if (pAmp > 3) diagnósticos.push("Sobrecarga Atrial Direita (SAD)");
+    if (pDur >= 80 && idadeDias < 365) diagnósticos.push("Sobrecarga Atrial Esquerda (SAE)");
+    else if (pDur >= 90 && idadeDias >= 365) diagnósticos.push("Sobrecarga Atrial Esquerda (SAE)");
+
+    if (sv !== 'Ausente') diagnósticos.push(`Sobrecarga Ventricular: ${sv}`);
+    if (qPat === 'Sim') diagnósticos.push("Ondas Q Patológicas Presentes");
+
+    // 5. ST / ONDA T / ARRITMIAS
+    if (st !== 'Isoelétrico') diagnósticos.push(`Segmento ST ${st}`);
+    if (ondaT !== 'Positiva' && ondaT !== 'Bifásica') diagnósticos.push(`Onda T ${ondaT}`);
+    if (tV1 === 'Sim' && anos >= 6) diagnósticos.push("Onda T negativa em V1 (Anormal para a idade > 6 anos)");
+    
+    if (bav !== 'Ausente' && bav !== '1º Grau') diagnósticos.push(`Bloqueio AV: ${bav}`); // 1º grau já coberto no PR
+    if (extra !== 'Ausente') diagnósticos.push(`Extrassístoles: ${extra}`);
+
+    // MONTAGEM DO TEXTO (SIMILAR AO EXCEL)
+    const exameNormal = diagnósticos.length === 0;
 
     let htmlLaudo = `
-        <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.5; color: #2c3e50;">
+        <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.6; color: #2c3e50;">
             <div style="text-align: center; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: #2980b9;">LAUDO ELETROCARDIOGRÁFICO PEDIÁTRICO</h3>
-                <span style="font-size: 0.8rem; color: #7f8c8d;">Ref: Davignon et al. / AHA Guidelines</span>
+                <h3 style="margin: 0; color: #2980b9;">ELETROCARDIOGRAMA</h3>
+                <span style="font-size: 0.85rem;">Idade: ${anos}a ${meses}m ${dias}d</span>
             </div>
 
-            <strong>1. Ritmo e Frequência:</strong><br>
-            ${textoRitmo}<br><br>
+            <strong>1. Ritmo e Frequência</strong><br>
+            Ritmo: ${ritmo}<br>
+            FC: ${strFC}<br><br>
 
-            <strong>2. Condução Atrioventricular:</strong><br>
-            ${textoConducao || "Não informada."}<br><br>
+            <strong>2. Intervalos</strong><br>
+            PR: ${strPR}<br>
+            QRS: ${strQRS}<br>
+            QTc (Bazett): ${strQTc}<br><br>
 
-            <strong>3. Análise Atrial (Onda P):</strong><br>
-            ${textoP}<br><br>
+            <strong>3. Eixo Elétrico</strong><br>
+            SÂQRS: ${strEixo}<br><br>
 
-            <strong>4. Eixo Elétrico:</strong><br>
-            ${textoEixo || "Não informado."}<br><br>
+            <strong>4. Morfologia e Sobrecargas</strong><br>
+            Onda Q patológica: ${qPat}<br>
+            Sobrecarga Ventricular: ${sv}<br><br>
 
-            <strong>5. Despolarização Ventricular (QRS):</strong><br>
-            ${textoQRS || "Não informada."}<br><br>
+            <strong>5. Segmento ST e Onda T</strong><br>
+            Segmento ST: ${st}<br>
+            Onda T: ${ondaT}<br>
+            T negativa em V1 (fisio < 6a): ${tV1}<br><br>
 
-            <strong>6. Repolarização Ventricular (QTc):</strong><br>
-            ${textoQT || "Não informada."}<br><br>
+            <strong>6. Arritmias / Alterações de Condução</strong><br>
+            Extrassístoles: ${extra}<br>
+            Bloqueios AV: ${bav}<br>
+            Padrão RSR' V1: ${rsr}<br><br>
 
-            ${textoExtra ? `<strong>7. Achados Adicionais:</strong><br>${textoExtra}<br><br>` : ''}
-
-            <div style="background: ${corDiagnostico}15; border-left: 4px solid ${corDiagnostico}; padding: 12px; margin-top: 20px;">
-                <strong style="color: ${corDiagnostico}; font-size: 1.05rem;">CONCLUSÃO DIAGNÓSTICA:</strong>
+            <div style="background: ${exameNormal ? '#d4efdf' : '#fadbd8'}; border-left: 4px solid ${exameNormal ? '#27ae60' : '#c0392b'}; padding: 12px; margin-top: 20px;">
+                <strong style="color: ${exameNormal ? '#27ae60' : '#c0392b'}; font-size: 1.05rem;">7. INTERPRETAÇÃO FINAL:</strong>
                 <ul style="margin: 8px 0 0 20px; padding: 0; font-weight: bold; color: #34495e;">
-                    ${laudos.map(l => `<li style="margin-bottom: 4px;">${l}</li>`).join('')}
+                    ${exameNormal ? '<li>Exame normal para a idade.</li>' : diagnósticos.map(l => `<li style="margin-bottom: 4px;">${l}</li>`).join('')}
                 </ul>
             </div>
             
-            <button class="calc-btn" id="btn-copiar-laudo-ecg" style="margin-top: 15px; background: #2c3e50; font-family: 'Inter', sans-serif;">📋 Copiar Laudo para o Prontuário</button>
+            <button class="calc-btn" id="btn-copiar-laudo-ecg" style="margin-top: 15px; background: #2c3e50; font-family: 'Inter', sans-serif;">📋 Copiar Laudo para Prontuário</button>
         </div>
     `;
 
@@ -363,20 +386,18 @@ function avaliarECG() {
     resBox.innerHTML = htmlLaudo;
 
     document.getElementById('btn-copiar-laudo-ecg').addEventListener('click', function() {
-        let txtCopia = `LAUDO ELETROCARDIOGRÁFICO PEDIÁTRICO\n`;
-        txtCopia += `- Ritmo e FC: ${textoRitmo}\n`;
-        if(textoConducao) txtCopia += `- Condução AV: ${textoConducao}\n`;
-        txtCopia += `- Onda P: ${textoP}\n`;
-        if(textoEixo) txtCopia += `- Eixo QRS: ${textoEixo}\n`;
-        if(textoQRS) txtCopia += `- Duração QRS: ${textoQRS}\n`;
-        if(textoQT) txtCopia += `- QTc: ${textoQT}\n`;
-        if(textoExtra) txtCopia += `- Extras: ${textoExtra}\n`;
-        txtCopia += `\nCONCLUSÃO:\n`;
-        laudos.forEach(l => txtCopia += `* ${l}\n`);
+        let txtCopia = `LAUDO DE ELETROCARDIOGRAMA (Idade: ${anos}a ${meses}m)\n`;
+        txtCopia += `1. Ritmo e FC:\n- Ritmo: ${ritmo}\n- FC: ${strFC}\n\n`;
+        txtCopia += `2. Intervalos:\n- PR: ${strPR}\n- QRS: ${strQRS}\n- QTc: ${strQTc}\n\n`;
+        txtCopia += `3. Eixo:\n- SÂQRS: ${strEixo}\n\n`;
+        txtCopia += `4. Morfologia e ST-T:\n- ST: ${st} | Onda T: ${ondaT}\n- Sobrecarga Ventricular: ${sv}\n\n`;
+        txtCopia += `5. INTERPRETAÇÃO FINAL:\n`;
+        if(exameNormal) txtCopia += `* Exame normal para a idade.\n`;
+        else diagnósticos.forEach(l => txtCopia += `* ${l}\n`);
 
         navigator.clipboard.writeText(txtCopia).then(() => {
             this.innerText = '✅ Laudo Copiado!';
-            setTimeout(() => { this.innerText = '📋 Copiar Laudo para o Prontuário'; }, 2000);
+            setTimeout(() => { this.innerText = '📋 Copiar Laudo para Prontuário'; }, 2000);
         });
     });
 }
