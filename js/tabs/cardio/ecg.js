@@ -9,7 +9,7 @@ export function initECGCard() {
         <div class="card" style="border-left: 5px solid #c0392b;">
             <div class="card-header" style="border: none; padding-left: 0; margin-bottom: 5px;">
                 <h2 style="color: #c0392b; margin-top: 0; font-size: 1.15rem;">Análise de ECG e Geração de Laudo</h2>
-                <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Algoritmo baseado nas diretrizes de Davignon e AHA para ECG Pediátrico. Preencha os dados e a idade do paciente.</p>
+                <p style="font-size: 0.85rem; color: #5f7382; margin-top: 4px;">Preencha os valores diretos ou use a <strong>calculadora de quadradinhos (mm)</strong> para conversão automática (Vel: 25 mm/s).</p>
             </div>
 
             <div class="grid-3" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #d8e2ea;">
@@ -26,19 +26,49 @@ export function initECGCard() {
                         <option value="nao_sinusal">Não Sinusal / Arritmia</option>
                     </select>
                 </div>
-                <div><label>Frequência Cardíaca (BPM) <span style="color:red">*</span></label><input type="number" id="ecg-fc" placeholder="Ex: 110"></div>
+                <div>
+                    <label>Frequência Cardíaca <span style="color:red">*</span></label>
+                    <div style="display:flex; gap: 5px;">
+                        <input type="number" id="ecg-rr-mm" placeholder="R-R (mm)" style="width: 50%; border-color: #e74c3c;" title="Conte os quadradinhos entre os R-R">
+                        <input type="number" id="ecg-fc" placeholder="BPM" style="width: 50%; font-weight: bold; color: #c0392b; background: #fadbd8;">
+                    </div>
+                </div>
             </div>
 
             <div class="grid-3" style="margin-bottom: 10px;">
                 <div><label>Ângulo QRS (Graus)</label><input type="number" id="ecg-eixo" placeholder="Ex: 60"></div>
-                <div><label>Duração Onda P (ms)</label><input type="number" id="ecg-p-dur" placeholder="Ex: 80"></div>
+                <div>
+                    <label>Duração Onda P</label>
+                    <div style="display:flex; gap: 5px;">
+                        <input type="number" id="ecg-p-dur-mm" placeholder="mm" style="width: 40%; border-color: #3498db;">
+                        <input type="number" id="ecg-p-dur" placeholder="ms" style="width: 60%; background: #ebf5fb;">
+                    </div>
+                </div>
                 <div><label>Amplitude Onda P (mm)</label><input type="number" id="ecg-p-amp" step="0.1" placeholder="Ex: 1.5"></div>
             </div>
 
             <div class="grid-3" style="margin-bottom: 15px;">
-                <div><label>Intervalo PR (ms)</label><input type="number" id="ecg-pr" placeholder="Ex: 120"></div>
-                <div><label>Duração do QRS (ms)</label><input type="number" id="ecg-qrs" placeholder="Ex: 80"></div>
-                <div><label>Intervalo QTc (ms)</label><input type="number" id="ecg-qtc" placeholder="Ex: 410"></div>
+                <div>
+                    <label>Intervalo PR</label>
+                    <div style="display:flex; gap: 5px;">
+                        <input type="number" id="ecg-pr-mm" placeholder="mm" style="width: 40%; border-color: #3498db;">
+                        <input type="number" id="ecg-pr" placeholder="ms" style="width: 60%; background: #ebf5fb;">
+                    </div>
+                </div>
+                <div>
+                    <label>Duração do QRS</label>
+                    <div style="display:flex; gap: 5px;">
+                        <input type="number" id="ecg-qrs-mm" placeholder="mm" style="width: 40%; border-color: #3498db;">
+                        <input type="number" id="ecg-qrs" placeholder="ms" style="width: 60%; background: #ebf5fb;">
+                    </div>
+                </div>
+                <div>
+                    <label>Intervalo QT</label>
+                    <div style="display:flex; gap: 5px;">
+                        <input type="number" id="ecg-qt-mm" placeholder="QT med (mm)" style="width: 50%; border-color: #9b59b6;" title="QT Medido em quadradinhos">
+                        <input type="number" id="ecg-qtc" placeholder="QTc (ms)" style="width: 50%; background: #f4ecf7; font-weight:bold;" title="Calculado automaticamente por Bazett">
+                    </div>
+                </div>
             </div>
 
             <div class="grid-2" style="margin-bottom: 20px; background: #f8fbfd; padding: 12px; border-radius: 8px; border: 1px solid #d8e2ea;">
@@ -59,16 +89,77 @@ export function initECGCard() {
             </div>
 
             <button class="calc-btn" id="btn-calc-ecg" style="background: #c0392b;">Gerar Laudo Detalhado</button>
-            
             <div id="res-ecg" class="result-box" style="display: none; background: #fffdf5; border-left: 5px solid #c0392b;"></div>
         </div>
     `;
 
+    // ==========================================
+    // ⚙️ MOTORES DE CÁLCULO AUTOMÁTICO
+    // ==========================================
+    
+    // 1. Função genérica para duração (1 quadradinho = 40ms)
+    const setupAutoCalc = (idMm, idMs) => {
+        const inputMm = byId(idMm);
+        const inputMs = byId(idMs);
+        if(inputMm && inputMs) {
+            inputMm.addEventListener('input', () => {
+                const val = parseFloat(inputMm.value);
+                if(!isNaN(val)) inputMs.value = Math.round(val * 40);
+                else inputMs.value = '';
+            });
+        }
+    };
+
+    setupAutoCalc('ecg-p-dur-mm', 'ecg-p-dur');
+    setupAutoCalc('ecg-pr-mm', 'ecg-pr');
+    setupAutoCalc('ecg-qrs-mm', 'ecg-qrs');
+
+    // 2. Função Complexa: FC (1500) e QTc (Fórmula de Bazett)
+    const rrInput = byId('ecg-rr-mm');
+    const fcInput = byId('ecg-fc');
+    const qtInput = byId('ecg-qt-mm');
+    const qtcInput = byId('ecg-qtc');
+
+    const updateFC_QTc = () => {
+        let rr_s = null;
+        const rr_mm = parseFloat(rrInput.value);
+        const fc = parseFloat(fcInput.value);
+        
+        // Calcular RR em segundos (para o Bazett)
+        if (!isNaN(rr_mm) && rr_mm > 0) {
+            rr_s = rr_mm * 0.04;
+        } else if (!isNaN(fc) && fc > 0) {
+            rr_s = 60 / fc;
+        }
+
+        // Se houver QT medido (em mm), calcula o QTc corrigido!
+        const qt = parseFloat(qtInput.value);
+        if (rr_s !== null && !isNaN(qt)) {
+            const qt_ms = qt * 40; // converte QT medido para ms
+            const qtc = qt_ms / Math.sqrt(rr_s); // Bazett
+            qtcInput.value = Math.round(qtc);
+        } else {
+            qtcInput.value = ''; // Limpa se faltarem dados
+        }
+    };
+
+    if(rrInput) rrInput.addEventListener('input', () => {
+        const rr = parseFloat(rrInput.value);
+        if(!isNaN(rr) && rr > 0) fcInput.value = Math.round(1500 / rr);
+        else fcInput.value = '';
+        updateFC_QTc();
+    });
+    
+    if(fcInput) fcInput.addEventListener('input', updateFC_QTc);
+    if(qtInput) qtInput.addEventListener('input', updateFC_QTc);
+
+    // Liga o botão de Laudo
     byId('btn-calc-ecg')?.addEventListener('click', avaliarECG);
 }
 
-// MATRIZ DAVIGNON SIMPLIFICADA E ADAPTADA (AHA)
-// min/max dias de vida -> Limites de FC, Eixo (QRS), PR máximo e QRS máximo
+// ==========================================
+// 🏥 MATRIZ DAVIGNON (AHA)
+// ==========================================
 const DAVIGNON_REF = [
     { min: 0, max: 6, fc: [90, 190], eixo: [60, 180], prMax: 160, qrsMax: 80, pDur: 80 }, // 0 a 1 sem
     { min: 7, max: 29, fc: [105, 195], eixo: [45, 160], prMax: 150, qrsMax: 80, pDur: 80 }, // 1 a 4 sem
@@ -89,7 +180,7 @@ function avaliarECG() {
     const dias = parseInt(byId('ecg-dias').value) || 0;
     
     const ritmo = byId('ecg-ritmo').value;
-    const fc = parseFloat(byId('ecg-fc').value);
+    const fc = parseFloat(byId('ecg-fc').value); // Lê o input nativo (já preenchido pela automação)
     const eixo = parseFloat(byId('ecg-eixo').value);
     const pDur = parseFloat(byId('ecg-p-dur').value);
     const pAmp = parseFloat(byId('ecg-p-amp').value);
@@ -108,14 +199,14 @@ function avaliarECG() {
     }
     if (isNaN(fc)) {
         resBox.style.display = 'block';
-        resBox.innerHTML = '<strong style="color:#c0392b;">⚠️ ERRO: A Frequência Cardíaca é obrigatória.</strong>';
+        resBox.innerHTML = '<strong style="color:#c0392b;">⚠️ ERRO: A Frequência Cardíaca é obrigatória (Digite a FC direta ou use o R-R em mm).</strong>';
         return;
     }
 
     const idadeDias = (anos * 365) + (meses * 30.4) + dias;
     const ref = DAVIGNON_REF.find(r => idadeDias >= r.min && idadeDias <= r.max) || DAVIGNON_REF[DAVIGNON_REF.length - 1];
 
-    let laudos = []; // Armazena as conclusões anormais
+    let laudos = []; 
     let textoRitmo = "";
     let textoConducao = "";
     let textoEixo = "";
@@ -146,9 +237,9 @@ function avaliarECG() {
         textoP = "Onda P não avaliada detalhadamente.";
     }
 
-    // 3. INTERVALO PR (CONDUÇÃO AV)
+    // 3. INTERVALO PR
     if (!isNaN(pr)) {
-        let prMin = idadeDias < 365 ? 80 : 100; // Recém-nascidos podem ter PR de 80ms
+        let prMin = idadeDias < 365 ? 80 : 100;
         if (pr < prMin) { 
             textoConducao = `Intervalo PR curto (${pr} ms).`; 
             laudos.push("PR Curto (Considerar Síndrome de Pré-excitação / WPW)"); 
@@ -189,7 +280,6 @@ function avaliarECG() {
         }
     }
 
-    // RSR' em V1
     if (rsr === 'presente') {
         textoExtra += "Presença de padrão RSR' em V1. ";
         if (qrsProlongado) {
@@ -224,11 +314,11 @@ function avaliarECG() {
     
     if (laudos.length === 0 && ritmo === 'sinusal') {
         tituloDiagnostico = "ECG DENTRO DOS LIMITES DA NORMALIDADE";
-        corDiagnostico = "#27ae60"; // Verde
+        corDiagnostico = "#27ae60"; 
         laudos.push("Exame eletrocardiográfico dentro dos parâmetros fisiológicos para a idade, conforme Davignon/AHA.");
     } else {
         tituloDiagnostico = "ECG COM ALTERAÇÕES (VER LAUDO)";
-        corDiagnostico = "#c0392b"; // Vermelho
+        corDiagnostico = "#c0392b"; 
     }
 
     let htmlLaudo = `
@@ -272,9 +362,7 @@ function avaliarECG() {
     resBox.style.display = 'block';
     resBox.innerHTML = htmlLaudo;
 
-    // Ação de copiar
     document.getElementById('btn-copiar-laudo-ecg').addEventListener('click', function() {
-        // Criar texto limpo para copiar
         let txtCopia = `LAUDO ELETROCARDIOGRÁFICO PEDIÁTRICO\n`;
         txtCopia += `- Ritmo e FC: ${textoRitmo}\n`;
         if(textoConducao) txtCopia += `- Condução AV: ${textoConducao}\n`;
