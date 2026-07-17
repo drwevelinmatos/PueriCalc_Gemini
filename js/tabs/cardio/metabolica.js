@@ -84,13 +84,16 @@ function calcularSindromeMetabolica() {
     if (idade < 10) {
         resBox.innerHTML = `
             <strong style="color: var(--azul); font-size: 1.1rem;">🛑 Não Diagnósticável pela IDF (&lt; 10 anos)</strong><br><br>
-            <span style="color:#5f7382;">O diagnóstico formal de Síndrome Metabólica <strong>não deve ser feito em crianças menores de 10 anos</strong>.</span><br><br>
-            <strong style="color: #2980b9; font-size: 1.05rem;">📋 Conduta Clínica Recomendada:</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem;">
-                <li><strong>Foco Preventivo:</strong> A intervenção nesta faixa etária deve ser estritamente comportamental.</li>
-                <li><strong>Mudança do Estilo de Vida (MEV):</strong> Estimular brincadeiras ativas (≥ 60 min/dia), reduzir tempo de ecrã/telas (< 2h/dia) e promover reeducação alimentar familiar.</li>
-                <li>Monitorizar o peso e a circunferência abdominal anualmente. Farmacoterapia metabólica não é recomendada nesta faixa.</li>
-            </ul>
+            <span style="color:#5f7382;">O diagnóstico formal de Síndrome Metabólica <strong>não deve ser feito em crianças menores de 10 anos</strong>.</span>
+            
+            <div style="background: #e8f4f8; border-left: 4px solid #2980b9; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                <h4 style="color: #2980b9; margin-top: 0; margin-bottom: 10px; font-size: 1.05rem;">📋 Conduta Clínica Recomendada:</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #2c3e50; font-size: 0.9rem; line-height: 1.5;">
+                    <li><strong>Foco Preventivo:</strong> A intervenção nesta faixa etária deve ser estritamente comportamental.</li>
+                    <li><strong>Mudança do Estilo de Vida (MEV):</strong> Estimular brincadeiras ativas (≥ 60 min/dia), reduzir tempo de ecrã/telas (< 2h/dia) e promover reeducação alimentar familiar.</li>
+                    <li>Monitorizar o peso e a circunferência abdominal anualmente. Farmacoterapia metabólica não é recomendada nesta faixa.</li>
+                </ul>
+            </div>
         `;
         return;
     }
@@ -99,12 +102,15 @@ function calcularSindromeMetabolica() {
     if (!cinturaElevada) {
         resBox.innerHTML = `
             <strong style="color: #27ae60; font-size: 1.1rem;">✅ Negativo para Síndrome Metabólica</strong><br><br>
-            <span style="color:#5f7382;">A Obesidade Abdominal (circunferência elevada) é o <strong>critério obrigatório primário</strong> no consenso da IDF.<br>Sem ele, a síndrome não está configurada.</span><br><br>
-            <strong style="color: #2980b9; font-size: 1.05rem;">📋 Conduta Clínica:</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem;">
-                <li>Manter seguimento pediátrico de rotina (Puericultura).</li>
-                <li>Se houver outros exames alterados isoladamente (ex: dislipidemia familiar), tratá-los de acordo com a diretriz específica da patologia.</li>
-            </ul>
+            <span style="color:#5f7382;">A Obesidade Abdominal (circunferência elevada) é o <strong>critério obrigatório primário</strong> no consenso da IDF. Sem ele, a síndrome não está configurada.</span>
+            
+            <div style="background: #e8f4f8; border-left: 4px solid #2980b9; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                <h4 style="color: #2980b9; margin-top: 0; margin-bottom: 10px; font-size: 1.05rem;">📋 Conduta Clínica:</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #2c3e50; font-size: 0.9rem; line-height: 1.5;">
+                    <li>Manter seguimento pediátrico de rotina (Puericultura).</li>
+                    <li>Se houver outros exames alterados isoladamente (ex: dislipidemia familiar), tratá-los de acordo com a diretriz específica da patologia.</li>
+                </ul>
+            </div>
         `;
         return;
     }
@@ -135,26 +141,30 @@ function calcularSindromeMetabolica() {
         achados.push(`Glicemia de jejum alterada (≥ 100 mg/dL) → Encontrado: ${glicose}`);
     }
 
-    // 4. Montagem da Conduta Dinâmica
+    // 4. Montagem da Conduta Dinâmica (Caixa Azul)
     let condutaHtml = `
-        <br><strong style="color: #2980b9; font-size: 1.05rem;">📋 Plano Terapêutico e Conduta:</strong>
-        <ul style="margin: 5px 0 0 20px; padding: 0; color: #34495e; font-size: 0.9rem; line-height: 1.5;">
-            <li><strong>MEV (Primeira Linha):</strong> Intervenção nutricional (redução drástica de açúcares simples, ultraprocessados e gorduras saturadas) e pelo menos 60 min/dia de atividade física moderada/vigorosa. Meta primária é a redução do peso e da circunferência abdominal.</li>
+        <div style="background: #e8f4f8; border-left: 4px solid #2980b9; padding: 15px; border-radius: 6px; margin-top: 20px;">
+            <h4 style="color: #2980b9; margin-top: 0; margin-bottom: 10px; font-size: 1.05rem;">📋 Plano Terapêutico e Conduta</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #2c3e50; font-size: 0.9rem; line-height: 1.6;">
+                <li><strong>Estilo de Vida (MEV):</strong> Intervenção nutricional severa (redução de açúcares/ultraprocessados) e ≥ 60 min/dia de atividade física. Meta primária é a redução do IMC/cintura abdominal.</li>
     `;
 
     if (tg >= 150 || hdl < limiarHDL) {
-        condutaHtml += `<li><strong>Dislipidemia:</strong> Manter MEV rigoroso por 3 a 6 meses. Avaliar farmacoterapia (Estatinas) se houver elevação persistente do LDL associado. Fibratos ou Ômega-3 são indicados primariamente se Triglicérides extremamente elevados (> 400-500 mg/dL) pelo risco de pancreatite aguda.</li>`;
+        condutaHtml += `<li><strong>Dislipidemia:</strong> Manter MEV rigoroso. Avaliar farmacoterapia (Estatinas) se elevação persistente do LDL. Fibratos são indicados primariamente se Triglicérides > 400-500 mg/dL (risco de pancreatite).</li>`;
     }
     if (pas >= 130 || pad >= 85) {
-        condutaHtml += `<li><strong>Pressão Arterial:</strong> Dieta restrita em sódio (DASH) e perda de peso. Se hipertensão estágio 1 refratária pós-MEV ou presença de lesão de órgão-alvo/sintomas, iniciar anti-hipertensivos (iECA, BRA ou Bloqueadores de Canal de Cálcio).</li>`;
+        condutaHtml += `<li><strong>Hipertensão:</strong> Dieta restrita em sódio (DASH) e perda de peso. Se refratária pós-MEV ou houver lesão de órgão-alvo, iniciar anti-hipertensivos (iECA ou BRA).</li>`;
     }
     if (glicose >= 100) {
-        condutaHtml += `<li><strong>Metabolismo Glicêmico:</strong> Aprofundar investigação com TOTG e HbA1c. Considerar <strong>Metformina</strong> em adolescentes com diagnóstico firmado de DM2 ou intolerância à glicose/resistência insulínica severa refratária ao MEV.</li>`;
+        condutaHtml += `<li><strong>Metabolismo Glicêmico:</strong> Aprofundar investigação com TOTG e HbA1c. Considerar <strong>Metformina</strong> caso o paciente firme o diagnóstico de DM2 ou possua intolerância severa à glicose refratária ao MEV.</li>`;
     }
 
-    // Sempre adicionar rastreio de comorbidades para quem tem obesidade central
-    condutaHtml += `<li><strong>Rastreio de Comorbidades:</strong> Solicitar USG de Abdome Total e TGO/TGP (rastreio de Esteatose Hepática - DHGNA). Investigar clínica de Apneia Obstrutiva do Sono e sinais de Síndrome dos Ovários Policísticos (SOP) nas meninas.</li>`;
-    condutaHtml += `</ul>`;
+    // Adiciona rastreios sempre que há obesidade abdominal
+    condutaHtml += `
+                <li><strong>Rastreio de Comorbidades:</strong> Solicitar USG de Abdome Total e TGO/TGP (rastreio de Esteatose Hepática - DHGNA). Investigar clínica de Apneia Obstrutiva do Sono e SOP nas meninas.</li>
+            </ul>
+        </div>
+    `;
 
     // 5. Fecho do Diagnóstico
     let htmlFinal = "";
