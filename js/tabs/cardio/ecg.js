@@ -134,21 +134,17 @@ export function initECGCard() {
 
         <div id="ecg_resultado_container" style="display: none; margin-top: 24px; display: flex; flex-direction: column; align-items: center;">
             
-            <div id="ecg-print-area" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; max-width: 148mm; min-height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box;">
+            <div id="ecg-print-area" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
                 
-                <div style="position: absolute; top: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
-                    <img src="./assets/cabecalho-a5.png" style="max-width: 80%; height: auto; display: inline-block;">
+                <div style="width: 100%; text-align: center; margin-bottom: 10mm;">
+                    <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto; display: inline-block; vertical-align: top;">
                 </div>
 
-                <div style="position: absolute; bottom: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
-                    <img src="./assets/rodape-a5.png" style="max-width: 90%; height: auto; display: inline-block;">
-                </div>
+                <img src="./assets/rodape-a5.png" style="position: absolute; bottom: 0; left: 0; width: 100%; height: auto; z-index: 1;">
 
-                <div style="position: absolute; top: 50%; right: 10mm; transform: translateY(-50%); opacity: 0.15; pointer-events: none; text-align: right; z-index: 2;">
-                    <img src="./assets/marca-dagua-a5.png" style="max-width: 120mm; height: auto;">
-                </div>
+                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 2; max-width: 90mm;">
 
-                <div style="position: relative; padding: 45mm 15mm 30mm 15mm; z-index: 10; font-size: 13px;">
+                <div style="position: relative; padding: 0 10mm 35mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
                     <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                     
                     <div id="a5-content">
@@ -203,7 +199,6 @@ function ecgCalcularEixoP(d1, avf) {
 }
 
 function ecgSintetizarLaudo() {
-    // 1. Coleta de Variáveis
     let nome = document.getElementById('ecg_nome').value || "Não informado";
     let sexo = document.getElementById('ecg_sexo').value;
     let anos = parseInt(document.getElementById('ecg_anos').value) || 0;
@@ -236,7 +231,6 @@ function ecgSintetizarLaudo() {
         return;
     }
 
-    // 2. Cálculos Clínicos
     let fc = Math.round(1500 / rr);
     let rr_seg = rr * 0.04;
     let pr_ms = !isNaN(pr) ? Math.round(pr * 40) : "—";
@@ -251,7 +245,6 @@ function ecgSintetizarLaudo() {
     
     let ref = isPediatrico ? (ECG_DAVIGNON.find(d => totalDias >= d.minDias && totalDias <= d.maxDias) || ECG_DAVIGNON[ECG_DAVIGNON.length - 1]) : ECG_SBC_ADULTO;
 
-    // 3. Motor de Interpretação e Alertas
     let diagnosticos = [];
     let isNormal = true;
     let strQtcAnalise = "Normal";
@@ -282,10 +275,8 @@ function ecgSintetizarLaudo() {
     let interpretacao = isNormal ? "Eletrocardiograma dentro dos padrões da normalidade para a faixa etária." : diagnosticos.join("; ") + ".";
     interpretacao = interpretacao.charAt(0).toUpperCase() + interpretacao.slice(1);
 
-    // 4. Texto Puro (Clipboard)
     const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome}\nIdade: ${anos} anos, ${meses} meses e ${dias} dias\nSexo: ${sexo}\nPeso: ${peso} kg | Altura: ${altura} cm\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_b} ms por Bazett (${strQtcAnalise.toLowerCase()}); ${qtc_f} ms por Fridericia.\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}`;
 
-    // 5. Injeção Visual no Template A5
     const a5Content = document.getElementById('a5-content');
     a5Content.innerHTML = `
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">1. Identificação</h2>
@@ -317,7 +308,6 @@ function ecgSintetizarLaudo() {
         <p style="margin: 0;">${interpretacao}</p>
     `;
 
-    // 6. Exibir e Ancorar os Botões de Ação
     document.getElementById('ecg_resultado_container').style.display = 'flex';
 
     document.getElementById('btn-imprimir-ecg').onclick = () => window.print();
