@@ -4,7 +4,7 @@ export function initECGCard() {
     const slot = document.getElementById('cardio-ecg-slot');
     if (!slot) return;
 
-    // 1. INJEÇÃO DA INTERFACE COMPLETA E DO CSS DE IMPRESSÃO
+    // 1. INJEÇÃO DA INTERFACE COMPLETA E DO CSS DE IMPRESSÃO A5
     slot.innerHTML = `
         <style>
             /* ESTILOS PARA COMPOSIÇÃO E IMPRESSÃO DO LAUDO TIMBRADO DIGITALMENTE */
@@ -13,22 +13,30 @@ export function initECGCard() {
                     size: A5 portrait;
                     margin: 0; 
                 }
+                /* Trava a altura do sistema para impedir a geração de múltiplas páginas em branco */
+                html, body {
+                    height: 210mm !important;
+                    overflow: hidden !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    background: #fff !important;
+                }
                 body * { visibility: hidden; }
                 #ecg-print-area, #ecg-print-area * { visibility: visible; }
                 
                 #ecg-print-area {
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    width: 148mm;
-                    height: 210mm;
-                    margin: 0;
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 148mm !important;
+                    height: 210mm !important;
+                    margin: 0 !important;
                     padding: 0 !important;
                     box-sizing: border-box;
                     background: white !important;
                     border: none !important;
                     box-shadow: none !important;
-                    overflow: hidden;
+                    overflow: hidden !important;
                 }
                 .no-print { display: none !important; }
             }
@@ -134,21 +142,23 @@ export function initECGCard() {
 
         <div id="ecg_resultado_container" style="display: none; margin-top: 24px; display: flex; flex-direction: column; align-items: center;">
             
-            <div id="ecg-print-area" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
+            <div id="ecg-print-area" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
                 
-                <div style="width: 100%; text-align: center; margin-bottom: 10mm;">
+                <div style="width: 100%; text-align: center; margin-top: 5mm;">
                     <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto; display: inline-block; vertical-align: top;">
                 </div>
 
-                <img src="./assets/rodape-a5.png" style="position: absolute; bottom: 0; left: 0; width: 100%; height: auto; z-index: 1;">
+                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 90mm;">
 
-                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 2; max-width: 90mm;">
-
-                <div style="position: relative; padding: 0 10mm 35mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
+                <div style="flex-grow: 1; position: relative; padding: 3mm 10mm 3mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
                     <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                     
                     <div id="a5-content">
                         </div>
+                </div>
+
+                <div style="width: 100%; line-height: 0;">
+                    <img src="./assets/rodape-a5.png" style="width: 100%; height: auto; display: block;">
                 </div>
             </div>
 
@@ -237,6 +247,7 @@ function ecgSintetizarLaudo() {
     let qrs_ms = !isNaN(qrs_dur) ? Math.round(qrs_dur * 40) : "—";
     let qt_ms = !isNaN(qt) ? Math.round(qt * 40) : null;
     
+    // Fórmulas Base
     let qtc_b = qt_ms ? Math.round(qt_ms / Math.sqrt(rr_seg)) : "—";
     let qtc_f = qt_ms ? Math.round(qt_ms / Math.cbrt(rr_seg)) : "—";
 
@@ -249,9 +260,13 @@ function ecgSintetizarLaudo() {
     let isNormal = true;
     let strQtcAnalise = "Normal";
 
+    // Avaliação de Ritmo e FC
+    let isBradicardia = fc < ref.fc[0];
+    let isTaquicardia = fc > ref.fc[1];
+
     if (sap < 0 || sap > 90) { diagnosticos.push("Ritmo não sinusal"); isNormal = false; }
-    if (fc < ref.fc[0]) { diagnosticos.push("Bradicardia para a faixa etária"); isNormal = false; }
-    else if (fc > ref.fc[1]) { diagnosticos.push("Taquicardia para a faixa etária"); isNormal = false; }
+    if (isBradicardia) { diagnosticos.push("Bradicardia para a faixa etária"); isNormal = false; }
+    else if (isTaquicardia) { diagnosticos.push("Taquicardia para a faixa etária"); isNormal = false; }
 
     if (pr_ms !== "—") {
         if (pr_ms < ref.pr[0]) { diagnosticos.push("PR curto"); isNormal = false; }
@@ -267,16 +282,28 @@ function ecgSintetizarLaudo() {
     else if (saqrs >= -90 && saqrs < -30) { diagnosticos.push("Desvio do eixo à esquerda"); isNormal = false; }
     else if (saqrs < -90 || saqrs > 180) { diagnosticos.push("Desvio extremo do eixo QRS"); isNormal = false; }
 
-    if (qtc_b !== "—") {
-        if (qtc_b > ref.qtc) { diagnosticos.push("QTc prolongado"); strQtcAnalise = "Prolongado"; isNormal = false; }
-        else if (qtc_b < 330) { diagnosticos.push("QTc curto"); strQtcAnalise = "Curto"; isNormal = false; }
+    // LOGICA INTELIGENTE DO QTC (Bazett vs Fridericia)
+    let qtc_valor_final, qtc_nome_formula;
+    if (isBradicardia || isTaquicardia) {
+        qtc_valor_final = qtc_f;
+        qtc_nome_formula = "Fridericia";
+    } else {
+        qtc_valor_final = qtc_b;
+        qtc_nome_formula = "Bazett";
+    }
+
+    if (qtc_valor_final !== "—") {
+        if (qtc_valor_final > ref.qtc) { diagnosticos.push("QTc prolongado"); strQtcAnalise = "Prolongado"; isNormal = false; }
+        else if (qtc_valor_final < 330) { diagnosticos.push("QTc curto"); strQtcAnalise = "Curto"; isNormal = false; }
     }
 
     let interpretacao = isNormal ? "Eletrocardiograma dentro dos padrões da normalidade para a faixa etária." : diagnosticos.join("; ") + ".";
     interpretacao = interpretacao.charAt(0).toUpperCase() + interpretacao.slice(1);
 
-    const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome}\nIdade: ${anos} anos, ${meses} meses e ${dias} dias\nSexo: ${sexo}\nPeso: ${peso} kg | Altura: ${altura} cm\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_b} ms por Bazett (${strQtcAnalise.toLowerCase()}); ${qtc_f} ms por Fridericia.\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}`;
+    // Texto Puro (Clipboard)
+    const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome}\nIdade: ${anos} anos, ${meses} meses e ${dias} dias\nSexo: ${sexo}\nPeso: ${peso} kg | Altura: ${altura} cm\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_valor_final} ms por ${qtc_nome_formula} (${strQtcAnalise.toLowerCase()}).\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}`;
 
+    // Injeção Visual no Template A5
     const a5Content = document.getElementById('a5-content');
     a5Content.innerHTML = `
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">1. Identificação</h2>
@@ -293,7 +320,7 @@ function ecgSintetizarLaudo() {
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">3. Intervalos</h2>
         <p style="margin: 0 0 1px 0;">PR: ${pr_ms} ms</p>
         <p style="margin: 0 0 1px 0;">QRS: ${qrs_ms} ms</p>
-        <p style="margin: 0 0 10px 0;">QTc: ${qtc_b} ms por Bazett (${strQtcAnalise.toLowerCase()}); ${qtc_f} ms por Fridericia.</p>
+        <p style="margin: 0 0 10px 0;">QTc: ${qtc_valor_final} ms por ${qtc_nome_formula} (${strQtcAnalise.toLowerCase()}).</p>
 
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">4. Eixos</h2>
         <p style="margin: 0 0 1px 0;">SÂP: ${sap}°</p>
@@ -308,6 +335,7 @@ function ecgSintetizarLaudo() {
         <p style="margin: 0;">${interpretacao}</p>
     `;
 
+    // Exibir e Ancorar os Botões de Ação
     document.getElementById('ecg_resultado_container').style.display = 'flex';
 
     document.getElementById('btn-imprimir-ecg').onclick = () => window.print();
