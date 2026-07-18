@@ -4,17 +4,45 @@ export function initECGCard() {
     const slot = document.getElementById('cardio-ecg-slot');
     if (!slot) return;
 
-    // 1. Injeção Segura da Interface Principal (Input)
+    // 1. Injeção da Interface (Agora com os campos clínicos adicionais)
     slot.innerHTML = `
-        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100" style="margin-top: 20px;">
-            <h2 class="text-xl font-extrabold mb-4 pb-2 border-b border-gray-100" style="color: var(--azul, #1e3a8a);">Análise Avançada de ECG Pediátrico</h2>
+        <style>
+            /* Estilos específicos para a impressão do laudo em A5 */
+            @media print {
+                body * { visibility: hidden; }
+                #ecg-print-area, #ecg-print-area * { visibility: visible; }
+                #ecg-print-area {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 148mm; /* Largura A5 */
+                    height: 210mm; /* Altura A5 */
+                    margin: 0;
+                    padding: 10mm;
+                    box-sizing: border-box;
+                    background: white !important;
+                    box-shadow: none !important;
+                }
+                .no-print { display: none !important; }
+            }
+        </style>
+
+        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100 no-print" style="margin-top: 20px;">
+            <h2 class="text-xl font-extrabold mb-4 pb-2 border-b border-gray-100" style="color: var(--azul, #1e3a8a);">Eletrocardiograma - Módulo de Emissão</h2>
             
             <div class="p-4 rounded-lg mb-4" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-                <h3 class="font-bold text-xs uppercase mb-3 tracking-wider" style="color: #475569;">1. Dados Cronológicos do Paciente</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                <h3 class="font-bold text-xs uppercase mb-3 tracking-wider" style="color: #475569;">1. Identificação</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 12px;">
                     <div style="grid-column: span 2;">
                         <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Nome do Paciente</label>
-                        <input type="text" id="ecg_nome" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Nome completo">
+                        <input type="text" id="ecg_nome" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Nome">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Sexo</label>
+                        <select id="ecg_sexo" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Anos</label>
@@ -29,84 +57,114 @@ export function initECGCard() {
                         <input type="number" id="ecg_dias" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" value="0" min="0" max="31">
                     </div>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 12px;">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Peso (kg)</label>
+                        <input type="number" id="ecg_peso" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 32.5">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Altura (cm)</label>
+                        <input type="number" id="ecg_altura" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 140">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #475569;">Indicação</label>
+                        <input type="text" id="ecg_indicacao" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: Avaliação pré-operatória">
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 rounded-lg mb-6" style="background-color: #eff6ff; border: 1px solid #bfdbfe;">
-                <h3 class="font-bold text-xs uppercase mb-3 tracking-wider" style="color: var(--azul, #1e3a8a);">2. Vetorcardiografia e Intervalos</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    
-                    <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                        <h4 class="font-semibold text-xs mb-2" style="color: #334155;">QRS Resultante (R-S)</h4>
+            <div class="p-4 rounded-lg mb-4" style="background-color: #eff6ff; border: 1px solid #bfdbfe;">
+                <h3 class="font-bold text-xs uppercase mb-3 tracking-wider" style="color: var(--azul, #1e3a8a);">2. Eixos e Medidas (Quadradinhos)</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <h4 class="font-semibold text-[11px] mb-2 uppercase" style="color: #334155;">Eixo QRS</h4>
                         <div style="display: flex; gap: 8px;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">D1</label>
-                                <input type="number" id="ecg_qrs_d1" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 5">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">aVF</label>
-                                <input type="number" id="ecg_qrs_avf" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 4">
-                            </div>
+                            <input type="number" id="ecg_qrs_d1" style="width: 50%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="D1">
+                            <input type="number" id="ecg_qrs_avf" style="width: 50%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="aVF">
                         </div>
                     </div>
-
-                    <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                        <h4 class="font-semibold text-xs mb-2" style="color: #334155;">Onda P Resultante</h4>
+                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                        <h4 class="font-semibold text-[11px] mb-2 uppercase" style="color: #334155;">Eixo P</h4>
                         <div style="display: flex; gap: 8px;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">D1</label>
-                                <input type="number" id="ecg_p_d1" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 1">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">aVF</label>
-                                <input type="number" id="ecg_p_avf" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 1">
-                            </div>
+                            <input type="number" id="ecg_p_d1" style="width: 50%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="D1">
+                            <input type="number" id="ecg_p_avf" style="width: 50%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="aVF">
                         </div>
                     </div>
-
-                    <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                        <h4 class="font-semibold text-xs mb-2" style="color: #334155;">Intervalos Temporais</h4>
+                    <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; grid-column: span 2;">
+                        <h4 class="font-semibold text-[11px] mb-2 uppercase" style="color: #334155;">Intervalos</h4>
                         <div style="display: flex; gap: 8px;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">R-R</label>
-                                <input type="number" id="ecg_rr" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 15">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">PR</label>
-                                <input type="number" id="ecg_pr" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 3">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">QT</label>
-                                <input type="number" id="ecg_qt" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" placeholder="Ex: 8">
-                            </div>
+                            <input type="number" id="ecg_rr" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="R-R">
+                            <input type="number" id="ecg_pr" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="PR">
+                            <input type="number" id="ecg_qrs_dur" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="QRS">
+                            <input type="number" id="ecg_qt" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="QT">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button id="btn-calcular-ecg" style="width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; background-color: var(--azul, #2563eb); color: white; transition: 0.2s;">
-                Gerar Laudo Clínico
-            </button>
+            <div class="p-4 rounded-lg mb-6" style="background-color: #fefce8; border: 1px solid #fef08a;">
+                <h3 class="font-bold text-xs uppercase mb-3 tracking-wider" style="color: #854d0e;">3. Sobrecargas e Condução (Opcional)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #854d0e;">Sobrecarga Atrial</label>
+                        <input type="text" id="ecg_sobre_atrial" style="width: 100%; padding: 8px; border: 1px solid #fde047; border-radius: 4px; font-size: 13px;" placeholder="Ex: Ausente">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #854d0e;">Sobrecarga Ventricular</label>
+                        <input type="text" id="ecg_sobre_vent" style="width: 100%; padding: 8px; border: 1px solid #fde047; border-radius: 4px; font-size: 13px;" placeholder="Ex: Ausente">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase mb-1" style="color: #854d0e;">Condução Intraventricular</label>
+                        <input type="text" id="ecg_cond_intra" style="width: 100%; padding: 8px; border: 1px solid #fde047; border-radius: 4px; font-size: 13px;" placeholder="Ex: Normal">
+                    </div>
+                </div>
+            </div>
 
-            <div id="ecg_resultado_container" style="display: none; margin-top: 24px;"></div>
+            <button id="btn-calcular-ecg" style="width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; background-color: var(--azul, #2563eb); color: white; transition: 0.2s;">
+                Gerar Laudo Clínico A5
+            </button>
+        </div>
+
+        <div id="ecg_resultado_container" style="display: none; margin-top: 24px; display: flex; flex-direction: column; align-items: center;">
+            
+            <div id="ecg-print-area" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; max-width: 14.8cm; min-height: 21cm; padding: 1.5cm; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5;">
+                <h1 style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 24px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                
+                <div id="a5-content" style="font-size: 13px;"></div>
+            </div>
+
+            <div class="no-print" style="display: flex; justify-content: center; gap: 16px; margin-top: 24px; flex-wrap: wrap; width: 100%;">
+                <button id="btn-imprimir-ecg" style="background-color: #475569; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    🖨️ Imprimir (A5)
+                </button>
+                <button id="btn-copiar-ecg" style="background-color: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    📋 Copiar Texto
+                </button>
+                <button id="btn-limpar-ecg" style="background-color: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    🗑️ Limpar
+                </button>
+            </div>
         </div>
     `;
 
+    // Ocultar laudo no início, pois flex quebra o display:none do style inline
+    document.getElementById('ecg_resultado_container').style.display = 'none';
     document.getElementById('btn-calcular-ecg')?.addEventListener('click', ecgSintetizarLaudo);
 }
 
 // ==========================================
-// BANCO DE DADOS E LÓGICA DE NEGÓCIO
+// BANCO DE DADOS DAVIGNON PEDIÁTRICO
 // ==========================================
 const ECG_DAVIGNON = [
     { minDias: 0, maxDias: 30, fc: [110, 150], pr: [80, 160], qrs: [40, 80], qtc: 460 },
     { minDias: 31, maxDias: 90, fc: [115, 160], pr: [80, 150], qrs: [40, 80], qtc: 460 },
     { minDias: 91, maxDias: 180, fc: [110, 150], pr: [80, 150], qrs: [40, 80], qtc: 450 },
     { minDias: 181, maxDias: 365, fc: [100, 150], pr: [80, 160], qrs: [40, 80], qtc: 450 },
-    { minDias: 366, maxDias: 1095, fc: [90, 130], pr: [90, 160], qrs: [40, 80], qtc: 440 },    // 1 a 3 anos
-    { minDias: 1096, maxDias: 1825, fc: [80, 120], pr: [100, 170], qrs: [40, 80], qtc: 440 },   // 3 a 5 anos
-    { minDias: 1826, maxDias: 2920, fc: [70, 110], pr: [100, 170], qrs: [40, 80], qtc: 440 },   // 5 a 8 anos
-    { minDias: 2921, maxDias: 4380, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 },   // 8 a 12 anos
-    { minDias: 4381, maxDias: 5840, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 }    // 12 a 16 anos
+    { minDias: 366, maxDias: 1095, fc: [90, 130], pr: [90, 160], qrs: [40, 80], qtc: 440 },
+    { minDias: 1096, maxDias: 1825, fc: [80, 120], pr: [100, 170], qrs: [40, 80], qtc: 440 },
+    { minDias: 1826, maxDias: 2920, fc: [70, 110], pr: [100, 170], qrs: [40, 80], qtc: 440 },
+    { minDias: 2921, maxDias: 4380, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 },
+    { minDias: 4381, maxDias: 5840, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 }
 ];
 const ECG_SBC_ADULTO = { fc: [50, 100], pr: [120, 200], qrs: [60, 100], qtc: 450 };
 
@@ -123,162 +181,179 @@ function ecgCalcularEixoP(d1, avf) {
 }
 
 function ecgSintetizarLaudo() {
+    // Coleta de Identificação
     let nome = document.getElementById('ecg_nome').value || "Não informado";
+    let sexo = document.getElementById('ecg_sexo').value;
     let anos = parseInt(document.getElementById('ecg_anos').value) || 0;
     let meses = parseInt(document.getElementById('ecg_meses').value) || 0;
     let dias = parseInt(document.getElementById('ecg_dias').value) || 0;
-    let idadeStr = `${anos} anos, ${meses} meses e ${dias} dias`;
     
+    let peso = document.getElementById('ecg_peso').value || "—";
+    let altura = document.getElementById('ecg_altura').value || "—";
+    let indicacao = document.getElementById('ecg_indicacao').value || "Não informada";
+    
+    // Coleta Opcionais
+    let sobAtrial = document.getElementById('ecg_sobre_atrial').value || "—";
+    let sobVent = document.getElementById('ecg_sobre_vent').value || "—";
+    let condIntra = document.getElementById('ecg_cond_intra').value || "—";
+
     let totalDias = Math.floor((anos * 365.25) + (meses * 30.4375) + dias);
     let isPediatrico = totalDias <= 5840;
 
+    // Medidas
     let qrs_d1 = parseFloat(document.getElementById('ecg_qrs_d1').value);
     let qrs_avf = parseFloat(document.getElementById('ecg_qrs_avf').value);
     let p_d1 = parseFloat(document.getElementById('ecg_p_d1').value);
     let p_avf = parseFloat(document.getElementById('ecg_p_avf').value);
+    
     let rr = parseFloat(document.getElementById('ecg_rr').value);
     let pr = parseFloat(document.getElementById('ecg_pr').value);
+    let qrs_dur = parseFloat(document.getElementById('ecg_qrs_dur').value);
     let qt = parseFloat(document.getElementById('ecg_qt').value);
 
     if (isNaN(rr) || isNaN(qrs_d1) || isNaN(qrs_avf) || isNaN(p_d1) || isNaN(p_avf)) {
-        alert('Por favor, preencha as derivações e o intervalo R-R.');
+        alert('Os eixos (D1/aVF) e o intervalo R-R são obrigatórios para a análise primária.');
         return;
     }
 
     // Cálculos
     let fc = Math.round(1500 / rr);
+    let rr_seg = rr * 0.04;
+    let pr_ms = !isNaN(pr) ? Math.round(pr * 40) : "—";
+    let qrs_ms = !isNaN(qrs_dur) ? Math.round(qrs_dur * 40) : "—";
+    let qt_ms = !isNaN(qt) ? Math.round(qt * 40) : null;
+    
+    // QTc (Bazett e Fridericia)
+    let qtc_b = qt_ms ? Math.round(qt_ms / Math.sqrt(rr_seg)) : "—";
+    let qtc_f = qt_ms ? Math.round(qt_ms / Math.cbrt(rr_seg)) : "—";
+
     let saqrs = ecgCalcularEixoQRS(qrs_d1, qrs_avf);
     let sap = ecgCalcularEixoP(p_d1, p_avf);
     
-    let pr_ms = !isNaN(pr) ? pr * 40 : null;
-    let qt_ms = !isNaN(qt) ? qt * 40 : null;
-    let qtc = !isNaN(qt) ? Math.round(qt_ms / Math.sqrt(rr * 0.04)) : null;
-
     let ref = isPediatrico ? (ECG_DAVIGNON.find(d => totalDias >= d.minDias && totalDias <= d.maxDias) || ECG_DAVIGNON[ECG_DAVIGNON.length - 1]) : ECG_SBC_ADULTO;
-    let refNome = isPediatrico ? "Tabela de Davignon" : "Diretrizes SBC (Adulto)";
 
+    // Construção Dinâmica da Interpretação Final (Apenas os problemas)
+    let diagnosticos = [];
     let isNormal = true;
+    let strQtcAnalise = "Normal";
 
-    // Redação: Ritmo e FC
-    let isRitmoSinusal = (sap >= 0 && sap <= 90);
-    let isFcNormal = (fc >= ref.fc[0] && fc <= ref.fc[1]);
-    let textoRitmo = `Ritmo ${isRitmoSinusal ? 'sinusal' : 'não sinusal'}, com frequência cardíaca de ${fc} bpm`;
-    if (!isFcNormal) {
-        textoRitmo += fc < ref.fc[0] ? ' (bradicardia para a idade)' : ' (taquicardia para a idade)';
-        isNormal = false;
-    }
-    textoRitmo += ';';
+    // 1. Ritmo e FC
+    if (sap < 0 || sap > 90) { diagnosticos.push("Ritmo não sinusal"); isNormal = false; }
+    if (fc < ref.fc[0]) { diagnosticos.push("Bradicardia para a faixa etária"); isNormal = false; }
+    else if (fc > ref.fc[1]) { diagnosticos.push("Taquicardia para a faixa etária"); isNormal = false; }
 
-    // Redação: Onda P
-    let textoP = isRitmoSinusal 
-        ? `Onda P de morfologia, duração e amplitude normais. SÂP a ${sap}°;` 
-        : `Onda P com eixo fora do quadrante normal. SÂP a ${sap}°;`;
-    if (!isRitmoSinusal) isNormal = false;
-
-    // Redação: PR
-    let textoPR = "";
-    if (pr_ms) {
-        if (pr_ms >= ref.pr[0] && pr_ms <= ref.pr[1]) {
-            textoPR = `Intervalo PR normal, medindo ${pr_ms} ms;`;
-        } else if (pr_ms < ref.pr[0]) {
-            textoPR = `Intervalo PR curto (condução acelerada), medindo ${pr_ms} ms;`;
-            isNormal = false;
-        } else {
-            textoPR = `Intervalo PR prolongado (sugestivo de BAV), medindo ${pr_ms} ms;`;
-            isNormal = false;
-        }
+    // 2. Condução AV
+    if (pr_ms !== "—") {
+        if (pr_ms < ref.pr[0]) { diagnosticos.push("PR curto"); isNormal = false; }
+        else if (pr_ms > ref.pr[1]) { diagnosticos.push("PR longo (sugestivo de BAV)"); isNormal = false; }
     }
 
-    // Redação: QRS
-    let isQrsNormal = (saqrs >= -30 && saqrs <= 90);
-    let textoQRS = isQrsNormal 
-        ? `Complexo QRS de duração, amplitude e morfologias normais. SÂQRS a ${saqrs}°;`
-        : `Complexo QRS com desvio de eixo frontal. SÂQRS a ${saqrs}°;`;
-    if (!isQrsNormal) isNormal = false;
+    // 3. Eixo e Duração QRS
+    if (qrs_ms !== "—") {
+        if (qrs_ms < ref.qrs[0]) { diagnosticos.push("QRS estreito"); }
+        else if (qrs_ms > ref.qrs[1]) { diagnosticos.push("QRS alargado"); isNormal = false; }
+    }
+    if (saqrs > 90 && saqrs <= 180) { diagnosticos.push("Desvio do eixo à direita"); isNormal = false; }
+    else if (saqrs >= -90 && saqrs < -30) { diagnosticos.push("Desvio do eixo à esquerda"); isNormal = false; }
+    else if (saqrs < -90 || saqrs > 180) { diagnosticos.push("Desvio extremo do eixo QRS"); isNormal = false; }
 
-    // Redação: QTc
-    let textoQTc = "";
-    if (qtc) {
-        if (qtc <= ref.qtc) {
-            textoQTc = `Repolarização ventricular normal, com QTc (Bazett) de ${qtc} ms.`;
-        } else {
-            textoQTc = `Repolarização ventricular com intervalo prolongado, com QTc (Bazett) de ${qtc} ms.`;
-            isNormal = false;
-        }
+    // 4. Repolarização
+    if (qtc_b !== "—") {
+        if (qtc_b > ref.qtc) { diagnosticos.push("QTc prolongado"); strQtcAnalise = "Prolongado"; isNormal = false; }
+        else if (qtc_b < 330) { diagnosticos.push("QTc curto"); strQtcAnalise = "Curto"; isNormal = false; }
     }
 
-    // Redação: Conclusão
-    let textoConclusao = isNormal 
-        ? `Eletrocardiograma dentro dos padrões fisiológicos de normalidade para a cronologia do paciente.`
-        : `Eletrocardiograma apresentando as alterações descritas acima. Correlacionar com dados clínicos.`;
+    let interpretacao = isNormal ? "Eletrocardiograma dentro dos padrões da normalidade." : diagnosticos.join("; ") + ".";
+    // Capitaliza a primeira letra
+    interpretacao = interpretacao.charAt(0).toUpperCase() + interpretacao.slice(1);
 
-    // Monta o texto puro para o Clipboard
-    let laudoTextoPuro = `${textoRitmo}\n${textoP}\n${textoPR}\n${textoQRS}\n${textoQTc}\n\n${textoConclusao}`.replace(/\n\n\n/g, '\n\n').trim();
+    // Texto Puro para o Clipboard (EXATAMENTE como o modelo)
+    const laudoTextoPuro = `ELETROCARDIOGRAMA
 
-    // Renderiza a Interface Exata da Imagem
-    const container = document.getElementById('ecg_resultado_container');
-    container.innerHTML = `
-        <div style="border: 1px solid #cbd5e1; border-radius: 8px; background-color: #f8fafc; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            
-            <h2 style="color: #1e293b; font-weight: 800; font-size: 18px; text-align: center; margin-bottom: 8px; letter-spacing: 0.5px;">LAUDO DE ELETROCARDIOGRAMA</h2>
-            
-            <p style="text-align: center; color: #475569; font-size: 14px; margin-bottom: 24px; font-weight: 500;">
-                Paciente: <span style="font-weight: 700; color: #0f172a;">${nome}</span> | Idade: <span style="font-weight: 700; color: #0f172a;">${idadeStr}</span>
-            </p>
-            
-            <div id="texto-laudo-render" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; color: #334155; font-size: 15px; line-height: 1.8; margin-bottom: 24px;">
-                <p style="margin: 0;">${textoRitmo}</p>
-                <p style="margin: 0;">${textoP}</p>
-                ${textoPR ? `<p style="margin: 0;">${textoPR}</p>` : ''}
-                <p style="margin: 0;">${textoQRS}</p>
-                ${textoQTc ? `<p style="margin: 0;">${textoQTc}</p>` : ''}
-                <p style="margin: 20px 0 0 0; font-weight: 600; color: #0f172a;">${textoConclusao}</p>
-            </div>
+1. Identificação
+Nome: ${nome}
+Idade: ${anos} anos, ${meses} meses e ${dias} dias
+Sexo: ${sexo}
+Peso: ${peso} kg | Altura: ${altura} cm
+Indicação: ${indicacao}
 
-            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
-                <button id="btn-copiar-ecg" style="background-color: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    Copiar Laudo
-                </button>
-                <button id="btn-limpar-ecg" style="background-color: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
-                    Limpar Formulário
-                </button>
-            </div>
+2. Ritmo e frequência
+Ritmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.
+FC: ${fc} bpm
 
-            <p style="text-align: center; color: #94a3b8; font-size: 12px; margin: 0;">Tabela de Referência: ${refNome}</p>
-        </div>
+3. Intervalos
+PR: ${pr_ms} ms
+QRS: ${qrs_ms} ms
+QTc: ${qtc_b} ms por Bazett (${strQtcAnalise.toLowerCase()}); ${qtc_f} ms por Fridericia.
+
+4. Eixos
+SÂP: ${sap}°
+SÂQRS: ${saqrs}°
+
+5. Sobrecargas e condução
+Sobrecarga atrial: ${sobAtrial}
+Sobrecarga ventricular: ${sobVent}
+Condução intraventricular: ${condIntra}
+
+6. Interpretação final
+${interpretacao}`;
+
+    // Renderização Visual no Estilo Documento A5
+    const a5Content = document.getElementById('a5-content');
+    a5Content.innerHTML = `
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">1. Identificação</h2>
+        <p style="margin: 0 0 2px 0;">Nome: ${nome}</p>
+        <p style="margin: 0 0 2px 0;">Idade: ${anos} anos, ${meses} meses e ${dias} dias</p>
+        <p style="margin: 0 0 2px 0;">Sexo: ${sexo}</p>
+        <p style="margin: 0 0 2px 0;">Peso: ${peso} kg &nbsp;|&nbsp; Altura: ${altura} cm</p>
+        <p style="margin: 0 0 12px 0;">Indicação: ${indicacao}</p>
+
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">2. Ritmo e frequência</h2>
+        <p style="margin: 0 0 2px 0;">Ritmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.</p>
+        <p style="margin: 0 0 12px 0;">FC: ${fc} bpm</p>
+
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">3. Intervalos</h2>
+        <p style="margin: 0 0 2px 0;">PR: ${pr_ms} ms</p>
+        <p style="margin: 0 0 2px 0;">QRS: ${qrs_ms} ms</p>
+        <p style="margin: 0 0 12px 0;">QTc: ${qtc_b} ms por Bazett (${strQtcAnalise.toLowerCase()}); ${qtc_f} ms por Fridericia.</p>
+
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">4. Eixos</h2>
+        <p style="margin: 0 0 2px 0;">SÂP: ${sap}°</p>
+        <p style="margin: 0 0 12px 0;">SÂQRS: ${saqrs}°</p>
+
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">5. Sobrecargas e condução</h2>
+        <p style="margin: 0 0 2px 0;">Sobrecarga atrial: ${sobAtrial}</p>
+        <p style="margin: 0 0 2px 0;">Sobrecarga ventricular: ${sobVent}</p>
+        <p style="margin: 0 0 12px 0;">Condução intraventricular: ${condIntra}</p>
+
+        <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">6. Interpretação final</h2>
+        <p style="margin: 0;">${interpretacao}</p>
     `;
 
-    container.style.display = 'block';
+    document.getElementById('ecg_resultado_container').style.display = 'flex';
 
-    // Ancorar Ações dos Botões Novos
-    document.getElementById('btn-copiar-ecg').addEventListener('click', () => {
+    // Ações dos Botões
+    document.getElementById('btn-imprimir-ecg').onclick = () => window.print();
+
+    document.getElementById('btn-copiar-ecg').onclick = () => {
         navigator.clipboard.writeText(laudoTextoPuro).then(() => {
             const btn = document.getElementById('btn-copiar-ecg');
             btn.innerHTML = `✅ Copiado!`;
-            btn.style.backgroundColor = '#16a34a'; // Fica verde
+            btn.style.backgroundColor = '#16a34a';
             setTimeout(() => {
-                btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg> Copiar Laudo`;
-                btn.style.backgroundColor = '#3b82f6'; // Volta a cor azul
+                btn.innerHTML = `📋 Copiar Texto`;
+                btn.style.backgroundColor = '#3b82f6';
             }, 2000);
         });
-    });
+    };
 
-    document.getElementById('btn-limpar-ecg').addEventListener('click', () => {
-        document.getElementById('ecg_nome').value = '';
+    document.getElementById('btn-limpar-ecg').onclick = () => {
+        document.querySelectorAll('#cardio-ecg-slot input').forEach(el => el.value = '');
         document.getElementById('ecg_anos').value = '0';
         document.getElementById('ecg_meses').value = '0';
         document.getElementById('ecg_dias').value = '0';
-        document.getElementById('ecg_qrs_d1').value = '';
-        document.getElementById('ecg_qrs_avf').value = '';
-        document.getElementById('ecg_p_d1').value = '';
-        document.getElementById('ecg_p_avf').value = '';
-        document.getElementById('ecg_rr').value = '';
-        document.getElementById('ecg_pr').value = '';
-        document.getElementById('ecg_qt').value = '';
-        container.style.display = 'none';
-        container.innerHTML = '';
+        document.getElementById('ecg_sexo').value = 'Masculino';
+        document.getElementById('ecg_resultado_container').style.display = 'none';
         document.getElementById('ecg_nome').focus();
-    });
+    };
 }
