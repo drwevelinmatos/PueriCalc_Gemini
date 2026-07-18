@@ -27,7 +27,7 @@ export function initECGCard() {
                 #ecg-print-area {
                     position: absolute !important;
                     left: 0 !important;
-                    top: 0 !important;
+                    top: 5mm !important;
                     width: 148mm !important;
                     height: 210mm !important;
                     margin: 0 !important;
