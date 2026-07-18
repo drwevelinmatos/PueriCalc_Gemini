@@ -136,17 +136,17 @@ export function initECGCard() {
             
             <div id="ecg-print-area" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; max-width: 148mm; min-height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box;">
                 
-                <div style="position: absolute; top: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
-                    <img src="Receituário A5_cabeçalho.ai.png" style="max-width: 80%; height: auto; display: inline-block;">
-                </div>
+            <div style="position: absolute; top: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
+                <img src="./assets/cabecalho-a5.png" style="max-width: 80%; height: auto; display: inline-block;">
+            </div>
 
-                <div style="position: absolute; bottom: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
-                    <img src="Receituário A5_rodapé.ai.png" style="max-width: 90%; height: auto; display: inline-block;">
-                </div>
+            <div style="position: absolute; bottom: 10mm; left: 0; width: 100%; text-align: center; z-index: 1;">
+                <img src="./assets/rodape-a5.png" style="max-width: 90%; height: auto; display: inline-block;">
+            </div>
 
-                <div style="position: absolute; top: 50%; right: 10mm; transform: translateY(-50%); opacity: 0.15; pointer-events: none; text-align: right; z-index: 2;">
-                    <img src="Receituário A5_marca dagua transp.ai.png" style="max-width: 120mm; height: auto;">
-                </div>
+            <div style="position: absolute; top: 50%; right: 10mm; transform: translateY(-50%); opacity: 0.15; pointer-events: none; text-align: right; z-index: 2;">
+                <img src="./assets/marca-dagua-a5.png" style="max-width: 120mm; height: auto;">
+            </div>
 
                 <div style="position: relative; padding: 45mm 15mm 30mm 15mm; z-index: 10; font-size: 13px;">
                     <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
