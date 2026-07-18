@@ -136,7 +136,7 @@ export function initECGCard() {
             </div>
 
             <button id="btn-calcular-ecg" style="width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; background-color: var(--azul, #2563eb); color: white; transition: 0.2s;">
-                Gerar Laudo Pediátrico Timbrado
+                Gerar Laudo
             </button>
         </div>
 
@@ -144,13 +144,13 @@ export function initECGCard() {
             
             <div id="ecg-print-area" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
                 
-                <div style="position:absolute; top:5mm; left:0; width:148mm; display:flex; justify-content:center; text-align: center;">
+                <div style="position:absolute; top:0; left:0; width:148mm; display:flex; justify-content:center; text-align: center;">
                     <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto; display: inline-block; vertical-align: top;">
                 </div>
 
-                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 90mm;">
+                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 120mm;">
 
-                <div style="flex-grow: 1; position: relative; padding: 3mm 10mm 3mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
+                <div style="flex-grow: 1; position: relative; padding: 50mm 10mm 50mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
                     <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                     
                     <div id="a5-content">
