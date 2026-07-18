@@ -150,14 +150,14 @@ export function initECGCard() {
 
                 <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 120mm;">
 
-                <div style="flex-grow: 1; position: absolute; padding: 30mm 10mm 50mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
+                <div style="flex-grow: 1; position: absolute; padding: 20mm 10mm 50mm 10mm; z-index: 10; font-size: 13px; box-sizing: border-box;">
                     <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                     
                     <div id="a5-content">
                         </div>
                 </div>
 
-                <div style="width: 100%; line-height: 0;">
+                <div style="position:absolute; width: 100%; line-height: 0;">
                     <img src="./assets/rodape-a5.png" style="width: 100%; height: auto; display: block; bottom: 0;">
                 </div>
             </div>
