@@ -4,7 +4,7 @@ export function initECGCard() {
     const slot = document.getElementById('cardio-ecg-slot');
     if (!slot) return;
 
-    // 1. Injeção Segura da Interface (DOM)
+    // 1. Injeção Segura da Interface Principal (Input)
     slot.innerHTML = `
         <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100" style="margin-top: 20px;">
             <h2 class="text-xl font-extrabold mb-4 pb-2 border-b border-gray-100" style="color: var(--azul, #1e3a8a);">Análise Avançada de ECG Pediátrico</h2>
@@ -83,59 +83,20 @@ export function initECGCard() {
                 </div>
             </div>
 
-            <button id="btn-calcular-ecg" style="width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; background-color: var(--azul, #2563eb); color: white;">
-                Processar Vetores e Gerar Laudo Cardio
+            <button id="btn-calcular-ecg" style="width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; background-color: var(--azul, #2563eb); color: white; transition: 0.2s;">
+                Gerar Laudo Clínico
             </button>
 
-            <div id="ecg_resultado" style="display: none; margin-top: 24px;">
-                <div style="border: 1px solid #cbd5e1; padding: 24px; border-radius: 8px; background-color: #f8fafc;">
-                    <h2 style="font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; text-transform: uppercase;">Laudo do Exame de ECG</h2>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; font-size: 14px;">
-                        <p><strong>Paciente:</strong> <span id="ecg_out_nome"></span></p>
-                        <p><strong>Idade:</strong> <span id="ecg_out_idade"></span> (<span id="ecg_out_dias"></span> dias)</p>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; font-size: 14px;">
-                        <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e2e8f0;">
-                            <h3 style="font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Resultados Vetoriais</h3>
-                            <p style="margin-bottom: 4px;"><strong>Ritmo:</strong> <span id="ecg_out_ritmo"></span></p>
-                            <p style="margin-bottom: 4px;"><strong>SÂP (Eixo P):</strong> <span id="ecg_out_sap"></span>°</p>
-                            <p><strong>SÂQRS (Eixo QRS):</strong> <span id="ecg_out_saqrs"></span>°</p>
-                        </div>
-                        <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e2e8f0;">
-                            <h3 style="font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Métricas Temporais</h3>
-                            <p style="margin-bottom: 4px;"><strong>Frequência Cardíaca:</strong> <span id="ecg_out_fc"></span> bpm</p>
-                            <p style="margin-bottom: 4px;"><strong>Intervalo PR:</strong> <span id="ecg_out_pr"></span> ms</p>
-                            <p><strong>QT / QTc (Bazett):</strong> <span id="ecg_out_qt"></span> ms / <span id="ecg_out_qtc"></span> ms</p>
-                        </div>
-                    </div>
-
-                    <div style="background-color: #fefce8; padding: 16px; border-radius: 6px; border: 1px solid #fef08a; margin-bottom: 16px; font-size: 14px;">
-                        <h3 style="font-weight: bold; color: #713f12; margin-bottom: 8px;">Análise Comparativa (<span id="ecg_out_ref_nome"></span>)</h3>
-                        <ul id="ecg_lista_alertas" style="padding-left: 20px; margin: 0; line-height: 1.5;"></ul>
-                    </div>
-
-                    <div style="background-color: #eff6ff; padding: 16px; border-radius: 6px; border: 1px solid #bfdbfe; font-size: 14px;">
-                        <h3 style="font-weight: bold; color: #1e3a8a;">Conclusão Médica Sugerida:</h3>
-                        <p id="ecg_out_conclusao" style="color: #172554; margin-top: 4px; font-weight: 600;"></p>
-                    </div>
-                </div>
-            </div>
+            <div id="ecg_resultado_container" style="display: none; margin-top: 24px;"></div>
         </div>
     `;
 
-    // 2. Ancoragem de Eventos e Lógica (Agora rodando 100% seguro no módulo)
-    const btnCalcular = document.getElementById('btn-calcular-ecg');
-    if (btnCalcular) {
-        btnCalcular.addEventListener('click', calcularECGModulo);
-    }
+    document.getElementById('btn-calcular-ecg')?.addEventListener('click', ecgSintetizarLaudo);
 }
 
 // ==========================================
-// BANCO DE DADOS E LÓGICA DE NEGÓCIO PEDIÁTRICA
+// BANCO DE DADOS E LÓGICA DE NEGÓCIO
 // ==========================================
-
 const ECG_DAVIGNON = [
     { minDias: 0, maxDias: 30, fc: [110, 150], pr: [80, 160], qrs: [40, 80], qtc: 460 },
     { minDias: 31, maxDias: 90, fc: [115, 160], pr: [80, 150], qrs: [40, 80], qtc: 460 },
@@ -147,7 +108,6 @@ const ECG_DAVIGNON = [
     { minDias: 2921, maxDias: 4380, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 },   // 8 a 12 anos
     { minDias: 4381, maxDias: 5840, fc: [60, 100], pr: [110, 180], qrs: [40, 90], qtc: 440 }    // 12 a 16 anos
 ];
-
 const ECG_SBC_ADULTO = { fc: [50, 100], pr: [120, 200], qrs: [60, 100], qtc: 450 };
 
 function ecgCalcularEixoQRS(d1, avf) {
@@ -162,12 +122,13 @@ function ecgCalcularEixoP(d1, avf) {
     return Math.round((graus + 360) % 360);
 }
 
-function calcularECGModulo() {
+function ecgSintetizarLaudo() {
+    let nome = document.getElementById('ecg_nome').value || "Não informado";
     let anos = parseInt(document.getElementById('ecg_anos').value) || 0;
     let meses = parseInt(document.getElementById('ecg_meses').value) || 0;
     let dias = parseInt(document.getElementById('ecg_dias').value) || 0;
+    let idadeStr = `${anos} anos, ${meses} meses e ${dias} dias`;
     
-    // Cálculo em dias totais
     let totalDias = Math.floor((anos * 365.25) + (meses * 30.4375) + dias);
     let isPediatrico = totalDias <= 5840;
 
@@ -180,80 +141,144 @@ function calcularECGModulo() {
     let qt = parseFloat(document.getElementById('ecg_qt').value);
 
     if (isNaN(rr) || isNaN(qrs_d1) || isNaN(qrs_avf) || isNaN(p_d1) || isNaN(p_avf)) {
-        alert('Aba ECG: Preencha os vetores (D1/aVF) e o intervalo R-R para realizar a análise.');
+        alert('Por favor, preencha as derivações e o intervalo R-R.');
         return;
     }
 
-    // Fórmulas
+    // Cálculos
     let fc = Math.round(1500 / rr);
-    let pr_ms = pr * 40;
-    let qt_ms = qt * 40;
-    let rr_seg = rr * 0.04;
-    let qtc = Math.round(qt_ms / Math.sqrt(rr_seg));
-    
     let saqrs = ecgCalcularEixoQRS(qrs_d1, qrs_avf);
     let sap = ecgCalcularEixoP(p_d1, p_avf);
-    let ritmo = (sap >= 0 && sap <= 90) ? "Sinusal" : "Não Sinusal";
+    
+    let pr_ms = !isNaN(pr) ? pr * 40 : null;
+    let qt_ms = !isNaN(qt) ? qt * 40 : null;
+    let qtc = !isNaN(qt) ? Math.round(qt_ms / Math.sqrt(rr * 0.04)) : null;
 
-    let ref = isPediatrico ? ECG_DAVIGNON.find(d => totalDias >= d.minDias && totalDias <= d.maxDias) || ECG_DAVIGNON[ECG_DAVIGNON.length - 1] : ECG_SBC_ADULTO;
+    let ref = isPediatrico ? (ECG_DAVIGNON.find(d => totalDias >= d.minDias && totalDias <= d.maxDias) || ECG_DAVIGNON[ECG_DAVIGNON.length - 1]) : ECG_SBC_ADULTO;
     let refNome = isPediatrico ? "Tabela de Davignon" : "Diretrizes SBC (Adulto)";
 
-    let alertas = [];
     let isNormal = true;
 
-    // SÂQRS Frontal
-    if (saqrs >= -30 && saqrs <= 90) { alertas.push(`SÂQRS: ${saqrs}° (Eixo Frontal Normal)`); }
-    else if (saqrs > 90 && saqrs <= 180) { alertas.push(`SÂQRS: ${saqrs}° (Desvio do Eixo para a Direita)`); isNormal = false; }
-    else if (saqrs >= -90 && saqrs < -30) { alertas.push(`SÂQRS: ${saqrs}° (Desvio do Eixo para a Esquerda)`); isNormal = false; }
-    else { alertas.push(`SÂQRS: ${saqrs}° (Desvio Indeterminado/Extremo)`); isNormal = false; }
+    // Redação: Ritmo e FC
+    let isRitmoSinusal = (sap >= 0 && sap <= 90);
+    let isFcNormal = (fc >= ref.fc[0] && fc <= ref.fc[1]);
+    let textoRitmo = `Ritmo ${isRitmoSinusal ? 'sinusal' : 'não sinusal'}, com frequência cardíaca de ${fc} bpm`;
+    if (!isFcNormal) {
+        textoRitmo += fc < ref.fc[0] ? ' (bradicardia para a idade)' : ' (taquicardia para a idade)';
+        isNormal = false;
+    }
+    textoRitmo += ';';
 
-    // Frequência Cardíaca
-    if (fc < ref.fc[0]) { alertas.push(`FC: ${fc} bpm (Bradicardia para a faixa etária. Ref: ${ref.fc[0]}-${ref.fc[1]} bpm)`); isNormal = false; }
-    else if (fc > ref.fc[1]) { alertas.push(`FC: ${fc} bpm (Taquicardia para a faixa etária. Ref: ${ref.fc[0]}-${ref.fc[1]} bpm)`); isNormal = false; }
-    else { alertas.push(`FC: ${fc} bpm (Normal para a idade em dias. Ref: ${ref.fc[0]}-${ref.fc[1]} bpm)`); }
+    // Redação: Onda P
+    let textoP = isRitmoSinusal 
+        ? `Onda P de morfologia, duração e amplitude normais. SÂP a ${sap}°;` 
+        : `Onda P com eixo fora do quadrante normal. SÂP a ${sap}°;`;
+    if (!isRitmoSinusal) isNormal = false;
 
-    // PR
-    if (!isNaN(pr)) {
-        if (pr_ms < ref.pr[0]) { alertas.push(`Intervalo PR: ${pr_ms} ms (PR Curto / Condução Acelerada. Ref: ${ref.pr[0]}-${ref.pr[1]} ms)`); isNormal = false; }
-        else if (pr_ms > ref.pr[1]) { alertas.push(`Intervalo PR: ${pr_ms} ms (PR Longo / Sugestivo de BAV 1º Grau. Ref: ${ref.pr[0]}-${ref.pr[1]} ms)`); isNormal = false; }
-        else { alertas.push(`Intervalo PR: ${pr_ms} ms (Condução AV Normal. Ref: ${ref.pr[0]}-${ref.pr[1]} ms)`); }
+    // Redação: PR
+    let textoPR = "";
+    if (pr_ms) {
+        if (pr_ms >= ref.pr[0] && pr_ms <= ref.pr[1]) {
+            textoPR = `Intervalo PR normal, medindo ${pr_ms} ms;`;
+        } else if (pr_ms < ref.pr[0]) {
+            textoPR = `Intervalo PR curto (condução acelerada), medindo ${pr_ms} ms;`;
+            isNormal = false;
+        } else {
+            textoPR = `Intervalo PR prolongado (sugestivo de BAV), medindo ${pr_ms} ms;`;
+            isNormal = false;
+        }
     }
 
-    // QTc
-    if (!isNaN(qt)) {
-        if (qtc > ref.qtc) { alertas.push(`QTc (Bazett): ${qtc} ms (Intervalo QT Prolongado. Limite máximo: ${ref.qtc} ms)`); isNormal = false; }
-        else { alertas.push(`QTc (Bazett): ${qtc} ms (Repolarização Ventricular Normal dentro do limite de ${ref.qtc} ms)`); }
+    // Redação: QRS
+    let isQrsNormal = (saqrs >= -30 && saqrs <= 90);
+    let textoQRS = isQrsNormal 
+        ? `Complexo QRS de duração, amplitude e morfologias normais. SÂQRS a ${saqrs}°;`
+        : `Complexo QRS com desvio de eixo frontal. SÂQRS a ${saqrs}°;`;
+    if (!isQrsNormal) isNormal = false;
+
+    // Redação: QTc
+    let textoQTc = "";
+    if (qtc) {
+        if (qtc <= ref.qtc) {
+            textoQTc = `Repolarização ventricular normal, com QTc (Bazett) de ${qtc} ms.`;
+        } else {
+            textoQTc = `Repolarização ventricular com intervalo prolongado, com QTc (Bazett) de ${qtc} ms.`;
+            isNormal = false;
+        }
     }
 
-    // Ritmo
-    if (ritmo !== "Sinusal") { alertas.push(`Ritmo Não Sinusal (Eixo de P fora do quadrante inferior esquerdo: ${sap}°)`); isNormal = false; }
-    else { alertas.push(`Ritmo Sinusal Confirmado (SÂP em ${sap}°)`); }
+    // Redação: Conclusão
+    let textoConclusao = isNormal 
+        ? `Eletrocardiograma dentro dos padrões fisiológicos de normalidade para a cronologia do paciente.`
+        : `Eletrocardiograma apresentando as alterações descritas acima. Correlacionar com dados clínicos.`;
 
-    // Alimentação da UI
-    document.getElementById('ecg_out_nome').innerText = document.getElementById('ecg_nome').value || "Não Especificado";
-    document.getElementById('ecg_out_idade').innerText = `${anos}a, ${meses}m, ${dias}d`;
-    document.getElementById('ecg_out_dias').innerText = totalDias;
-    document.getElementById('ecg_out_ritmo').innerText = ritmo;
-    document.getElementById('ecg_out_sap').innerText = sap;
-    document.getElementById('ecg_out_saqrs').innerText = saqrs;
-    document.getElementById('ecg_out_fc').innerText = fc;
-    document.getElementById('ecg_out_pr').innerText = isNaN(pr) ? "--" : pr_ms;
-    document.getElementById('ecg_out_qt').innerText = isNaN(qt) ? "--" : qt_ms;
-    document.getElementById('ecg_out_qtc').innerText = isNaN(qt) ? "--" : qtc;
-    document.getElementById('ecg_out_ref_nome').innerText = refNome;
+    // Monta o texto puro para o Clipboard
+    let laudoTextoPuro = `${textoRitmo}\n${textoP}\n${textoPR}\n${textoQRS}\n${textoQTc}\n\n${textoConclusao}`.replace(/\n\n\n/g, '\n\n').trim();
 
-    let lista = document.getElementById('ecg_lista_alertas');
-    lista.innerHTML = "";
-    alertas.forEach(a => {
-        let li = document.createElement('li');
-        li.innerText = a;
-        li.style.color = (a.includes("Normal") || a.includes("Confirmado") || a.includes("dentro do limite")) ? "#15803d" : "#dc2626"; // Verde Escuro vs Vermelho
-        li.style.fontWeight = (a.includes("Normal") || a.includes("Confirmado") || a.includes("dentro do limite")) ? "500" : "bold";
-        li.style.marginBottom = "4px";
-        lista.appendChild(li);
+    // Renderiza a Interface Exata da Imagem
+    const container = document.getElementById('ecg_resultado_container');
+    container.innerHTML = `
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; background-color: #f8fafc; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            
+            <h2 style="color: #1e293b; font-weight: 800; font-size: 18px; text-align: center; margin-bottom: 8px; letter-spacing: 0.5px;">LAUDO DE ELETROCARDIOGRAMA</h2>
+            
+            <p style="text-align: center; color: #475569; font-size: 14px; margin-bottom: 24px; font-weight: 500;">
+                Paciente: <span style="font-weight: 700; color: #0f172a;">${nome}</span> | Idade: <span style="font-weight: 700; color: #0f172a;">${idadeStr}</span>
+            </p>
+            
+            <div id="texto-laudo-render" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; color: #334155; font-size: 15px; line-height: 1.8; margin-bottom: 24px;">
+                <p style="margin: 0;">${textoRitmo}</p>
+                <p style="margin: 0;">${textoP}</p>
+                ${textoPR ? `<p style="margin: 0;">${textoPR}</p>` : ''}
+                <p style="margin: 0;">${textoQRS}</p>
+                ${textoQTc ? `<p style="margin: 0;">${textoQTc}</p>` : ''}
+                <p style="margin: 20px 0 0 0; font-weight: 600; color: #0f172a;">${textoConclusao}</p>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                <button id="btn-copiar-ecg" style="background-color: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    Copiar Laudo
+                </button>
+                <button id="btn-limpar-ecg" style="background-color: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                    Limpar Formulário
+                </button>
+            </div>
+
+            <p style="text-align: center; color: #94a3b8; font-size: 12px; margin: 0;">Tabela de Referência: ${refNome}</p>
+        </div>
+    `;
+
+    container.style.display = 'block';
+
+    // Ancorar Ações dos Botões Novos
+    document.getElementById('btn-copiar-ecg').addEventListener('click', () => {
+        navigator.clipboard.writeText(laudoTextoPuro).then(() => {
+            const btn = document.getElementById('btn-copiar-ecg');
+            btn.innerHTML = `✅ Copiado!`;
+            btn.style.backgroundColor = '#16a34a'; // Fica verde
+            setTimeout(() => {
+                btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg> Copiar Laudo`;
+                btn.style.backgroundColor = '#3b82f6'; // Volta a cor azul
+            }, 2000);
+        });
     });
 
-    document.getElementById('ecg_out_conclusao').innerText = isNormal ? "Eletrocardiograma dentro dos padrões fisiológicos de normalidade para a cronologia do paciente." : "Eletrocardiograma apresentando alterações vetoriais ou cronotrópicas listadas acima. Proceder com correlação clínica.";
-    
-    document.getElementById('ecg_resultado').style.display = 'block';
+    document.getElementById('btn-limpar-ecg').addEventListener('click', () => {
+        document.getElementById('ecg_nome').value = '';
+        document.getElementById('ecg_anos').value = '0';
+        document.getElementById('ecg_meses').value = '0';
+        document.getElementById('ecg_dias').value = '0';
+        document.getElementById('ecg_qrs_d1').value = '';
+        document.getElementById('ecg_qrs_avf').value = '';
+        document.getElementById('ecg_p_d1').value = '';
+        document.getElementById('ecg_p_avf').value = '';
+        document.getElementById('ecg_rr').value = '';
+        document.getElementById('ecg_pr').value = '';
+        document.getElementById('ecg_qt').value = '';
+        container.style.display = 'none';
+        container.innerHTML = '';
+        document.getElementById('ecg_nome').focus();
+    });
 }
