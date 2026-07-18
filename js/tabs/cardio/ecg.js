@@ -144,7 +144,7 @@ export function initECGCard() {
             
             <div id="ecg-print-area" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
                 
-                <div style="width: 100%; text-align: center; margin-top: 5mm;">
+                <div style="position:absolute; top:5mm; left:0; width:148mm; display:flex; justify-content:center; text-align: center;">
                     <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto; display: inline-block; vertical-align: top;">
                 </div>
 
@@ -158,7 +158,7 @@ export function initECGCard() {
                 </div>
 
                 <div style="width: 100%; line-height: 0;">
-                    <img src="./assets/rodape-a5.png" style="width: 100%; height: auto; display: block;">
+                    <img src="./assets/rodape-a5.png" style="width: 100%; height: auto; display: block; bottom: 0;">
                 </div>
             </div>
 
