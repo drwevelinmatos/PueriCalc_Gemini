@@ -90,7 +90,7 @@ export function renderNeonato() {
       </div>
       
       <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch; min-height: 44px;">
-        <button class="calc-btn" id="btn-neo-intergrowth" style="margin: 0; min-width: 70px; flex-shrink: 0;">Classificar (PIG/AIG/GIG)</button>
+        <button class="calc-btn" id="btn-neo-intergrowth" style="margin: 0; max-width: 70px; flex-shrink: 0;">Classificar (PIG/AIG/GIG)</button>
         <div id="res-neo-lub" class="result-box" style="display: none; margin: 0; flex-grow: 1; align-items: center; justify-content: center; padding: 0 10px; font-size: 16px;"></div>
         <button class="clear-btn" id="btn-limpar-lub" style="margin: 0; flex-shrink: 0; background: #e2e8f0; color: #475569; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
       </div>
