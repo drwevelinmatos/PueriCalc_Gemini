@@ -26,7 +26,7 @@ export function initECGCard() {
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase mb-1" style="color: #475569;">Data Nasc.</label>
-                        <input type="text" id="ecg_data_nasc" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="dd/mm/aaaa">
+                        <input type="text" id="ecg_data_nasc" maxlength="10" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="dd/mm/aaaa">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase mb-1" style="color: #475569;">Anos</label>
@@ -53,7 +53,7 @@ export function initECGCard() {
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase mb-1" style="color: #475569;">Data do Exame</label>
-                        <input type="text" id="ecg_data_exame" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="dd/mm/aaaa">
+                        <input type="text" id="ecg_data_exame" maxlength="10" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" placeholder="dd/mm/aaaa">
                     </div>
                 </div>
 
@@ -177,6 +177,71 @@ export function initECGCard() {
 
     document.getElementById('ecg_resultado_container').style.display = 'none';
     document.getElementById('btn-calcular-ecg')?.addEventListener('click', ecgSintetizarLaudo);
+
+    // ==========================================
+    // MÁSCARA DE DATAS E CÁLCULO DE IDADE
+    // ==========================================
+    function aplicarMascaraEData(idInput) {
+        const input = document.getElementById(idInput);
+        if (input) {
+            input.addEventListener('input', function(e) {
+                let v = e.target.value.replace(/\D/g, ''); // Permite apenas números
+                if (v.length > 8) v = v.slice(0, 8); // Máximo 8 dígitos
+                
+                if (v.length > 4) {
+                    v = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4);
+                } else if (v.length > 2) {
+                    v = v.slice(0, 2) + '/' + v.slice(2);
+                }
+                e.target.value = v;
+
+                // Se completou a data, dispara o cálculo de idade automaticamente
+                if (v.length === 10) {
+                    calcularIdadeAutomatica();
+                }
+            });
+        }
+    }
+
+    aplicarMascaraEData('ecg_data_nasc');
+    aplicarMascaraEData('ecg_data_exame');
+
+    function calcularIdadeAutomatica() {
+        const nascVal = document.getElementById('ecg_data_nasc').value;
+        const exameVal = document.getElementById('ecg_data_exame').value;
+        
+        if (nascVal.length === 10) {
+            const [d, m, y] = nascVal.split('/');
+            const birth = new Date(y, m - 1, d);
+            
+            // Referência é hoje, a menos que haja uma Data do Exame preenchida
+            let ref = new Date();
+            if (exameVal.length === 10) {
+                const [ed, em, ey] = exameVal.split('/');
+                ref = new Date(ey, em - 1, ed);
+            }
+            
+            if (birth <= ref) {
+                let years = ref.getFullYear() - birth.getFullYear();
+                let months = ref.getMonth() - birth.getMonth();
+                let days = ref.getDate() - birth.getDate();
+                
+                if (days < 0) {
+                    months--;
+                    const prevM = new Date(ref.getFullYear(), ref.getMonth(), 0); // Último dia do mês anterior
+                    days += prevM.getDate();
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+                
+                document.getElementById('ecg_anos').value = years;
+                document.getElementById('ecg_meses').value = months;
+                document.getElementById('ecg_dias').value = days;
+            }
+        }
+    }
 }
 
 // ==========================================
@@ -299,8 +364,12 @@ function ecgSintetizarLaudo() {
     let interpretacao = isNormal ? "Eletrocardiograma dentro dos padrões da normalidade para a faixa etária." : diagnosticos.join("; ") + ".";
     interpretacao = interpretacao.charAt(0).toUpperCase() + interpretacao.slice(1);
 
-    // Texto Copiável e View do Laudo seguindo exatamente a formatação em 3 linhas:
-    const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome} | Sexo: ${sexo} | Data de Nasc.: ${dataNasc} | Idade: ${anos}a ${meses}m ${dias}d\nPeso: ${peso} kg | Estatura: ${altura} cm | Data do Exame: ${dataExame}\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_valor_final} ms por ${qtc_nome_formula} (${strQtcAnalise.toLowerCase()}).\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}`;
+    // Data Atual Automática para a Assinatura
+    const hoje = new Date();
+    const dataAtualStr = hoje.toLocaleDateString('pt-BR');
+
+    // Texto Copiável (Inclui a assinatura)
+    const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome} | Sexo: ${sexo} | Data de Nasc.: ${dataNasc} | Idade: ${anos}a ${meses}m ${dias}d\nPeso: ${peso} kg | Estatura: ${altura} cm | Data do Exame: ${dataExame}\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_valor_final} ms por ${qtc_nome_formula} (${strQtcAnalise.toLowerCase()}).\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}\n\nData: ${dataAtualStr}\n\n_________________________\nDr. Wevelin Matos\nCRM-SP 196372`;
 
     const a5Content = document.getElementById('a5-content');
     a5Content.innerHTML = `
@@ -329,6 +398,15 @@ function ecgSintetizarLaudo() {
 
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">6. Interpretação final</h2>
         <p style="margin: 0;">${interpretacao}</p>
+
+        <div style="margin-top: 30px; display: flex; flex-direction: column; align-items: flex-end;">
+            <div style="width: 50mm; text-align: center;">
+                <p style="margin: 0 0 10mm 0; text-align: right; font-size: 13px;">${dataAtualStr}</p>
+                <div style="border-top: 1px solid #000; width: 50mm; margin: 0 auto;"></div>
+                <p style="margin: 2.5mm 0 0 0; font-size: 13px; font-weight: bold;">Dr. Wevelin Matos</p>
+                <p style="margin: 2.5mm 0 0 0; font-size: 13px;">CRM-SP 196372</p>
+            </div>
+        </div>
     `;
 
     document.getElementById('ecg_resultado_container').style.display = 'flex';
