@@ -4,45 +4,9 @@ export function initECGCard() {
     const slot = document.getElementById('cardio-ecg-slot');
     if (!slot) return;
 
-    // 1. INJEÇÃO DA INTERFACE COMPLETA E DO CSS DE IMPRESSÃO A5
+    // INJEÇÃO DA INTERFACE VISUAL DE TELA (Ocultada na impressão)
     slot.innerHTML = `
-        <style>
-            /* ESTILOS PARA COMPOSIÇÃO E IMPRESSÃO DO LAUDO TIMBRADO DIGITALMENTE */
-            @media print {
-                @page {
-                    size: A5 portrait;
-                    margin: 0; 
-                }
-                /* Trava a altura do sistema para impedir a geração de múltiplas páginas em branco */
-                html, body {
-                    height: 210mm !important;
-                    overflow: hidden !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: #fff !important;
-                }
-                body * { visibility: hidden; }
-                #ecg-print-area, #ecg-print-area * { visibility: visible; }
-                
-                #ecg-print-area {
-                    position: absolute !important;
-                    left: 0 !important;
-                    top: 5mm !important;
-                    width: 148mm !important;
-                    height: 210mm !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    box-sizing: border-box;
-                    background: white !important;
-                    border: none !important;
-                    box-shadow: none !important;
-                    overflow: hidden !important;
-                }
-                .no-print { display: none !important; }
-            }
-        </style>
-
-        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100 no-print" style="margin-top: 20px;">
+        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100" style="margin-top: 20px;">
             <h2 class="text-xl font-extrabold mb-4 pb-2 border-b border-gray-100" style="color: var(--azul, #1e3a8a);">Eletrocardiograma - Emissão com Timbre Digital</h2>
             
             <div class="p-4 rounded-lg mb-4" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
@@ -136,33 +100,31 @@ export function initECGCard() {
             </div>
 
             <button id="btn-calcular-ecg" style="width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; background-color: var(--azul, #2563eb); color: white; transition: 0.2s;">
-                Gerar Laudo
+                Gerar Laudo Pediátrico Timbrado
             </button>
         </div>
 
         <div id="ecg_resultado_container" style="display: none; margin-top: 24px; display: flex; flex-direction: column; align-items: center;">
             
-            <div id="ecg-print-area" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden;">
+            <div id="ecg-screen-preview" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; min-height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;">
                 
-                <div style="position:absolute; top:0; left:0; width:148mm; display:flex; justify-content:center; text-align: center;">
-                    <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto; display: inline-block; vertical-align: top; top:0;">
+                <div style="width: 100%; text-align: center; margin-top: 5mm; margin-bottom: 10mm;">
+                    <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto;">
                 </div>
 
-                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 120mm;">
+                <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 90mm;">
 
-                <div style="flex-grow: 1; position: absolute; padding: 10mm 10mm 50mm 10mm; z-index: 10; font-size: 12px; box-sizing: border-box;">
-                    <h1 style="text-align: center; font-size: 12px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
-                    
-                    <div id="a5-content">
-                        </div>
+                <div style="padding: 0 10mm; z-index: 10; flex-grow: 1;">
+                    <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                    <div id="a5-content"></div>
                 </div>
 
-                <div style="position:absolute; width: 100%; line-height: 0; bottom: 0;">
-                    <img src="./assets/rodape-a5.png" style="width: 100%; height: auto; display: block; bottom: 0;">
-                </div>
+                <div style="height: 35mm;"></div>
+
+                <img src="./assets/rodape-a5.png" style="position: absolute; bottom: 0; left: 0; width: 100%; height: auto; z-index: 1;">
             </div>
 
-            <div class="no-print" style="display: flex; justify-content: center; gap: 16px; margin-top: 24px; flex-wrap: wrap; width: 100%;">
+            <div style="display: flex; justify-content: center; gap: 16px; margin-top: 24px; flex-wrap: wrap; width: 100%;">
                 <button id="btn-imprimir-ecg" style="background-color: #475569; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     🖨️ Imprimir/Gerar PDF
                 </button>
@@ -247,7 +209,6 @@ function ecgSintetizarLaudo() {
     let qrs_ms = !isNaN(qrs_dur) ? Math.round(qrs_dur * 40) : "—";
     let qt_ms = !isNaN(qt) ? Math.round(qt * 40) : null;
     
-    // Fórmulas Base
     let qtc_b = qt_ms ? Math.round(qt_ms / Math.sqrt(rr_seg)) : "—";
     let qtc_f = qt_ms ? Math.round(qt_ms / Math.cbrt(rr_seg)) : "—";
 
@@ -260,7 +221,6 @@ function ecgSintetizarLaudo() {
     let isNormal = true;
     let strQtcAnalise = "Normal";
 
-    // Avaliação de Ritmo e FC
     let isBradicardia = fc < ref.fc[0];
     let isTaquicardia = fc > ref.fc[1];
 
@@ -270,7 +230,7 @@ function ecgSintetizarLaudo() {
 
     if (pr_ms !== "—") {
         if (pr_ms < ref.pr[0]) { diagnosticos.push("PR curto"); isNormal = false; }
-        else if (pr_ms > ref.pr[1]) { diagnosticos.push("PR longo (sugestivo de BAV)"); isNormal = false; }
+        else if (pr_ms > ref.pr[1]) { diagnosticos.push("PR longo"); isNormal = false; }
     }
 
     if (qrs_ms !== "—") {
@@ -282,7 +242,7 @@ function ecgSintetizarLaudo() {
     else if (saqrs >= -90 && saqrs < -30) { diagnosticos.push("Desvio do eixo à esquerda"); isNormal = false; }
     else if (saqrs < -90 || saqrs > 180) { diagnosticos.push("Desvio extremo do eixo QRS"); isNormal = false; }
 
-    // LOGICA INTELIGENTE DO QTC (Bazett vs Fridericia)
+    // Inteligência Artificial do QTc
     let qtc_valor_final, qtc_nome_formula;
     if (isBradicardia || isTaquicardia) {
         qtc_valor_final = qtc_f;
@@ -300,10 +260,8 @@ function ecgSintetizarLaudo() {
     let interpretacao = isNormal ? "Eletrocardiograma dentro dos padrões da normalidade para a faixa etária." : diagnosticos.join("; ") + ".";
     interpretacao = interpretacao.charAt(0).toUpperCase() + interpretacao.slice(1);
 
-    // Texto Puro (Clipboard)
     const laudoTextoPuro = `ELETROCARDIOGRAMA\n\n1. Identificação\nNome: ${nome}\nIdade: ${anos} anos, ${meses} meses e ${dias} dias\nSexo: ${sexo}\nPeso: ${peso} kg | Altura: ${altura} cm\nIndicação: ${indicacao}\n\n2. Ritmo e frequência\nRitmo ${sap >= 0 && sap <= 90 ? 'sinusal' : 'não sinusal'}.\nFC: ${fc} bpm\n\n3. Intervalos\nPR: ${pr_ms} ms\nQRS: ${qrs_ms} ms\nQTc: ${qtc_valor_final} ms por ${qtc_nome_formula} (${strQtcAnalise.toLowerCase()}).\n\n4. Eixos\nSÂP: ${sap}°\nSÂQRS: ${saqrs}°\n\n5. Sobrecargas e condução\nSobrecarga atrial: ${sobAtrial}\nSobrecarga ventricular: ${sobVent}\nCondução intraventricular: ${condIntra}\n\n6. Interpretação final\n${interpretacao}`;
 
-    // Injeção Visual no Template A5
     const a5Content = document.getElementById('a5-content');
     a5Content.innerHTML = `
         <h2 style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">1. Identificação</h2>
@@ -335,10 +293,121 @@ function ecgSintetizarLaudo() {
         <p style="margin: 0;">${interpretacao}</p>
     `;
 
-    // Exibir e Ancorar os Botões de Ação
     document.getElementById('ecg_resultado_container').style.display = 'flex';
 
-    document.getElementById('btn-imprimir-ecg').onclick = () => window.print();
+    // MOTOR DE IMPRESSÃO ISOLADO (Garante quebra de página A5 e remove folhas em branco)
+    document.getElementById('btn-imprimir-ecg').onclick = () => {
+        const printFrame = document.createElement('div');
+        printFrame.id = 'ecg-active-print-frame';
+        
+        // Estilização injetada apenas para a impressora. Usa TABLE para repetição segura de cabeçalho/rodapé e quebra de página automática.
+        printFrame.innerHTML = `
+            <style>
+                @media print {
+                    @page { size: A5 portrait; margin: 0; }
+                    body > *:not(#ecg-active-print-frame) { display: none !important; }
+                    body { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    
+                    #ecg-active-print-frame {
+                        display: block !important;
+                        position: relative !important;
+                        width: 148mm;
+                    }
+
+                    .print-fixed-watermark {
+                        position: fixed;
+                        top: 50%;
+                        right: 0;
+                        transform: translateY(-50%);
+                        z-index: -1;
+                        opacity: 0.15;
+                    }
+                    .print-fixed-watermark img { max-width: 90mm; }
+
+                    .print-fixed-footer {
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        z-index: 10;
+                    }
+                    .print-fixed-footer img { width: 100%; display: block; }
+
+                    .print-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .print-header-space {
+                        text-align: center;
+                        margin-top: 5mm; 
+                        margin-bottom: 10mm; /* Exato 1cm abaixo do cabeçalho */
+                    }
+                    .print-header-space img { width: 50mm; height: auto; }
+                    
+                    .print-content-body {
+                        padding: 0 10mm; /* Margem lateral exata de 1cm */
+                        font-family: Arial, sans-serif;
+                        font-size: 13px;
+                        color: black;
+                    }
+                    
+                    .print-footer-space {
+                        height: 35mm; /* Trava de segurança: impede que o texto encoste no rodapé e forca quebra de pag */
+                    }
+                }
+                @media screen {
+                    #ecg-active-print-frame { display: none; }
+                }
+            </style>
+            
+            <div class="print-fixed-watermark">
+                <img src="./assets/marca-dagua-a5.png">
+            </div>
+            
+            <div class="print-fixed-footer">
+                <img src="./assets/rodape-a5.png">
+            </div>
+            
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <td>
+                            <div class="print-header-space">
+                                <img src="./assets/cabecalho-a5.png">
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="print-content-body">
+                                <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                                ${document.getElementById('a5-content').innerHTML}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>
+                            <div class="print-footer-space"></div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+        
+        document.body.appendChild(printFrame);
+        
+        window.print();
+        
+        // Remove o motor de impressão logo em seguida para manter seu sistema rodando normalmente
+        setTimeout(() => {
+            const frame = document.getElementById('ecg-active-print-frame');
+            if(frame) frame.remove();
+        }, 1000);
+    };
 
     document.getElementById('btn-copiar-ecg').onclick = () => {
         navigator.clipboard.writeText(laudoTextoPuro).then(() => {
