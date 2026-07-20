@@ -9,6 +9,24 @@ import {
 
 let weightChart = null;
 
+// Função auxiliar para renderizar HTML corretamente (evita que tags fiquem visíveis)
+function exibirHtml(id, htmlStr) {
+  const el = byId(id);
+  if (el) {
+      el.innerHTML = htmlStr;
+      el.style.display = 'block';
+  }
+}
+
+function resetDateToToday(id) {
+  const el = byId(id);
+  if (el) {
+      const today = new Date();
+      const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      el.value = localDate;
+  }
+}
+
 export function renderNeonato() {
   const root = byId('tab-neo');
   if (!root) return;
@@ -31,8 +49,11 @@ export function renderNeonato() {
       </div>
       <label>Data para cálculo</label>
       <input type="date" id="neo-ig-calc">
-      <button class="calc-btn" id="btn-neo-ig">Calcular IG e DPP</button>
-      <div id="res-neo-ig" class="result-box"></div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-neo-ig" style="flex: 1; margin: 0;">Calcular IG e DPP</button>
+        <button class="clear-btn" id="btn-limpar-ig" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+      </div>
+      <div id="res-neo-ig" class="result-box" style="display: none; margin-top: 15px;"></div>
     </div>
 
     <div class="card">
@@ -45,8 +66,11 @@ export function renderNeonato() {
         <div><label>Data de nascimento</label><input type="date" id="neo-data-nasc"></div>
         <div><label>Data para cálculo</label><input type="date" id="neo-data-posnatal"></div>
       </div>
-      <button class="calc-btn" id="btn-neo-igcorr">Calcular Corrigida Pós-Natal</button>
-      <div id="res-neo-igcorr" class="result-box" style="line-height: 1.5;"></div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-neo-igcorr" style="flex: 1; margin: 0;">Calcular Corrigida Pós-Natal</button>
+        <button class="clear-btn" id="btn-limpar-igcorr" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+      </div>
+      <div id="res-neo-igcorr" class="result-box" style="display: none; margin-top: 15px; line-height: 1.5;"></div>
     </div>
 
     <div class="card">
@@ -65,23 +89,27 @@ export function renderNeonato() {
         <div><label>Peso (g)</label><input type="number" id="neo-lub-peso" min="200" step="1"></div>
       </div>
       
-      <div style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px;">
-        <button class="calc-btn" id="btn-neo-intergrowth" style="margin: 0; min-width: 250px;">Classificar (PIG/AIG/GIG)</button>
-        <div id="res-neo-lub" class="result-box" style="margin: 0; flex-grow: 1; display: flex; align-items: center; min-height: 44px;"></div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-neo-intergrowth" style="flex: 1; margin: 0;">Classificar (PIG/AIG/GIG)</button>
+        <button class="clear-btn" id="btn-limpar-lub" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
       </div>
+      <div id="res-neo-lub" class="result-box" style="display: none; margin-top: 15px;"></div>
     </div>
 
     <div class="card">
       <div class="card-header"><h2>Calculadora de Perda de Peso Neonatal</h2></div>
       <div class="grid-2">
-        <div><label>Peso ao Nascer (kg)</label><input type="number" step="0.001" id="start_birth_weight" placeholder="Ex: 3.200"></div>
+        <div><label>Peso ao Nascer (g)</label><input type="number" step="1" id="start_birth_weight" placeholder="Ex: 3200"></div>
         <div><label>Data/Hora Nascimento</label><input type="datetime-local" id="start_birth_datetime"></div>
       </div>
       <div class="grid-2" style="margin-top: 10px;">
-        <div><label>Peso Atual (kg)</label><input type="number" step="0.001" id="start_measurement_weight" placeholder="Ex: 2.950"></div>
+        <div><label>Peso Atual (g)</label><input type="number" step="1" id="start_measurement_weight" placeholder="Ex: 2950"></div>
         <div><label>Data/Hora Medição</label><input type="datetime-local" id="start_measurement_datetime"></div>
       </div>
-      <button class="calc-btn" id="btn-calc-peso-neo" style="margin-top: 15px;">Calcular Gráfico</button>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-calc-peso-neo" style="flex: 1; margin: 0;">Calcular Gráfico</button>
+        <button class="clear-btn" id="btn-limpar-perda" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+      </div>
       
       <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 20px; flex-wrap: wrap;">
         <div style="flex-grow: 1; flex-basis: 60%; min-width: 300px;">
@@ -111,8 +139,11 @@ export function renderNeonato() {
         <label><input type="checkbox" class="ict-risk"> Prematuridade limítrofe</label>
         <label><input type="checkbox" class="ict-risk"> Hipoalbuminemia</label>
       </div>
-      <button class="calc-btn" id="btn-neo-ict">Avaliar Conduta</button>
-      <div id="res-ict" class="result-box"></div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-neo-ict" style="flex: 1; margin: 0;">Avaliar Conduta</button>
+        <button class="clear-btn" id="btn-limpar-ict" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+      </div>
+      <div id="res-ict" class="result-box" style="display: none; margin-top: 15px;"></div>
     </div>
   `;
 
@@ -120,14 +151,9 @@ export function renderNeonato() {
   bindNeonatoEvents();
   toggleNeoInputMode();
   
-  // Preencher a data de cálculo pós-natal automaticamente com o dia de hoje
-  const inputPosnatal = byId('neo-data-posnatal');
-  if (inputPosnatal) {
-    const today = new Date();
-    // Ajuste fuso local para não correr risco de puxar o dia anterior no JS
-    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    inputPosnatal.value = localDate;
-  }
+  // Datas automáticas ao carregar a tela
+  resetDateToToday('neo-ig-calc');
+  resetDateToToday('neo-data-posnatal');
 }
 
 function initWeightChart() {
@@ -136,11 +162,25 @@ function initWeightChart() {
   weightChart = new Chart(ctx, {
     type: 'line',
     data: { datasets: [
-      { label: 'P95 (Alerta)', data: [{x:0,y:0}, {x:24,y:5}, {x:48,y:8}, {x:72,y:10}, {x:96,y:10.5}], borderColor: '#e74c3c', fill: false },
-      { label: 'P50 (Média)', data: [{x:0,y:0}, {x:24,y:2.5}, {x:48,y:4.5}, {x:72,y:5.5}, {x:96,y:6}], borderColor: '#27ae60', fill: false },
-      { label: 'Paciente', data: [], type: 'scatter', backgroundColor: '#2980b9', pointRadius: 8 }
+      { label: 'P95 (Alerta)', data: [{x:0,y:0}, {x:24,y:5}, {x:48,y:8}, {x:72,y:10}, {x:96,y:10.5}], borderColor: '#e74c3c', fill: false, tension: 0.2 },
+      { label: 'P50 (Média)', data: [{x:0,y:0}, {x:24,y:2.5}, {x:48,y:4.5}, {x:72,y:5.5}, {x:96,y:6}], borderColor: '#27ae60', fill: false, tension: 0.2 },
+      { label: 'Paciente', data: [], type: 'scatter', backgroundColor: '#2980b9', pointRadius: 8, pointBorderColor: '#fff', pointBorderWidth: 2 }
     ]},
-    options: { responsive: true, scales: { x: { title: { display: true, text: 'Horas de Vida' } }, y: { title: { display: true, text: 'Perda (%)' } } } }
+    options: { 
+      responsive: true, 
+      scales: { 
+        x: { 
+          type: 'linear', // Fundamental para plotar corretamente pontos cruzando dados X vs Y
+          title: { display: true, text: 'Horas de Vida' },
+          min: 0,
+          max: 96,
+          ticks: { stepSize: 24 }
+        }, 
+        y: { 
+          title: { display: true, text: 'Perda (%)' } 
+        } 
+      } 
+    }
   });
 }
 
@@ -151,6 +191,53 @@ function bindNeonatoEvents() {
   byId('btn-neo-intergrowth')?.addEventListener('click', handleCalculateIntergrowth);
   byId('btn-neo-ict')?.addEventListener('click', handleCalculateIctericia);
   byId('btn-calc-peso-neo')?.addEventListener('click', processarCalculoNeo);
+
+  // Ações de Limpar
+  byId('btn-limpar-ig')?.addEventListener('click', () => {
+    byId('neo-dum').value = '';
+    byId('neo-usg-data').value = '';
+    byId('neo-usg-sem').value = '';
+    byId('neo-usg-dias').value = '';
+    resetDateToToday('neo-ig-calc');
+    byId('res-neo-ig').style.display = 'none';
+  });
+
+  byId('btn-limpar-igcorr')?.addEventListener('click', () => {
+    byId('neo-ig-nasc-sem').value = '';
+    byId('neo-ig-nasc-dias').value = '';
+    byId('neo-data-nasc').value = '';
+    resetDateToToday('neo-data-posnatal');
+    byId('res-neo-igcorr').style.display = 'none';
+  });
+
+  byId('btn-limpar-lub')?.addEventListener('click', () => {
+    byId('neo-lub-ig-sem').value = '';
+    byId('neo-lub-ig-dias').value = '';
+    byId('neo-lub-peso').value = '';
+    byId('res-neo-lub').style.display = 'none';
+  });
+
+  byId('btn-limpar-perda')?.addEventListener('click', () => {
+    byId('start_birth_weight').value = '';
+    byId('start_birth_datetime').value = '';
+    byId('start_measurement_weight').value = '';
+    byId('start_measurement_datetime').value = '';
+    byId('res-perda-gramas').innerHTML = '-- g';
+    byId('res-perda-peso').innerHTML = '-- %';
+    byId('res-perda-tempo').innerHTML = '';
+    if (weightChart) {
+      weightChart.data.datasets[2].data = [];
+      weightChart.update();
+    }
+  });
+
+  byId('btn-limpar-ict')?.addEventListener('click', () => {
+    byId('ict-ig').value = '';
+    byId('ict-horas').value = '';
+    byId('ict-bt').value = '';
+    document.querySelectorAll('.ict-risk').forEach(el => el.checked = false);
+    byId('res-ict').style.display = 'none';
+  });
 }
 
 function toggleNeoInputMode() {
@@ -166,18 +253,17 @@ function processarCalculoNeo() {
     const cD = new Date(byId('start_measurement_datetime').value);
     if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos corretamente.");
     
-    const diffEmGramas = (bW - cW) * 1000;
+    // Entradas em Gramas - O cálculo da diferença não precisa mais multiplicar por 1000
+    const diffEmGramas = bW - cW;
     const perdaPerc = ((bW - cW) / bW) * 100;
     const horas = (cD - bD) / (1000 * 60 * 60);
     
-    // Atualiza o gráfico (apenas exibe no eixo se houver perda ou manutenção > 0)
     weightChart.data.datasets[2].data = [{ x: horas, y: perdaPerc }];
     weightChart.update();
     
-    // Motor do Resumo Visual
     const sinalGramas = diffEmGramas > 0 ? '-' : '+';
     const sinalPerc = perdaPerc > 0 ? '-' : '+';
-    const corTexto = diffEmGramas > 0 ? '#e74c3c' : '#27ae60'; // Vermelho se perdeu, Verde se ganhou
+    const corTexto = diffEmGramas > 0 ? '#e74c3c' : '#27ae60';
     
     byId('res-perda-gramas').innerHTML = `<span style="color: ${corTexto}">${sinalGramas}${Math.abs(diffEmGramas).toFixed(0)} g</span>`;
     byId('res-perda-peso').innerHTML = `<span style="color: ${corTexto}">${sinalPerc}${Math.abs(perdaPerc).toFixed(1)}%</span> do peso de nascimento`;
@@ -194,7 +280,7 @@ function handleCalculateIGDPP() {
     calcDate: byId('neo-ig-calc')?.value
   });
   if (result.error) return showResult('res-neo-ig', result.error);
-  showResult('res-neo-ig', `IG: ${result.weeks} sem ${result.days} dias. DPP: ${result.dpp.toLocaleDateString('pt-BR')}`);
+  exibirHtml('res-neo-ig', `IG: <strong>${result.weeks} sem e ${result.days} dias</strong>. DPP: <strong>${result.dpp.toLocaleDateString('pt-BR')}</strong>`);
 }
 
 function handleCalculateCorrectedIG() {
@@ -210,18 +296,14 @@ function handleCalculateCorrectedIG() {
 
   if (result.error) return showResult('res-neo-igcorr', result.error);
 
-  // Lógica inteligente para embutir Idade Cronológica
   let chronoStr = "";
   if (bDateStr && cDateStr) {
       let d1 = new Date(bDateStr);
       let d2 = new Date(cDateStr);
-      
-      // Ajuste de Timezone local para não cortar um dia a menos
       d1 = new Date(d1.getTime() + Math.abs(d1.getTimezoneOffset() * 60000));
       d2 = new Date(d2.getTime() + Math.abs(d2.getTimezoneOffset() * 60000));
 
       if (d2 >= d1) {
-          // Cálculo de Meses e Dias exatos
           let mDiff = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
           let dayDiff = d2.getDate() - d1.getDate();
           if (dayDiff < 0) {
@@ -230,7 +312,6 @@ function handleCalculateCorrectedIG() {
               dayDiff += tempDate.getDate();
           }
           
-          // Cálculo global em semanas e dias
           const diffMs = d2 - d1;
           const diffDaysTotal = Math.floor(diffMs / (1000 * 60 * 60 * 24));
           const wDiff = Math.floor(diffDaysTotal / 7);
@@ -240,7 +321,7 @@ function handleCalculateCorrectedIG() {
       }
   }
 
-  showResult('res-neo-igcorr', `${chronoStr}<span style="color: #1e3a8a; font-size: 16px;">Idade Corrigida: <strong>${result.weeks} sem e ${result.days} dias</strong></span>`);
+  exibirHtml('res-neo-igcorr', `${chronoStr}<span style="color: #1e3a8a; font-size: 16px;">Idade Corrigida: <strong>${result.weeks} sem e ${result.days} dias</strong></span>`);
 }
 
 function handleCalculateIntergrowth() {
@@ -251,7 +332,7 @@ function handleCalculateIntergrowth() {
     weightGrams: Number(byId('neo-lub-peso')?.value)
   });
   if (result.error) return showResult('res-neo-lub', result.error);
-  showResult('res-neo-lub', `Classificação: <strong>${result.classification}</strong>`);
+  exibirHtml('res-neo-lub', `Classificação: <strong>${result.classification}</strong>`);
 }
 
 function handleCalculateIctericia() {
@@ -263,5 +344,5 @@ function handleCalculateIctericia() {
     hasRisk
   });
   if (result.error) return showResult('res-ict', result.error);
-  showResult('res-ict', `Conduta: ${result.recommendation}`);
+  exibirHtml('res-ict', `Conduta: <strong>${result.recommendation}</strong>`);
 }
