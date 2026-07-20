@@ -46,20 +46,29 @@ export function renderNeonato() {
         <div><label>Data para cálculo</label><input type="date" id="neo-data-posnatal"></div>
       </div>
       <button class="calc-btn" id="btn-neo-igcorr">Calcular Corrigida Pós-Natal</button>
-      <div id="res-neo-igcorr" class="result-box"></div>
+      <div id="res-neo-igcorr" class="result-box" style="line-height: 1.5;"></div>
     </div>
 
     <div class="card">
       <div class="card-header"><h2>Peso para Idade Gestacional (INTERGROWTH-21st)</h2></div>
-      <div class="grid-3">
-        <div><label>Sexo</label><select id="neo-ig-sexo"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
-        <div><label>IG ao nascer (semanas)</label><input type="number" id="neo-lub-ig-sem" min="24" max="44" step="1"></div>
+      
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div>
+          <label>Sexo</label>
+          <select id="neo-ig-sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+        </div>
+        <div><label>IG ao nascer (sem)</label><input type="number" id="neo-lub-ig-sem" min="24" max="44" step="1"></div>
         <div><label>IG ao nascer (dias)</label><input type="number" id="neo-lub-ig-dias" min="0" max="6" step="1"></div>
+        <div><label>Peso (g)</label><input type="number" id="neo-lub-peso" min="200" step="1"></div>
       </div>
-      <label>Peso ao nascer (g)</label>
-      <input type="number" id="neo-lub-peso" min="200" step="1">
-      <button class="calc-btn" id="btn-neo-intergrowth">Classificar (PIG/AIG/GIG)</button>
-      <div id="res-neo-lub" class="result-box"></div>
+      
+      <div style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px;">
+        <button class="calc-btn" id="btn-neo-intergrowth" style="margin: 0; min-width: 250px;">Classificar (PIG/AIG/GIG)</button>
+        <div id="res-neo-lub" class="result-box" style="margin: 0; flex-grow: 1; display: flex; align-items: center; min-height: 44px;"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -73,8 +82,18 @@ export function renderNeonato() {
         <div><label>Data/Hora Medição</label><input type="datetime-local" id="start_measurement_datetime"></div>
       </div>
       <button class="calc-btn" id="btn-calc-peso-neo" style="margin-top: 15px;">Calcular Gráfico</button>
-      <div style="margin-top: 20px;"><canvas id="weightChart" style="max-height: 250px;"></canvas></div>
-      <div id="res-perda-peso" class="result-box" style="margin-top: 10px; font-weight: bold;"></div>
+      
+      <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 20px; flex-wrap: wrap;">
+        <div style="flex-grow: 1; flex-basis: 60%; min-width: 300px;">
+          <canvas id="weightChart" style="max-height: 250px;"></canvas>
+        </div>
+        <div style="flex-basis: 30%; flex-grow: 1; min-width: 200px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+           <h3 style="font-size: 13px; margin-bottom: 12px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Resumo da Variação</h3>
+           <div id="res-perda-gramas" style="font-size: 24px; font-weight: bold; color: #1e293b;">-- g</div>
+           <div id="res-perda-peso" style="font-size: 14px; color: #64748b; margin-top: 4px;">-- %</div>
+           <div id="res-perda-tempo" style="font-size: 12px; color: #94a3b8; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px;"></div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -100,6 +119,15 @@ export function renderNeonato() {
   initWeightChart();
   bindNeonatoEvents();
   toggleNeoInputMode();
+  
+  // Preencher a data de cálculo pós-natal automaticamente com o dia de hoje
+  const inputPosnatal = byId('neo-data-posnatal');
+  if (inputPosnatal) {
+    const today = new Date();
+    // Ajuste fuso local para não correr risco de puxar o dia anterior no JS
+    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    inputPosnatal.value = localDate;
+  }
 }
 
 function initWeightChart() {
@@ -136,12 +164,24 @@ function processarCalculoNeo() {
     const cW = parseFloat(byId('start_measurement_weight').value);
     const bD = new Date(byId('start_birth_datetime').value);
     const cD = new Date(byId('start_measurement_datetime').value);
-    if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos.");
-    const perda = ((bW - cW) / bW) * 100;
+    if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos corretamente.");
+    
+    const diffEmGramas = (bW - cW) * 1000;
+    const perdaPerc = ((bW - cW) / bW) * 100;
     const horas = (cD - bD) / (1000 * 60 * 60);
-    weightChart.data.datasets[2].data = [{ x: horas, y: perda }];
+    
+    // Atualiza o gráfico (apenas exibe no eixo se houver perda ou manutenção > 0)
+    weightChart.data.datasets[2].data = [{ x: horas, y: perdaPerc }];
     weightChart.update();
-    byId('res-perda-peso').innerHTML = `Perda: ${perda.toFixed(1)}% em ${Math.floor(horas)}h de vida.`;
+    
+    // Motor do Resumo Visual
+    const sinalGramas = diffEmGramas > 0 ? '-' : '+';
+    const sinalPerc = perdaPerc > 0 ? '-' : '+';
+    const corTexto = diffEmGramas > 0 ? '#e74c3c' : '#27ae60'; // Vermelho se perdeu, Verde se ganhou
+    
+    byId('res-perda-gramas').innerHTML = `<span style="color: ${corTexto}">${sinalGramas}${Math.abs(diffEmGramas).toFixed(0)} g</span>`;
+    byId('res-perda-peso').innerHTML = `<span style="color: ${corTexto}">${sinalPerc}${Math.abs(perdaPerc).toFixed(1)}%</span> do peso de nascimento`;
+    byId('res-perda-tempo').innerHTML = `em ${Math.floor(horas)} horas de vida`;
 }
 
 function handleCalculateIGDPP() {
@@ -158,14 +198,49 @@ function handleCalculateIGDPP() {
 }
 
 function handleCalculateCorrectedIG() {
+  const bDateStr = byId('neo-data-nasc')?.value;
+  const cDateStr = byId('neo-data-posnatal')?.value;
+
   const result = calculateCorrectedPostnatalIG({
     birthIGWeeks: Number(byId('neo-ig-nasc-sem')?.value),
     birthIGDays: Number(byId('neo-ig-nasc-dias')?.value),
-    birthDate: byId('neo-data-nasc')?.value,
-    calcDate: byId('neo-data-posnatal')?.value
+    birthDate: bDateStr,
+    calcDate: cDateStr
   });
+
   if (result.error) return showResult('res-neo-igcorr', result.error);
-  showResult('res-neo-igcorr', `IG Corrigida: ${result.weeks} sem ${result.days} dias.`);
+
+  // Lógica inteligente para embutir Idade Cronológica
+  let chronoStr = "";
+  if (bDateStr && cDateStr) {
+      let d1 = new Date(bDateStr);
+      let d2 = new Date(cDateStr);
+      
+      // Ajuste de Timezone local para não cortar um dia a menos
+      d1 = new Date(d1.getTime() + Math.abs(d1.getTimezoneOffset() * 60000));
+      d2 = new Date(d2.getTime() + Math.abs(d2.getTimezoneOffset() * 60000));
+
+      if (d2 >= d1) {
+          // Cálculo de Meses e Dias exatos
+          let mDiff = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+          let dayDiff = d2.getDate() - d1.getDate();
+          if (dayDiff < 0) {
+              mDiff--;
+              let tempDate = new Date(d2.getFullYear(), d2.getMonth(), 0);
+              dayDiff += tempDate.getDate();
+          }
+          
+          // Cálculo global em semanas e dias
+          const diffMs = d2 - d1;
+          const diffDaysTotal = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const wDiff = Math.floor(diffDaysTotal / 7);
+          const dDiff = diffDaysTotal % 7;
+          
+          chronoStr = `<span style="color: #64748b; font-size: 14px;">Idade Cronológica: <strong>${wDiff} sem e ${dDiff} dias</strong> (${mDiff} meses e ${dayDiff} dias)</span><br>`;
+      }
+  }
+
+  showResult('res-neo-igcorr', `${chronoStr}<span style="color: #1e3a8a; font-size: 16px;">Idade Corrigida: <strong>${result.weeks} sem e ${result.days} dias</strong></span>`);
 }
 
 function handleCalculateIntergrowth() {
@@ -176,7 +251,7 @@ function handleCalculateIntergrowth() {
     weightGrams: Number(byId('neo-lub-peso')?.value)
   });
   if (result.error) return showResult('res-neo-lub', result.error);
-  showResult('res-neo-lub', `Classificação: ${result.classification}`);
+  showResult('res-neo-lub', `Classificação: <strong>${result.classification}</strong>`);
 }
 
 function handleCalculateIctericia() {
