@@ -9,12 +9,12 @@ import {
 
 let weightChart = null;
 
-// Função auxiliar para renderizar HTML corretamente (evita que tags fiquem visíveis)
-function exibirHtml(id, htmlStr) {
+// Função auxiliar para renderizar HTML corretamente e com controle de display
+function exibirHtml(id, htmlStr, displayType = 'block') {
   const el = byId(id);
   if (el) {
       el.innerHTML = htmlStr;
-      el.style.display = 'block';
+      el.style.display = displayType;
   }
 }
 
@@ -70,7 +70,7 @@ export function renderNeonato() {
         <button class="calc-btn" id="btn-neo-igcorr" style="flex: 1; margin: 0;">Calcular Corrigida Pós-Natal</button>
         <button class="clear-btn" id="btn-limpar-igcorr" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
       </div>
-      <div id="res-neo-igcorr" class="result-box" style="display: none; margin-top: 15px; line-height: 1.5;"></div>
+      <div id="res-neo-igcorr" class="result-box" style="display: none; margin-top: 15px; line-height: 1.5; padding: 15px;"></div>
     </div>
 
     <div class="card">
@@ -89,11 +89,11 @@ export function renderNeonato() {
         <div><label>Peso (g)</label><input type="number" id="neo-lub-peso" min="200" step="1"></div>
       </div>
       
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="calc-btn" id="btn-neo-intergrowth" style="flex: 1; margin: 0;">Classificar (PIG/AIG/GIG)</button>
-        <button class="clear-btn" id="btn-limpar-lub" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+      <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch; min-height: 44px;">
+        <button class="calc-btn" id="btn-neo-intergrowth" style="margin: 0; min-width: 220px; flex-shrink: 0;">Classificar (PIG/AIG/GIG)</button>
+        <div id="res-neo-lub" class="result-box" style="display: none; margin: 0; flex-grow: 1; align-items: center; justify-content: center; padding: 0 10px; font-size: 16px;"></div>
+        <button class="clear-btn" id="btn-limpar-lub" style="margin: 0; flex-shrink: 0; background: #e2e8f0; color: #475569; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
       </div>
-      <div id="res-neo-lub" class="result-box" style="display: none; margin-top: 15px;"></div>
     </div>
 
     <div class="card">
@@ -170,7 +170,7 @@ function initWeightChart() {
       responsive: true, 
       scales: { 
         x: { 
-          type: 'linear', // Fundamental para plotar corretamente pontos cruzando dados X vs Y
+          type: 'linear', 
           title: { display: true, text: 'Horas de Vida' },
           min: 0,
           max: 96,
@@ -253,7 +253,6 @@ function processarCalculoNeo() {
     const cD = new Date(byId('start_measurement_datetime').value);
     if (!bW || !cW || isNaN(bD) || isNaN(cD)) return alert("Preencha todos os campos corretamente.");
     
-    // Entradas em Gramas - O cálculo da diferença não precisa mais multiplicar por 1000
     const diffEmGramas = bW - cW;
     const perdaPerc = ((bW - cW) / bW) * 100;
     const horas = (cD - bD) / (1000 * 60 * 60);
@@ -279,24 +278,28 @@ function handleCalculateIGDPP() {
     usgDays: Number(byId('neo-usg-dias')?.value),
     calcDate: byId('neo-ig-calc')?.value
   });
-  if (result.error) return showResult('res-neo-ig', result.error);
+  if (result.error) return exibirHtml('res-neo-ig', `<span style="color:#e74c3c; font-weight:bold;">${result.error}</span>`);
   exibirHtml('res-neo-ig', `IG: <strong>${result.weeks} sem e ${result.days} dias</strong>. DPP: <strong>${result.dpp.toLocaleDateString('pt-BR')}</strong>`);
 }
 
 function handleCalculateCorrectedIG() {
   const bDateStr = byId('neo-data-nasc')?.value;
   const cDateStr = byId('neo-data-posnatal')?.value;
+  const birthIGWeeks = Number(byId('neo-ig-nasc-sem')?.value);
+  const birthIGDays = Number(byId('neo-ig-nasc-dias')?.value);
 
   const result = calculateCorrectedPostnatalIG({
-    birthIGWeeks: Number(byId('neo-ig-nasc-sem')?.value),
-    birthIGDays: Number(byId('neo-ig-nasc-dias')?.value),
+    birthIGWeeks: birthIGWeeks,
+    birthIGDays: birthIGDays,
     birthDate: bDateStr,
     calcDate: cDateStr
   });
 
-  if (result.error) return showResult('res-neo-igcorr', result.error);
+  if (result.error) return exibirHtml('res-neo-igcorr', `<span style="color:#e74c3c; font-weight:bold;">${result.error}</span>`);
 
   let chronoStr = "";
+  let correctedAgeStr = "";
+
   if (bDateStr && cDateStr) {
       let d1 = new Date(bDateStr);
       let d2 = new Date(cDateStr);
@@ -304,6 +307,7 @@ function handleCalculateCorrectedIG() {
       d2 = new Date(d2.getTime() + Math.abs(d2.getTimezoneOffset() * 60000));
 
       if (d2 >= d1) {
+          // 1. Idade Cronológica
           let mDiff = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
           let dayDiff = d2.getDate() - d1.getDate();
           if (dayDiff < 0) {
@@ -317,11 +321,39 @@ function handleCalculateCorrectedIG() {
           const wDiff = Math.floor(diffDaysTotal / 7);
           const dDiff = diffDaysTotal % 7;
           
-          chronoStr = `<span style="color: #64748b; font-size: 14px;">Idade Cronológica: <strong>${wDiff} sem e ${dDiff} dias</strong> (${mDiff} meses e ${dayDiff} dias)</span><br>`;
+          chronoStr = `<div style="margin-bottom: 6px;"><span style="color: #64748b; font-size: 14px;">Idade Cronológica: <strong>${wDiff} sem e ${dDiff} dias</strong> (${mDiff} meses e ${dayDiff} dias)</span></div>`;
+
+          // 2. Lógica exata da Idade Corrigida (Contagem a partir das 40 semanas)
+          const birthIGTotalDays = (birthIGWeeks * 7) + birthIGDays;
+          const igcTotalDays = birthIGTotalDays + diffDaysTotal;
+          const prematurityDays = 280 - birthIGTotalDays;
+
+          if (igcTotalDays >= 280) {
+              const correctedLifeDays = igcTotalDays - 280;
+              const caWeeks = Math.floor(correctedLifeDays / 7);
+              const caDays = correctedLifeDays % 7;
+
+              const correctedDOB = new Date(d1.getTime());
+              correctedDOB.setDate(correctedDOB.getDate() + prematurityDays);
+
+              let cmDiff = (d2.getFullYear() - correctedDOB.getFullYear()) * 12 + (d2.getMonth() - correctedDOB.getMonth());
+              let cdayDiff = d2.getDate() - correctedDOB.getDate();
+              if (cdayDiff < 0) {
+                  cmDiff--;
+                  let tempDate = new Date(d2.getFullYear(), d2.getMonth(), 0);
+                  cdayDiff += tempDate.getDate();
+              }
+
+              correctedAgeStr = `<div style="margin-top: 6px;"><span style="color: #047857; font-size: 14px;">Idade Corrigida: <strong>${caWeeks} sem e ${caDays} dias</strong> (${Math.max(0, cmDiff)} meses e ${Math.max(0, cdayDiff)} dias)</span></div>`;
+          } else {
+              correctedAgeStr = `<div style="margin-top: 6px;"><span style="color: #047857; font-size: 14px;">Idade Corrigida: <strong>Ainda não atingiu 40 semanas (Pré-termo)</strong></span></div>`;
+          }
       }
   }
 
-  exibirHtml('res-neo-igcorr', `${chronoStr}<span style="color: #1e3a8a; font-size: 16px;">Idade Corrigida: <strong>${result.weeks} sem e ${result.days} dias</strong></span>`);
+  // Montagem final do Layout
+  const igcStr = `<div style="margin-bottom: 2px;"><span style="color: #1e3a8a; font-size: 15px;">Idade Gestacional Corrigida: <strong>${result.weeks} sem e ${result.days} dias</strong></span></div>`;
+  exibirHtml('res-neo-igcorr', `${chronoStr}${igcStr}${correctedAgeStr}`);
 }
 
 function handleCalculateIntergrowth() {
@@ -331,8 +363,8 @@ function handleCalculateIntergrowth() {
     days: Number(byId('neo-lub-ig-dias')?.value),
     weightGrams: Number(byId('neo-lub-peso')?.value)
   });
-  if (result.error) return showResult('res-neo-lub', result.error);
-  exibirHtml('res-neo-lub', `Classificação: <strong>${result.classification}</strong>`);
+  if (result.error) return exibirHtml('res-neo-lub', `<span style="color:#e74c3c; font-weight:bold;">${result.error}</span>`, 'flex');
+  exibirHtml('res-neo-lub', `Classificação: <strong>${result.classification}</strong>`, 'flex');
 }
 
 function handleCalculateIctericia() {
@@ -343,6 +375,6 @@ function handleCalculateIctericia() {
     bt: Number(byId('ict-bt')?.value),
     hasRisk
   });
-  if (result.error) return showResult('res-ict', result.error);
+  if (result.error) return exibirHtml('res-ict', `<span style="color:#e74c3c; font-weight:bold;">${result.error}</span>`);
   exibirHtml('res-ict', `Conduta: <strong>${result.recommendation}</strong>`);
 }
