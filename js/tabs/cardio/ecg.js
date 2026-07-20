@@ -6,7 +6,7 @@ export function initECGCard() {
 
     // INJEÇÃO DA INTERFACE VISUAL DE TELA (Ocultada na impressão)
     slot.innerHTML = `
-        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100" style="margin-top: 20px;">
+        <div class="w-full bg-white p-4 md:p-6 rounded-xl border border-gray-100" style="margin-top: 10px;">
             <h2 class="text-xl font-extrabold mb-4 pb-2 border-b border-gray-100" style="color: var(--azul, #1e3a8a);">Eletrocardiograma - Emissão com Timbre Digital</h2>
             
             <div class="p-4 rounded-lg mb-4" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
