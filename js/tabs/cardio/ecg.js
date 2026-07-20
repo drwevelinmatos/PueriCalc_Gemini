@@ -108,14 +108,14 @@ export function initECGCard() {
             
             <div id="ecg-screen-preview" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 148mm; min-height: 210mm; position: relative; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Arial', sans-serif; color: #000; line-height: 1.5; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;">
                 
-                <div style="width: 100%; text-align: center; margin-top: 5mm; margin-bottom: 10mm;">
+                <div style="width: 100%; text-align: center; margin-top: 5mm; margin-bottom: 10mm; line-height: 0;">
                     <img src="./assets/cabecalho-a5.png" style="width: 50mm; height: auto;">
                 </div>
 
                 <img src="./assets/marca-dagua-a5.png" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); opacity: 0.15; pointer-events: none; z-index: 1; max-width: 90mm;">
 
                 <div style="padding: 0 10mm; z-index: 10; flex-grow: 1;">
-                    <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                    <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-top: 0; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                     <div id="a5-content"></div>
                 </div>
 
@@ -335,9 +335,12 @@ function ecgSintetizarLaudo() {
                     .print-table {
                         width: 100%;
                         border-collapse: collapse;
+                        border-spacing: 0;
+                    }
+                    .print-table td, .print-table th {
+                        padding: 0; /* Anula o espaçamento invisível das tabelas */
                     }
                     
-                    /* AQUI ESTÁ A MÁGICA: vertical-align: top força o laudo a subir */
                     .print-content-cell {
                         vertical-align: top;
                     }
@@ -346,8 +349,9 @@ function ecgSintetizarLaudo() {
                         text-align: center;
                         margin-top: 5mm; 
                         margin-bottom: 10mm; /* Exato 1cm abaixo do cabeçalho */
+                        line-height: 0; /* Remove a sobra de espaço da imagem */
                     }
-                    .print-header-space img { width: 50mm; height: auto; }
+                    .print-header-space img { width: 50mm; height: auto; display: inline-block; }
                     
                     .print-content-body {
                         padding: 0 10mm; /* Margem lateral exata de 1cm */
@@ -387,7 +391,7 @@ function ecgSintetizarLaudo() {
                     <tr>
                         <td class="print-content-cell">
                             <div class="print-content-body">
-                                <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                                <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-top: 0; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                                 ${document.getElementById('a5-content').innerHTML}
                             </div>
                         </td>
