@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Icterícia Neonatal (SBP 2021)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="date"], input[type="time"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .risk-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .risk-box label {
+            display: inline-block;
+            font-weight: normal;
+            margin-bottom: 5px;
+            margin-right: 15px;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f8f5;
+            border: 1px solid #d1f2eb;
+            border-radius: 4px;
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .alert {
+            color: #c0392b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Avaliação de Hiperbilirrubinemia Neonatal</h1>
+    <p>Baseado no Manual de Orientação SBP (2019-2021).</p>
+
+    <div class="form-group">
+        <label>Data de Nascimento:</label>
+        <input type="date" id="dataNascimento" required>
+    </div>
+    <div class="form-group">
+        <label>Hora de Nascimento:</label>
+        <input type="time" id="horaNascimento" required>
+    </div>
+
+    <div class="form-group">
+        <label>Data da Coleta:</label>
+        <input type="date" id="dataColeta" required>
+    </div>
+    <div class="form-group">
+        <label>Hora da Coleta:</label>
+        <input type="time" id="horaColeta" required>
+    </div>
+
+    <div class="form-group">
+        <label>Horas de Vida (Calculado Automaticamente):</label>
+        <input type="text" id="horasVida" readonly style="background-color: #e9ecef;">
+    </div>
+
+    <div class="form-group">
+        <label>Idade Gestacional:</label>
+        <select id="idadeGestacional">
+            <option value="ge_38">38 semanas ou mais</option>
+            <option value="35_37">35 a 37 semanas e 6 dias</option>
+            <option value="34">34 semanas</option>
+            <option value="32_33">32 a 33 semanas</option>
+            <option value="30_31">30 a 31 semanas</option>
+            <option value="28_29">28 a 29 semanas</option>
+            <option value="lt_28">Menor que 28 semanas</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Bilirrubina Total (mg/dL):</label>
+        <input type="number" id="bilirrubina" step="0.1" required>
+    </div>
+
+    <div class="risk-box">
+        <label><strong>Fatores de Risco Agravantes (Marque se presentes):</strong></label><br>
+        <label><input type="checkbox" id="doencaHemolitica"> Doença hemolítica (Rh, ABO, etc.) ou G6PD</label>
+        <label><input type="checkbox" id="asfixia"> Asfixia / Letargia / Instabilidade térmica</label>
+        <label><input type="checkbox" id="sepse"> Sepse / Meningite</label>
+        <label><input type="checkbox" id="acidose"> Acidose</label>
+        <label><input type="checkbox" id="albumina"> Albumina &lt; 3 g/dL (ou &lt; 2.5 em prematuros)</label>
+        <label><input type="checkbox" id="sinaisEncefalopatia"> <b>Sinais de encefalopatia bilirrubínica aguda</b></label>
+    </div>
+
+    <button onclick="calcularConduta()">Analisar e Sugerir Conduta</button>
+
+    <div id="resultado" class="result-box">
+        <h3>Classificação e Conduta</h3>
+        <div id="resClassificacao" class="result-item"></div>
+        <div id="resConduta" class="result-item"></div>
+        <div id="resSuspensao" class="result-item"></div>
+        <div id="resNovaColeta" class="result-item"></div>
+    </div>
+</div>
+
+<script>
+    // Configurar data atual para coleta ao carregar a página
+    window.onload = function() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        document.getElementById('dataColeta').value = `${year}-${month}-${day}`;
+        document.getElementById('horaColeta').value = `${hours}:${minutes}`;
+    };
+
+    // Atualizar horas de vida automaticamente
+    const inputsData = ['dataNascimento', 'horaNascimento', 'dataColeta', 'horaColeta'];
+    inputsData.forEach(id => document.getElementById(id).addEventListener('change', atualizarHorasVida));
+
+    function atualizarHorasVida() {
+        const dNasc = document.getElementById('dataNascimento').value;
+        const hNasc = document.getElementById('horaNascimento').value;
+        const dCol = document.getElementById('dataColeta').value;
+        const hCol = document.getElementById('horaColeta').value;
+
+        if(dNasc && hNasc && dCol && hCol) {
+            const nasc = new Date(`${dNasc}T${hNasc}`);
+            const col = new Date(`${dCol}T${hCol}`);
+            const diffMs = col - nasc;
+            if(diffMs >= 0) {
+                const horas = (diffMs / (1000 * 60 * 60)).toFixed(1);
+                document.getElementById('horasVida').value = horas;
+            } else {
+                document.getElementById('horasVida').value = "Data/Hora inválida";
+            }
+        }
+    }
+
+    function calcularConduta() {
+        atualizarHorasVida();
+        const horasVida = parseFloat(document.getElementById('horasVida').value);
+        const bt = parseFloat(document.getElementById('bilirrubina').value);
+        const ig = document.getElementById('idadeGestacional').value;
+        
+        if(isNaN(horasVida) || isNaN(bt) || horasVida < 0) {
+            alert("Por favor, preencha todos os campos corretamente.");
+            return;
+        }
+
+        const temFatorRisco = document.getElementById('doencaHemolitica').checked || 
+                              document.getElementById('asfixia').checked || 
+                              document.getElementById('sepse').checked || 
+                              document.getElementById('acidose').checked || 
+                              document.getElementById('albumina').checked;
+        const sinaisEncefalopatia = document.getElementById('sinaisEncefalopatia').checked;
+
+        let limPhoto = 0;
+        let limEst = 0;
+
+        // Tabelas de Referência
+        // Idade >= 35 semanas (interpolação simplificada por faixas de horas)
+        if(ig === 'ge_38' || ig === '35_37') {
+            let basePhoto, baseEst;
+            if(horasVida <= 24) { basePhoto = ig === 'ge_38' ? 10 : 8; baseEst = ig === 'ge_38' ? 18 : 15; }
+            else if(horasVida <= 36) { basePhoto = ig === 'ge_38' ? 11.5 : 9.5; baseEst = ig === 'ge_38' ? 20 : 16; }
+            else if(horasVida <= 48) { basePhoto = ig === 'ge_38' ? 13 : 11; baseEst = ig === 'ge_38' ? 21 : 17; }
+            else if(horasVida <= 72) { basePhoto = ig === 'ge_38' ? 15 : 13; baseEst = ig === 'ge_38' ? 22 : 18; }
+            else if(horasVida <= 96) { basePhoto = ig === 'ge_38' ? 16 : 14; baseEst = ig === 'ge_38' ? 23 : 20; }
+            else { basePhoto = ig === 'ge_38' ? 17 : 15; baseEst = ig === 'ge_38' ? 24 : 21; }
+
+            limPhoto = temFatorRisco ? basePhoto - 2 : basePhoto;
+            limEst = baseEst;
+
+        } else {
+            // Prematuros < 35 semanas
+            switch(ig) {
+                case '34': limPhoto = temFatorRisco ? 10 : 12; limEst = temFatorRisco ? 17 : 19; break;
+                case '32_33': limPhoto = temFatorRisco ? 10 : 12; limEst = temFatorRisco ? 15 : 18; break;
+                case '30_31': limPhoto = temFatorRisco ? 8 : 10; limEst = temFatorRisco ? 13 : 16; break;
+                case '28_29': limPhoto = temFatorRisco ? 6 : 8; limEst = temFatorRisco ? 12 : 14; break;
+                case 'lt_28': limPhoto = temFatorRisco ? 5 : 6; limEst = temFatorRisco ? 11 : 14; break;
+            }
+        }
+
+        let classificacao = "";
+        let conduta = "";
+        let suspensao = "";
+        let novaColeta = "";
+
+        // Avaliação
+        if(sinaisEncefalopatia || bt >= limEst || bt >= (limEst - 5)) {
+            classificacao = `<span class="alert">Exsanguineotransfusão Indicada / Risco Extremo</span>`;
+            conduta = "<b>Conduta:</b> Iniciar IMEDIATAMENTE fototerapia intensiva (alta irradiância na maior superfície corporal). Preparar material para Exsanguineotransfusão.";
+            novaColeta = "<b>Nova Coleta:</b> Repetir BT em 2 a 3 horas e reavaliar.";
+        } else if(bt >= limPhoto) {
+            classificacao = `Indicação de Fototerapia (Limiar: ${limPhoto} mg/dL)`;
+            conduta = "<b>Tratamento:</b> Iniciar Fototerapia. Se BT próximo ao limite de EST, usar fototerapia intensiva dupla[cite: 1].";
+            
+            if(bt > 25) novaColeta = "<b>Nova Coleta:</b> Repetir BT em 2 a 3 horas[cite: 1].";
+            else if(bt >= 20 && bt <= 25) novaColeta = "<b>Nova Coleta:</b> Repetir BT em 3 a 4 horas[cite: 1].";
+            else if(bt >= 17 && bt <= 19) novaColeta = "<b>Nova Coleta:</b> Repetir BT em 4 a 6 horas[cite: 1].";
+            else novaColeta = "<b>Nova Coleta:</b> Repetir BT em 12-24 horas, ou conforme evolução clínica[cite: 1].";
+        } else {
+            classificacao = `Normal para a faixa (Limiar Photo: ${limPhoto} mg/dL | Limiar EST: ${limEst} mg/dL)`;
+            conduta = "<b>Tratamento:</b> Sem indicação de fototerapia no momento. Manter aleitamento materno e observação clínica[cite: 1].";
+            novaColeta = "<b>Nova Coleta:</b> Acompanhamento ambulatorial ou reavaliação se progressão da icterícia[cite: 1].";
+        }
+
+        // Suspensão
+        if (horasVida <= 120) { // Até 5o dia
+            if (ig === 'ge_38') suspensao = "<b>Suspensão da Foto:</b> Quando BT &le; 11.5 mg/dL[cite: 1].";
+            else if (ig === '35_37') suspensao = "<b>Suspensão da Foto:</b> Quando BT &le; 9.5 mg/dL[cite: 1].";
+            else suspensao = `<b>Suspensão da Foto:</b> Quando BT for 2 mg/dL inferior ao nível de indicação de fototerapia[cite: 1].`;
+        } else { // Após 5o dia
+            if (ig === 'ge_38' || ig === '35_37') suspensao = "<b>Suspensão da Foto:</b> Quando BT &le; 14 mg/dL[cite: 1].";
+            else suspensao = `<b>Suspensão da Foto:</b> Quando BT for 2 mg/dL inferior ao nível de indicação para idade corrigida[cite: 1].`;
+        }
+        
+        if(bt >= limPhoto) {
+            suspensao += " <br><i>Nota: Após suspensão em RN &ge;35 sem com fatores de risco, manter observação por 12h antes da alta para avaliar rebote[cite: 1].</i>";
+        }
+
+        document.getElementById('resClassificacao').innerHTML = `<b>Classificação:</b> ${classificacao}`;
+        document.getElementById('resConduta').innerHTML = conduta;
+        document.getElementById('resNovaColeta').innerHTML = novaColeta;
+        document.getElementById('resSuspensao').innerHTML = bt >= limPhoto ? suspensao : "";
+
+        document.getElementById('resultado').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
