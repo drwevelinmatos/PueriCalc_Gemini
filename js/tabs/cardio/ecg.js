@@ -295,12 +295,11 @@ function ecgSintetizarLaudo() {
 
     document.getElementById('ecg_resultado_container').style.display = 'flex';
 
-    // MOTOR DE IMPRESSÃO ISOLADO (Garante quebra de página A5 e remove folhas em branco)
+    // MOTOR DE IMPRESSÃO ISOLADO
     document.getElementById('btn-imprimir-ecg').onclick = () => {
         const printFrame = document.createElement('div');
         printFrame.id = 'ecg-active-print-frame';
         
-        // Estilização injetada apenas para a impressora. Usa TABLE para repetição segura de cabeçalho/rodapé e quebra de página automática.
         printFrame.innerHTML = `
             <style>
                 @media print {
@@ -337,6 +336,12 @@ function ecgSintetizarLaudo() {
                         width: 100%;
                         border-collapse: collapse;
                     }
+                    
+                    /* AQUI ESTÁ A MÁGICA: vertical-align: top força o laudo a subir */
+                    .print-content-cell {
+                        vertical-align: top;
+                    }
+
                     .print-header-space {
                         text-align: center;
                         margin-top: 5mm; 
@@ -352,7 +357,7 @@ function ecgSintetizarLaudo() {
                     }
                     
                     .print-footer-space {
-                        height: 35mm; /* Trava de segurança: impede que o texto encoste no rodapé e forca quebra de pag */
+                        height: 35mm; /* Trava de segurança para não invadir o rodapé */
                     }
                 }
                 @media screen {
@@ -380,9 +385,9 @@ function ecgSintetizarLaudo() {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
+                        <td class="print-content-cell">
                             <div class="print-content-body">
-                                <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
+                                <h1 style="text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; text-decoration: underline;">ELETROCARDIOGRAMA</h1>
                                 ${document.getElementById('a5-content').innerHTML}
                             </div>
                         </td>
@@ -402,7 +407,6 @@ function ecgSintetizarLaudo() {
         
         window.print();
         
-        // Remove o motor de impressão logo em seguida para manter seu sistema rodando normalmente
         setTimeout(() => {
             const frame = document.getElementById('ecg-active-print-frame');
             if(frame) frame.remove();
