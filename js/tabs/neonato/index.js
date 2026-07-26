@@ -69,23 +69,21 @@ export function renderNeonato() {
       </div>
 
       <div class="sub-tab-content" id="neo-igcorrigida" style="display: none;">
-        <div class="card">
+	<div class="card">
           <div class="card-header"><h2>Idade Gestacional Corrigida Pós-Nascimento</h2></div>
-          <div class="grid-2">
-            <div><label>IG ao nascimento (semanas)</label><input type="number" id="neo-ig-nasc-sem" min="0" step="1"></div>
-            <div><label>IG ao nascimento (dias)</label><input type="number" id="neo-ig-nasc-dias" min="0" max="6" step="1"></div>
-          </div>
-          <div class="grid-2">
+	  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">	
+            <div><label>IG (semanas)</label><input type="number" id="neo-ig-nasc-sem" min="0" step="1"></div>
+            <div><label>IG (dias)</label><input type="number" id="neo-ig-nasc-dias" min="0" max="6" step="1"></div>
             <div><label>Data de nascimento</label><input type="date" id="neo-data-nasc"></div>
             <div><label>Data para cálculo</label><input type="date" id="neo-data-posnatal"></div>
+	 </div>
+         <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch; min-height: 44px;">
+            <button class="calc-btn" id="btn-neo-igcorr" style="margin: 0; max-width: 200px; flex-shrink: 0;">Calcular IGc</button>
+ 	    <div id="res-neo-igcorr" class="result-box" style="display: none; margin: 0; flex-grow: 1; align-items: center; justify-content: center; padding: 0 10px; font-size: 16px;"></div>
+            <button class="clear-btn" id="btn-limpar-igcorr" style="margin: 0; flex-shrink: 0; background: #e2e8f0; color: #475569; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
           </div>
-          <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="calc-btn" id="btn-neo-igcorr" style="flex: 1; margin: 0;">Calcular Corrigida Pós-Natal</button>
-            <button class="clear-btn" id="btn-limpar-igcorr" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
-          </div>
-          <div id="res-neo-igcorr" class="result-box" style="display: none; margin-top: 15px; line-height: 1.5; padding: 15px;"></div>
-        </div>
-      </div>
+	</div>
+</div>
 
       <div class="sub-tab-content" id="neo-pesoig" style="display: none;">
         <div class="card">
