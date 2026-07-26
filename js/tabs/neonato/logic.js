@@ -7,8 +7,6 @@ import {
   classifyPIGAIGGIG
 } from '../../data/intergrowth.js';
 
-// --- FUNÇÕES MANTIDAS: IG, DPP E CRESCIMENTO ---
-
 export function calculateIGAndDPP({ mode, dumDate, usgDate, usgWeeks, usgDays, calcDate }) {
   const targetDate = parseDate(calcDate);
   if (!targetDate) return { error: 'Informe a data para cálculo.' };
@@ -79,58 +77,63 @@ export function calculateIntergrowthClassification({ sex, weeks, days, weightGra
   return { key, domain: domainPick.domain, p10Kg: row.p10, p90Kg: row.p90, classification };
 }
 
-// --- FUNÇÃO NOVA: CÁLCULO DE RISCO DA PERDA DE PESO ---
-export function calcularRiscoPerdaPeso(diasDeVida, viaParto, tipoAlim, perdaPerc) {
+// =========================================================================
+// LÓGICA DE PERDA DE PESO (NEWT TOOL)
+// =========================================================================
+export function calcularRiscoPerdaPeso(horasDeVida, viaParto, tipoAlim, perdaPerc) {
     let limites = null;
     let alerta = "";
+    let padraoUsado = "";
 
-    // Faixa 1: Primeiros 4 dias (Base na Tabela para LME e Fórmula)
-    if (diasDeVida <= 4.0) {
+    // 1. Lógica rigorosa do NEWT:
+    // Se horas <= 96 E bebê não está em mista -> Usa curva "First 3-4 days"
+    // Se horas > 96 OU bebê está em mista -> Usa curva "First 30 days"
+
+    if (horasDeVida <= 96 && tipoAlim !== 'mista') {
+        padraoUsado = "Avaliação baseada na curva de Primeiros 3-4 Dias.";
         if (tipoAlim === 'lme') {
-            limites = viaParto === 'vaginal' 
-                ? { p50: 5.0, p75: 7.0, p90: 8.5, p95: 10.0 } 
+            limites = viaParto === 'vaginal'
+                ? { p50: 5.0, p75: 7.0, p90: 8.5, p95: 10.0 }
                 : { p50: 6.0, p75: 8.0, p90: 10.0, p95: 12.0 };
         } else if (tipoAlim === 'formula') {
-            limites = viaParto === 'vaginal' 
-                ? { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 } 
-                : { p50: 4.0, p75: 6.0, p90: 8.0, p95: 10.0 };
-        } else {
-            alerta = " (Alimentação mista nos 1ºs dias: curvas são menos precisas)";
-            // Usa curva de fórmula por segurança (limites menores)
-            limites = viaParto === 'vaginal' 
-                ? { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 } 
+            limites = viaParto === 'vaginal'
+                ? { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 }
                 : { p50: 4.0, p75: 6.0, p90: 8.0, p95: 10.0 };
         }
     } 
-    // Faixa 2: Até 30 dias (Foco Aleitamento Misto)
-    else if (diasDeVida > 4.0 && diasDeVida <= 30.0) {
-        if (tipoAlim === 'mista') {
-            limites = viaParto === 'vaginal' 
-                ? { p50: 2.0, p75: 4.0, p90: 6.0, p95: 8.0 } 
-                : { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 };
-        } else {
-            alerta = " (Fase de ganho: literatura baseada em Mista para esta janela)";
-            limites = viaParto === 'vaginal' 
-                ? { p50: 2.0, p75: 4.0, p90: 6.0, p95: 8.0 } 
-                : { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 };
+    else if (horasDeVida <= 720) { // Até 30 dias de vida
+        padraoUsado = "Avaliação baseada na curva de Primeiros 30 Dias.";
+        if (tipoAlim === 'mista' && horasDeVida <= 96) {
+            alerta = " <br><i style='font-size:11px; font-weight:normal;'>(Bebês em aleitamento misto são avaliados pela curva de 30 dias mesmo no curto prazo)</i>";
         }
-    } else {
-        return { texto: "Cálculo não padronizado para >30 dias.", cor: "#7f8c8d" };
+        // Curva genérica/mista para 30 dias
+        limites = viaParto === 'vaginal'
+            ? { p50: 2.0, p75: 4.0, p90: 6.0, p95: 8.0 }
+            : { p50: 3.0, p75: 5.0, p90: 7.0, p95: 9.0 };
+    } 
+    else {
+        return { texto: "Idade excede 30 dias. Fora do padrão NEWT.", cor: "#7f8c8d", padrao: "" };
     }
 
-    if (perdaPerc >= limites.p95) return { texto: `≥ Percentil 95 (Alerta Vermelho) ${alerta}`, cor: "#c0392b" };
-    if (perdaPerc >= limites.p90) return { texto: `Percentil 90-95 (Risco Alto) ${alerta}`, cor: "#e67e22" };
-    if (perdaPerc >= limites.p75) return { texto: `Percentil 75-90 (Limítrofe) ${alerta}`, cor: "#f39c12" };
-    if (perdaPerc >= limites.p50) return { texto: `Percentil 50-75 (Fisiológico) ${alerta}`, cor: "#27ae60" };
-    return { texto: `< Percentil 50 (Excelente) ${alerta}`, cor: "#27ae60" };
+    let textoRisco = "";
+    let corRisco = "";
+
+    if (perdaPerc >= limites.p95) { textoRisco = "≥ Percentil 95 (Alerta Vermelho)"; corRisco = "#c0392b"; }
+    else if (perdaPerc >= limites.p90) { textoRisco = "Percentil 90-95 (Risco Alto)"; corRisco = "#e67e22"; }
+    else if (perdaPerc >= limites.p75) { textoRisco = "Percentil 75-90 (Atenção)"; corRisco = "#f39c12"; }
+    else if (perdaPerc >= limites.p50) { textoRisco = "Percentil 50-75 (Fisiológico)"; corRisco = "#27ae60"; }
+    else { textoRisco = "< Percentil 50 (Excelente)"; corRisco = "#27ae60"; }
+
+    return { texto: `${textoRisco}${alerta}`, cor: corRisco, padrao: padraoUsado };
 }
 
-// --- FUNÇÃO NOVA: ICTERÍCIA (Baseada 100% no HTML enviado) ---
+// =========================================================================
+// LÓGICA ICTERÍCIA (SBP 2021)
+// =========================================================================
 export function calcularCondutaIctericiaNova(horasVida, bt, ig, temFatorRisco, sinaisEncefalopatia) {
     let limPhoto = 0;
     let limEst = 0;
 
-    // Idade >= 35 semanas (interpolação simplificada por faixas de horas)
     if(ig === 'ge_38' || ig === '35_37') {
         let basePhoto, baseEst;
         if(horasVida <= 24) { basePhoto = ig === 'ge_38' ? 10 : 8; baseEst = ig === 'ge_38' ? 18 : 15; }
@@ -142,9 +145,7 @@ export function calcularCondutaIctericiaNova(horasVida, bt, ig, temFatorRisco, s
 
         limPhoto = temFatorRisco ? basePhoto - 2 : basePhoto;
         limEst = baseEst;
-
     } else {
-        // Prematuros < 35 semanas
         switch(ig) {
             case '34': limPhoto = temFatorRisco ? 10 : 12; limEst = temFatorRisco ? 17 : 19; break;
             case '32_33': limPhoto = temFatorRisco ? 10 : 12; limEst = temFatorRisco ? 15 : 18; break;
@@ -154,12 +155,8 @@ export function calcularCondutaIctericiaNova(horasVida, bt, ig, temFatorRisco, s
         }
     }
 
-    let classificacao = "";
-    let conduta = "";
-    let suspensao = "";
-    let novaColeta = "";
+    let classificacao = "", conduta = "", suspensao = "", novaColeta = "";
 
-    // Avaliação da Conduta
     if(sinaisEncefalopatia || bt >= limEst || bt >= (limEst - 5)) {
         classificacao = `<span style="color:#c0392b; font-weight:bold;">Exsanguineotransfusão Indicada / Risco Extremo</span>`;
         conduta = "<b>Conduta:</b> Iniciar IMEDIATAMENTE fototerapia intensiva (alta irradiância na maior superfície corporal). Preparar material para Exsanguineotransfusão.";
@@ -178,7 +175,6 @@ export function calcularCondutaIctericiaNova(horasVida, bt, ig, temFatorRisco, s
         novaColeta = "<b>Nova Coleta:</b> Acompanhamento ambulatorial ou reavaliação se progressão da icterícia.";
     }
 
-    // Regras de Suspensão
     if (horasVida <= 120) { 
         if (ig === 'ge_38') suspensao = "<b>Suspensão da Foto:</b> Quando BT &le; 11.5 mg/dL.";
         else if (ig === '35_37') suspensao = "<b>Suspensão da Foto:</b> Quando BT &le; 9.5 mg/dL.";
@@ -190,9 +186,7 @@ export function calcularCondutaIctericiaNova(horasVida, bt, ig, temFatorRisco, s
     
     if(bt >= limPhoto) {
         suspensao += "<br><i style='font-size:11px; color:#7f8c8d;'>Nota: Após suspensão em RN &ge;35 sem com fatores de risco, manter observação por 12h antes da alta para avaliar rebote.</i>";
-    } else {
-        suspensao = ""; 
-    }
+    } else { suspensao = ""; }
 
     return { classificacao, conduta, novaColeta, suspensao };
 }
