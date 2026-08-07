@@ -471,11 +471,12 @@ function calcularCrescimento() {
     return "P" + roundP;
   };
 
-  const fmtVel = (val, tipo, refEsperada) => {
-    if (val === null || isNaN(val)) return "Requer 2 medidas";
+  // Nova formatação de velocidade
+  const fmtVelNovo = (val, tipo, refEsperada) => {
+    if (val === null || isNaN(val)) return "Sem vel. calculada";
     let suf = tipo === 'pc' ? ' cm/mês' : (tipo === 'peso' ? ' g/dia' : ' cm/ano');
     let stringVel = (val >= 0 ? "+" : "") + val.toFixed(tipo === 'peso' ? 0 : 1) + suf; 
-    if (refEsperada !== "S/ Ref." && refEsperada !== "") stringVel += ` <em style="color:#7f8c8d">(Ref: ${refEsperada})</em>`;
+    if (refEsperada !== "S/ Ref." && refEsperada !== "") stringVel += ` (Ref: ${refEsperada})`;
     return stringVel;
   };
 
@@ -517,26 +518,44 @@ function calcularCrescimento() {
       html += `</div>`;
   }
 
-  html += `<strong>Bloco 1 - Velocidades</strong><br>`;
-  html += `- PC: ${pc2 ? pc2.toFixed(1) + ' cm' : '--'} (${fmtVel(velPC, 'pc', refPC)})<br>`;
-  html += `- Peso: ${peso2Raw ? txtPeso2 : '--'} (${fmtVel(velPeso, 'peso', refPeso)})<br>`;
-  html += `- Estatura: ${est2 ? est2.toFixed(1) + ' cm' : '--'} (${fmtVel(velEst, 'estatura', refEst)})<br><br>`;
-
-  html += `<strong>Bloco 2 - Estado Nutricional (Classificação OMS)</strong><br>`;
-  
-  if (idadeTotalMeses !== null && idadeTotalMeses <= 24) {
-    html += `- PC: ${fmtPerc(zPC)} <span style="color:#666;">(${classificarPC(zPC)})</span><br>`;
-  } else {
-    html += `- PC: <span style="color:#666;">(Aplicável até aos 2 anos)</span><br>`;
-  }
+  // === NOVO LAYOUT UNIFICADO DE RESULTADOS ===
+  html += `<strong style="font-size: 1.1rem; color: var(--primary);">Avaliação do Crescimento e Estado Nutricional</strong><br><br>`;
   
   let idadeAnalisePadrao = idadeDiasPesoPC !== null ? Math.floor(idadeDiasPesoPC / 30.4375) : idadeTotalMeses;
 
-  html += `- Peso: ${fmtPerc(zPeso)} <span style="color:#666;">(${classificarPeso(zPeso, idadeAnalisePadrao)})</span><br>`;
-  html += `- Estatura: ${fmtPerc(zEst)} <span style="color:#666;">(${classificarEstatura(zEst)})</span><br>`;
-  html += `- IMC (${imcAtual > 0 ? imcAtual.toFixed(1) : '--'} kg/m²): Z-Score ${fmtZ(zIMC, true)} <span style="color:var(--primary); font-weight:bold;">[${classificarIMC(zIMC, idadeAnalisePadrao)}]</span><br><br>`;
+  // 1. PC
+  if (pc2 > 0) {
+    let percPC = (idadeTotalMeses !== null && idadeTotalMeses <= 24) ? `[${fmtPerc(zPC)} - ${classificarPC(zPC)}]` : `[Aplicável até aos 2 anos]`;
+    html += `- PC: ${pc2.toFixed(1)} cm <span style="font-weight: 500; color: #2c3e50;">${percPC}</span> - Velocidade: ${fmtVelNovo(velPC, 'pc', refPC)}<br>`;
+  } else {
+    html += `- PC: --<br>`;
+  }
 
-  html += `<strong>Bloco 3 - Alvo Parental e Desenvolvimento Ósseo</strong><br>`;
+  // 2. Peso
+  if (peso2Raw > 0) {
+    let classPeso = classificarPeso(zPeso, idadeAnalisePadrao);
+    let percPesoInfo = classPeso ? `[${fmtPerc(zPeso)} - ${classPeso}]` : `[${fmtPerc(zPeso)}]`;
+    html += `- Peso: ${txtPeso2} <span style="font-weight: 500; color: #2c3e50;">${percPesoInfo}</span> - Velocidade: ${fmtVelNovo(velPeso, 'peso', refPeso)}<br>`;
+  } else {
+    html += `- Peso: --<br>`;
+  }
+
+  // 3. Estatura
+  if (est2 > 0) {
+    html += `- Estatura: ${est2.toFixed(1)} cm <span style="font-weight: 500; color: #2c3e50;">[${fmtPerc(zEst)} - ${classificarEstatura(zEst)}]</span> - Velocidade: ${fmtVelNovo(velEst, 'estatura', refEst)}<br>`;
+  } else {
+    html += `- Estatura: --<br>`;
+  }
+
+  // 4. IMC
+  if (imcAtual > 0) {
+    html += `- IMC: ${imcAtual.toFixed(1)} kg/m² <span style="font-weight: bold; color: var(--primary);">[Z-score: ${fmtZ(zIMC, true)}] - ${classificarIMC(zIMC, idadeAnalisePadrao)}</span><br><br>`;
+  } else {
+    html += `- IMC: --<br><br>`;
+  }
+
+  // === BLOCO: ALVO PARENTAL E IDADE ÓSSEA ===
+  html += `<strong>Alvo Parental e Desenvolvimento Ósseo</strong><br>`;
   if (alvo > 0) {
     html += `- Alvo parental: ${alvo.toFixed(1)} cm<br>`;
     html += `- Faixa: ${(alvo - 5).toFixed(1)} a ${(alvo + 5).toFixed(1)} cm<br>`;
