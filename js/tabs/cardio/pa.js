@@ -62,7 +62,7 @@ export function initPACard() {
             <button class="clear-btn" id="btn-limpar-pa" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
         </div>
 
-         <div id="res-pa" class="result-box" style="margin-top:15px; white-space:pre-wrap; line-height: 1.2; display: none;"></div>
+        <div id="res-pa" class="result-box" style="display: none; margin-top: 15px;"></div>
     </div>
     `;
 
@@ -235,28 +235,63 @@ function classificarPASBP2021(pas, pad, ref, idadeAnos) {
     }
 }
 
-// === GERAÇÃO DA CONDUTA DBHA 2025 ===
+// === GERAÇÃO DA CONDUTA DBHA 2025 (Com Doses e Exames Específicos) ===
 function obterRecomendacoesDBHA2025(classificacao) {
     let conduta = "";
     let exames = "";
     let tratamento = "";
 
     if (classificacao === 'Normal') {
-        conduta = "Aferir a PA anualmente a partir dos 3 anos de idade[cite: 2561].";
-        exames = "Sem indicação laboratorial de rotina para rastreio primário em indivíduos de baixo risco.";
-        tratamento = "Orientação e estímulo à manutenção de hábitos de vida saudáveis.";
+        conduta = "Aferir a PA anualmente a partir dos 3 anos de idade (ou em todas as consultas pediátricas).";
+        exames = "Sem indicação de exames laboratoriais ou de imagem de rotina para rastreio primário em indivíduos de baixo risco.";
+        tratamento = "Orientação e estímulo à manutenção de hábitos de vida saudáveis (alimentação adequada e atividade física).";
     } else if (classificacao === 'PA Elevada' || classificacao === 'Pré-hipertensão') {
-        conduta = "A MAPA está indicada se as medidas de consultório compatíveis com pré-hipertensão persistirem por pelo menos 1 ano[cite: 2561]. Acompanhar evolução ambulatorialmente.";
-        exames = "Pesquisar comorbidades se houver presença de sobrepeso ou obesidade.";
-        tratamento = "Recomenda-se a dieta DASH para crianças e adolescentes, medidas de controle do estresse, redução do peso corporal e prática de atividades físicas regulares (Medidas Não Medicamentosas - MNM)[cite: 2561].";
+        conduta = "Reavaliar a PA em 6 meses. A MAPA está indicada se as medidas de consultório compatíveis com pré-hipertensão persistirem por pelo menos 1 ano.";
+        exames = `
+            Pesquisar comorbidades se houver presença de sobrepeso ou obesidade:
+            <ul style="margin: 4px 0 0 20px; padding: 0;">
+                <li><strong>Laboratório:</strong> Glicemia de jejum, HbA1c, Colesterol Total e frações, Triglicerídeos, TGO e TGP.</li>
+                <li><strong>Imagem:</strong> Não indicado de rotina nesta fase, salvo suspeita clínica específica.</li>
+            </ul>`;
+        tratamento = "<strong>Medidas Não Medicamentosas (MNM):</strong> Dieta DASH para crianças, controle de sódio, controle do estresse, redução do peso corporal e prática de atividades físicas regulares.";
     } else if (classificacao === 'Hipertensão Estágio 1') {
-        conduta = "Confirmar o diagnóstico de HA com a MAPA caso os valores compatíveis com Estágio 1 se mantenham em três consultas ambulatoriais[cite: 2561]. Avaliar lesão em órgãos-alvo (LOA).";
-        exames = "A pesquisa de proteinúria é obrigatória. Recomenda-se a investigação de HAB e HA secundária nas crianças prematuras, e naquelas com DRC, DM, AOS e obesidade[cite: 2561]. <br><i style='color: #7f8c8d'>*A avaliação extensa para HA secundária é dispensável em pacientes ≥ 6 anos com sobrepeso ou obesidade e histórico familiar positivo sem achados de risco ao exame clínico[cite: 2556].</i>";
-        tratamento = "Iniciar MNM (dieta DASH, exercícios). Recomenda-se início de terapêutica medicamentosa (IECA, BRA, BCC de ação prolongada ou tiazídico) para HA sintomática, presença de LOA, HA secundária ou persistente/não responsiva à MNM (quando a PA se mantiver ≥ P95 em crianças ou ≥ 130/80 mmHg em adolescentes ≥ 13 anos)[cite: 2561]. Em casos de HA secundária a DRC, DM ou proteinúria, iniciar preferencialmente com IECA ou BRA[cite: 2561].";
+        conduta = "Confirmar o diagnóstico com MAPA (caso valores se mantenham em três consultas). Avaliar presença de lesão em órgãos-alvo (LOA).";
+        exames = `
+            Avaliação básica inicial <strong>obrigatória</strong> para pesquisar LOA e causas secundárias:
+            <ul style="margin: 4px 0 0 20px; padding: 0;">
+                <li><strong>Laboratório:</strong> Urina tipo 1 (EAS) obrigatório para excluir causas renais, Ureia, Creatinina, Eletrólitos (Na+, K+), Ácido Úrico, Perfil Lipídico e Glicemia de jejum.</li>
+                <li><strong>Imagem/Outros:</strong> Ultrassonografia de Rins e Vias Urinárias (afastar anormalidades estruturais) e Ecocardiograma (avaliar Hipertrofia Ventricular Esquerda).</li>
+            </ul>`;
+        tratamento = `
+            Iniciar com MNM por 6 meses. <strong>Terapia medicamentosa</strong> indicada se: HA sintomática, presença de LOA, HA secundária, DRC, DM ou falha das MNM.<br>
+            <strong>Doses Iniciais Recomendadas (Monoterapia de 1ª Linha):</strong>
+            <ul style="margin: 4px 0 0 20px; padding: 0;">
+                <li><strong>Enalapril (IECA):</strong> 0,08 a 0,6 mg/kg/dia (dividir em 1 a 2x/dia). <em>Dose Máx: 40 mg/dia.</em></li>
+                <li><strong>Losartana (BRA):</strong> 0,7 a 1,4 mg/kg/dia (1x/dia). <em>Dose Máx: 100 mg/dia.</em></li>
+                <li><strong>Anlodipino (BCC):</strong> 0,1 a 0,6 mg/kg/dia (1x/dia). <em>Dose Máx: 10 mg/dia.</em></li>
+                <li><strong>Hidroclorotiazida:</strong> 1 a 2 mg/kg/dia (1x/dia). <em>Dose Máx: 50 mg/dia.</em></li>
+            </ul>
+            <i style="color:#7f8c8d; font-size: 11px;">*Preferir IECA ou BRA como escolha inicial em caso de DRC, DM ou proteinúria.</i>
+        `;
     } else if (classificacao === 'Hipertensão Estágio 2') {
-        conduta = "Confirmação do diagnóstico, avaliação clínica imediata e pesquisa de lesões em órgãos-alvo (LOA).";
-        exames = "A pesquisa de proteinúria é obrigatória[cite: 2561]. Prosseguir com rastreio de etiologias de HA secundária (especialmente se o paciente não apresentar causa modificável aparente)[cite: 2561].";
-        tratamento = "Início imediato de terapêutica medicamentosa (IECA, BRA, BCC de ação prolongada ou diurético tiazídico) concomitante às medidas não medicamentosas (dieta DASH, etc)[cite: 2561]. Iniciar preferencialmente com IECA ou BRA em caso de HA secundária a DRC, DM e/ou proteinúria[cite: 2561].";
+        conduta = "Confirmação imediata do diagnóstico, avaliação clínica minuciosa, encaminhamento para especialista e pesquisa de LOA e causas secundárias.";
+        exames = `
+            Avaliação imediata e aprofundada:
+            <ul style="margin: 4px 0 0 20px; padding: 0;">
+                <li><strong>Laboratório:</strong> EAS, Ureia, Creatinina, Eletrólitos (Na+, K+), Ácido Úrico, Perfil Lipídico, Glicemia. Considerar avaliação hormonal direcionada (Ex: Renina, Aldosterona, TSH, T4L).</li>
+                <li><strong>Imagem/Outros:</strong> USG de Rins e Vias Urinárias <strong>com Doppler de Artérias Renais</strong>, Ecocardiograma e Fundoscopia ocular.</li>
+            </ul>`;
+        tratamento = `
+            <strong>Início IMEDIATO da terapia medicamentosa</strong> em conjunto com as MNM.<br>
+            <strong>Doses Iniciais Recomendadas (Monoterapia de 1ª Linha):</strong>
+            <ul style="margin: 4px 0 0 20px; padding: 0;">
+                <li><strong>Enalapril (IECA):</strong> 0,08 a 0,6 mg/kg/dia (dividir em 1 a 2x/dia). <em>Dose Máx: 40 mg/dia.</em></li>
+                <li><strong>Losartana (BRA):</strong> 0,7 a 1,4 mg/kg/dia (1x/dia). <em>Dose Máx: 100 mg/dia.</em></li>
+                <li><strong>Anlodipino (BCC):</strong> 0,1 a 0,6 mg/kg/dia (1x/dia). <em>Dose Máx: 10 mg/dia.</em></li>
+                <li><strong>Hidroclorotiazida:</strong> 1 a 2 mg/kg/dia (1x/dia). <em>Dose Máx: 50 mg/dia.</em></li>
+            </ul>
+            <i style="color:#7f8c8d; font-size: 11px;">*Preferir IECA ou BRA em DRC, DM ou proteinúria. ATENÇÃO: Contraindicados se suspeita de Estenose de Artéria Renal Bilateral ou gravidez.</i>
+        `;
     }
 
     if (!conduta) return "";
@@ -267,11 +302,11 @@ function obterRecomendacoesDBHA2025(classificacao) {
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.93 11.532a.5.5 0 0 1-.86 0L4.5 7.5a.5.5 0 0 1 .5-.866h2V3a.5.5 0 0 1 1 0v3.634h2a.5.5 0 0 1 .5.866l-3.57 3.998z"/></svg>
                 DBHA 2025: Conduta, Exames e Tratamento (Pediatria)
             </h4>
-            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #34495e; line-height: 1.6;">
-                <li style="margin-bottom: 6px;"><strong>Conduta:</strong> ${conduta}</li>
-                <li style="margin-bottom: 6px;"><strong>Exames:</strong> ${exames}</li>
-                <li><strong>Tratamento:</strong> ${tratamento}</li>
-            </ul>
+            <div style="font-size: 13px; color: #34495e; line-height: 1.6;">
+                <p style="margin: 0 0 8px 0;"><strong>Conduta:</strong> ${conduta}</p>
+                <p style="margin: 0 0 8px 0;"><strong>Exames:</strong> ${exames}</p>
+                <p style="margin: 0;"><strong>Tratamento:</strong> ${tratamento}</p>
+            </div>
         </div>
     `;
 }
