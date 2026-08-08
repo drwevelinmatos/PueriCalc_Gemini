@@ -14,55 +14,55 @@ export function initPACard() {
 
     slot.innerHTML = `
     <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom: 10px;">
             <h2>Classificação de Pressão Arterial (SBP / DBHA 2025)</h2>
         </div>
         
-        <div class="grid-2" style="margin-bottom: 15px;">
+        <div class="grid-2" style="margin-bottom: 10px;">
             <div>
                 <label>Faixa Etária</label>
-                <select id="cardio-faixa" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                <select id="cardio-faixa" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">
                     <option value="maior">Criança/Adolescente (≥ 1 ano)</option>
                     <option value="menor">Lactente (< 1 ano)</option>
                 </select>
             </div>
             <div>
                 <label id="lbl-idade">Idade (anos)</label>
-                <input type="number" id="cardio-idade" min="0" max="18" step="0.5" placeholder="Ex: 5.5">
+                <input type="number" id="cardio-idade" min="0" max="18" step="0.5" placeholder="Ex: 5.5" style="padding: 6px;">
             </div>
         </div>
 
-        <div class="grid-2" style="margin-bottom: 15px;" id="box-estatura">
+        <div class="grid-2" style="margin-bottom: 10px;" id="box-estatura">
             <div>
                 <label>Sexo</label>
-                <select id="cardio-sexo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                <select id="cardio-sexo" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">
                     <option value="M">Masculino</option>
                     <option value="F">Feminino</option>
                 </select>
             </div>
             <div>
                 <label>Estatura (cm)</label>
-                <input type="number" id="cardio-estatura" step="0.1" placeholder="Ex: 110.5">
+                <input type="number" id="cardio-estatura" step="0.1" placeholder="Ex: 110.5" style="padding: 6px;">
             </div>
         </div>
 
-        <div class="grid-2" style="margin-bottom: 15px;">
+        <div class="grid-2" style="margin-bottom: 12px;">
             <div>
                 <label>PAS Medida (mmHg)</label>
-                <input type="number" id="cardio-pas" placeholder="Ex: 115">
+                <input type="number" id="cardio-pas" placeholder="Ex: 115" style="padding: 6px;">
             </div>
             <div>
                 <label>PAD Medida (mmHg)</label>
-                <input type="number" id="cardio-pad" placeholder="Ex: 75">
+                <input type="number" id="cardio-pad" placeholder="Ex: 75" style="padding: 6px;">
             </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button class="calc-btn" id="btn-calc-pa" style="flex: 1; margin: 0;">Calcular Percentil e PA</button>
-            <button class="clear-btn" id="btn-limpar-pa" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
+            <button class="calc-btn" id="btn-calc-pa" style="flex: 1; margin: 0; padding: 8px;">Calcular Percentil e PA</button>
+            <button class="clear-btn" id="btn-limpar-pa" style="background: #e2e8f0; color: #475569; padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
         </div>
 
-        <div id="res-pa" class="result-box" style="display: none; margin-top: 15px;"></div>
+        <div id="res-pa" class="result-box" style="display: none; margin-top: 15px; padding: 12px;"></div>
     </div>
     `;
 
@@ -112,47 +112,30 @@ function calcularPABebe(meses, pas, pad, sexo) {
     const dbpData = dataSexo.dbp;
 
     const ref = {
-        pas50: sbpData.p50[m],
-        pas90: sbpData.p90[m],
-        pas95: sbpData.p95[m],
-        pas99: sbpData.p99[m],
-        pad50: dbpData.p50[m],
-        pad90: dbpData.p90[m],
-        pad95: dbpData.p95[m],
-        pad99: dbpData.p99[m]
+        pas50: sbpData.p50[m], pas90: sbpData.p90[m], pas95: sbpData.p95[m], pas99: sbpData.p99[m],
+        pad50: dbpData.p50[m], pad90: dbpData.p90[m], pad95: dbpData.p95[m], pad99: dbpData.p99[m]
     };
 
     let classif = "Normal";
     let color = "#27ae60";
 
-    if (pas >= ref.pas99 || pad >= ref.pad99) {
-        classif = "Significativamente Alta (≥ P99)";
-        color = "#c0392b";
-    } else if (pas >= ref.pas95 || pad >= ref.pad95) {
-        classif = "Alta (≥ P95 a < P99)";
-        color = "#e67e22";
-    } else if (pas >= ref.pas90 || pad >= ref.pad90) {
-        classif = "PA Elevada (≥ P90 a < P95)";
-        color = "#f1c40f";
-    }
+    if (pas >= ref.pas99 || pad >= ref.pad99) { classif = "Significativamente Alta (≥ P99)"; color = "#c0392b"; } 
+    else if (pas >= ref.pas95 || pad >= ref.pad95) { classif = "Alta (≥ P95 a < P99)"; color = "#e67e22"; } 
+    else if (pas >= ref.pas90 || pad >= ref.pad90) { classif = "PA Elevada (≥ P90 a < P95)"; color = "#f1c40f"; }
 
     let adaptacaoParaDBHA = classif === 'Normal' ? 'Normal' : (classif.includes('Elevada') ? 'PA Elevada' : (classif.includes('Alta (≥ P95') ? 'Hipertensão Estágio 1' : 'Hipertensão Estágio 2'));
     let recomendacaoDBHA = obterRecomendacoesDBHA2025(adaptacaoParaDBHA);
 
     const html = `
-        <div style="font-size: 15px; margin-bottom: 8px;">
-            • <strong>PAS:</strong> ${pas} mmHg | <strong>PAD:</strong> ${pad} mmHg <br>
-            • <strong>PA Esperada (P50):</strong> PAS ${ref.pas50} / PAD ${ref.pad50} mmHg<br>
-            • <strong>Limite Elevada (P90):</strong> PAS ${ref.pas90} / PAD ${ref.pad90} mmHg<br>
-            • <strong>Limite Alta (P95):</strong> PAS ${ref.pas95} / PAD ${ref.pad95} mmHg<br>
-            • <strong>Limite Muito Alta (P99):</strong> PAS ${ref.pas99} / PAD ${ref.pad99} mmHg
+        <div style="font-size: 13px; line-height: 1.4; color: #34495e;">
+            • <strong>Valores:</strong> PAS ${pas} | PAD ${pad} mmHg <br>
+            • <strong>Limites:</strong> P50: ${ref.pas50}/${ref.pad50} | P90: ${ref.pas90}/${ref.pad90} | P95: ${ref.pas95}/${ref.pad95} | P99: ${ref.pas99}/${ref.pad99}
         </div>
-        <div style="font-size: 16px; margin-top: 15px; padding: 10px; background: #f8fafc; border-left: 4px solid ${color}; border-radius: 4px;">
-            <strong>🚨 Classificação (Task Force):</strong> <span style="color: ${color}; font-weight: 800;">${classif}</span>
+        <div style="font-size: 14px; margin-top: 8px; padding: 6px 10px; background: #f8fafc; border-left: 4px solid ${color}; border-radius: 4px;">
+            <strong>🚨 Classificação:</strong> <span style="color: ${color}; font-weight: 800;">${classif}</span>
         </div>
         ${recomendacaoDBHA}
     `;
-
     renderHTML('res-pa', html);
 }
 
@@ -162,20 +145,16 @@ function calcularPACrianca(idadeAnos, est, pas, pad, sexo) {
     if (ageKey > 17) ageKey = 17;
 
     const dataIdade = SBP_DATA[sexo][ageKey];
-    if (!dataIdade) return alert("Erro ao acessar dados de PA para essa idade.");
+    if (!dataIdade) return alert("Erro ao acessar dados de PA.");
 
     const pctEstBruto = calcularPercentilEstatura(idadeAnos, est, sexo);
     let pctEstTabela = 50;
-
     const percentisTabela = [5, 10, 25, 50, 75, 90, 95];
     let menorDiff = Infinity;
 
     for (let p of percentisTabela) {
         let diff = Math.abs(pctEstBruto - p);
-        if (diff < menorDiff) {
-            menorDiff = diff;
-            pctEstTabela = p;
-        }
+        if (diff < menorDiff) { menorDiff = diff; pctEstTabela = p; }
     }
 
     const ref = dataIdade[pctEstTabela];
@@ -184,31 +163,20 @@ function calcularPACrianca(idadeAnos, est, pas, pad, sexo) {
 
     const { class: classificacao, color } = classificarPASBP2021(pas, pad, ref, idadeAnos);
 
-    let avisoAdolescente = '';
-    if (idadeAnos >= 13) {
-        avisoAdolescente = '<br><small style="color: #7f8c8d; font-weight: normal; margin-top:4px; display:inline-block;">*Para adolescentes ≥ 13 anos, aplicam-se os limites absolutos padrão (ex: ≥ 120/80 mmHg).</small>';
-    }
-
-    let p50Str = `PAS ${ref.pas50} / PAD ${ref.pad50}`;
-
-    // Extração das recomendações baseadas no DBHA 2025
+    let avisoAdolescente = idadeAnos >= 13 ? ' <span style="font-size:11px; color:#7f8c8d; font-weight:normal;">(*Critério adulto aplicado ≥ 13a)</span>' : '';
     let recomendacaoDBHA = obterRecomendacoesDBHA2025(classificacao);
 
     const html = `
-        <div style="font-size: 15px; margin-bottom: 8px;">
-            • <strong>PAS:</strong> ${pas} mmHg | <strong>PAD:</strong> ${pad} mmHg <br>
-            • <strong>Estatura do Paciente:</strong> Percentil ${pctEstBruto.toFixed(1)} (Ajustado para P${pctEstTabela} na tabela)<br>
-            • <strong>PA Esperada (P50):</strong> ${p50Str} mmHg<br>
-            • <strong>Limite Elevada (P90):</strong> PAS ${ref.pas90} / PAD ${ref.pad90} mmHg<br>
-            • <strong>Limite Estágio 1 (P95):</strong> PAS ${ref.pas95} / PAD ${ref.pad95} mmHg<br>
-            • <strong>Limite Estágio 2 (P95+12):</strong> PAS ${pas95Mais12} / PAD ${pad95Mais12} mmHg
+        <div style="font-size: 13px; line-height: 1.4; color: #34495e;">
+            • <strong>Valores:</strong> PAS ${pas} | PAD ${pad} mmHg <br>
+            • <strong>Estatura:</strong> P${pctEstBruto.toFixed(1)} (Ajustado P${pctEstTabela})<br>
+            • <strong>Limites:</strong> P50: ${ref.pas50}/${ref.pad50} | P90: ${ref.pas90}/${ref.pad90} | P95: ${ref.pas95}/${ref.pad95} | P95+12: ${pas95Mais12}/${pad95Mais12}
         </div>
-        <div style="font-size: 16px; margin-top: 15px; padding: 10px; background: #f8fafc; border-left: 4px solid ${color}; border-radius: 4px;">
-            <strong>🚨 Classificação (AAP/DBHA):</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>${avisoAdolescente}
+        <div style="font-size: 14px; margin-top: 8px; padding: 6px 10px; background: #f8fafc; border-left: 4px solid ${color}; border-radius: 4px;">
+            <strong>🚨 Classificação:</strong> <span style="color: ${color}; font-weight: 800;">${classificacao}</span>${avisoAdolescente}
         </div>
         ${recomendacaoDBHA}
     `;
-
     renderHTML('res-pa', html);
 }
 
@@ -221,90 +189,71 @@ function classificarPASBP2021(pas, pad, ref, idadeAnos) {
     } else {
         const pasEstagio2 = ref.pas95 + 12;
         const padEstagio2 = ref.pad95 + 12;
-
-        if (pas >= pasEstagio2 || pad >= padEstagio2 || pas >= 140 || pad >= 90) {
-            return { class: 'Hipertensão Estágio 2', color: '#c0392b' };
-        }
-        if ((pas >= ref.pas95 && pas < pasEstagio2) || (pad >= ref.pad95 && pad < padEstagio2) || (pas >= 130 && pas <= 139) || (pad >= 80 && pad <= 89)) {
-            return { class: 'Hipertensão Estágio 1', color: '#e67e22' };
-        }
-        if ((pas >= ref.pas90 && pas < ref.pas95) || (pad >= ref.pad90 && pad < ref.pad95) || (pas >= 120 && pas < ref.pas95 && pad < 80)) { 
-            return { class: 'PA Elevada', color: '#f1c40f' };
-        }
+        if (pas >= pasEstagio2 || pad >= padEstagio2 || pas >= 140 || pad >= 90) return { class: 'Hipertensão Estágio 2', color: '#c0392b' };
+        if ((pas >= ref.pas95 && pas < pasEstagio2) || (pad >= ref.pad95 && pad < padEstagio2) || (pas >= 130 && pas <= 139) || (pad >= 80 && pad <= 89)) return { class: 'Hipertensão Estágio 1', color: '#e67e22' };
+        if ((pas >= ref.pas90 && pas < ref.pas95) || (pad >= ref.pad90 && pad < ref.pad95) || (pas >= 120 && pas < ref.pas95 && pad < 80)) return { class: 'PA Elevada', color: '#f1c40f' };
         return { class: 'Normal', color: '#27ae60' };
     }
 }
 
-// === GERAÇÃO DA CONDUTA DBHA 2025 (Com Doses e Exames Específicos) ===
+// === GERAÇÃO DA CONDUTA DBHA 2025 ===
 function obterRecomendacoesDBHA2025(classificacao) {
-    let conduta = "";
-    let exames = "";
-    let tratamento = "";
+    let conduta = "", exames = "", tratamento = "";
 
     if (classificacao === 'Normal') {
-        conduta = "Aferir a PA anualmente a partir dos 3 anos de idade (ou em todas as consultas pediátricas).";
-        exames = "Sem indicação de exames laboratoriais ou de imagem de rotina para rastreio primário em indivíduos de baixo risco.";
-        tratamento = "Orientação e estímulo à manutenção de hábitos de vida saudáveis (alimentação adequada e atividade física).";
+        conduta = "Aferir PA anualmente a partir dos 3 anos.";
+        exames = "Sem indicação laboratorial de rotina.";
+        tratamento = "Estímulo a hábitos saudáveis.";
     } else if (classificacao === 'PA Elevada' || classificacao === 'Pré-hipertensão') {
-        conduta = "Reavaliar a PA em 6 meses. A MAPA está indicada se as medidas de consultório compatíveis com pré-hipertensão persistirem por pelo menos 1 ano.";
-        exames = `
-            Pesquisar comorbidades se houver presença de sobrepeso ou obesidade:
-            <ul style="margin: 4px 0 0 20px; padding: 0;">
-                <li><strong>Laboratório:</strong> Glicemia de jejum, HbA1c, Colesterol Total e frações, Triglicerídeos, TGO e TGP.</li>
-                <li><strong>Imagem:</strong> Não indicado de rotina nesta fase, salvo suspeita clínica específica.</li>
+        conduta = "Reavaliar em 6m. MAPA se persistir por 1 ano.";
+        exames = `Pesquisar se sobrepeso/obesidade:
+            <ul style="margin: 2px 0 0 15px; padding: 0;">
+                <li><strong>Lab:</strong> Glicemia jejum, HbA1c, Colesterol, Triglicerídeos, TGO e TGP.</li>
             </ul>`;
-        tratamento = "<strong>Medidas Não Medicamentosas (MNM):</strong> Dieta DASH para crianças, controle de sódio, controle do estresse, redução do peso corporal e prática de atividades físicas regulares.";
+        tratamento = "MNM: Dieta DASH, redução de sódio/peso e atividade física.";
     } else if (classificacao === 'Hipertensão Estágio 1') {
-        conduta = "Confirmar o diagnóstico com MAPA (caso valores se mantenham em três consultas). Avaliar presença de lesão em órgãos-alvo (LOA).";
+        conduta = "Confirmar com MAPA. Pesquisar lesão de órgão-alvo (LOA) e causas secundárias.";
         exames = `
-            Avaliação básica inicial <strong>obrigatória</strong> para pesquisar LOA e causas secundárias:
-            <ul style="margin: 4px 0 0 20px; padding: 0;">
-                <li><strong>Laboratório:</strong> Urina tipo 1 (EAS) obrigatório para excluir causas renais, Ureia, Creatinina, Eletrólitos (Na+, K+), Ácido Úrico, Perfil Lipídico e Glicemia de jejum.</li>
-                <li><strong>Imagem/Outros:</strong> Ultrassonografia de Rins e Vias Urinárias (afastar anormalidades estruturais) e Ecocardiograma (avaliar Hipertrofia Ventricular Esquerda).</li>
+            <ul style="margin: 2px 0 0 15px; padding: 0;">
+                <li><strong>Lab:</strong> EAS, Ureia, Cr, Na+, K+, Ácido Úrico, Perfil Lipídico e Glicemia.</li>
+                <li><strong>Imagem:</strong> USG de Rins/Vias Urinárias e Ecocardiograma (HVE).</li>
             </ul>`;
         tratamento = `
-            Iniciar com MNM por 6 meses. <strong>Terapia medicamentosa</strong> indicada se: HA sintomática, presença de LOA, HA secundária, DRC, DM ou falha das MNM.<br>
-            <strong>Doses Iniciais Recomendadas (Monoterapia de 1ª Linha):</strong>
-            <ul style="margin: 4px 0 0 20px; padding: 0;">
-                <li><strong>Enalapril (IECA):</strong> 0,08 a 0,6 mg/kg/dia (dividir em 1 a 2x/dia). <em>Dose Máx: 40 mg/dia.</em></li>
-                <li><strong>Losartana (BRA):</strong> 0,7 a 1,4 mg/kg/dia (1x/dia). <em>Dose Máx: 100 mg/dia.</em></li>
-                <li><strong>Anlodipino (BCC):</strong> 0,1 a 0,6 mg/kg/dia (1x/dia). <em>Dose Máx: 10 mg/dia.</em></li>
-                <li><strong>Hidroclorotiazida:</strong> 1 a 2 mg/kg/dia (1x/dia). <em>Dose Máx: 50 mg/dia.</em></li>
-            </ul>
-            <i style="color:#7f8c8d; font-size: 11px;">*Preferir IECA ou BRA como escolha inicial em caso de DRC, DM ou proteinúria.</i>
-        `;
+            Iniciar MNM. <strong>Medicação</strong> se sintomática, LOA, secundária ou refratária.<br>
+            <ul style="margin: 2px 0 0 15px; padding: 0;">
+                <li><strong>Enalapril:</strong> 0,08-0,6 mg/kg/dia <em>(Máx: 40mg/dia)</em></li>
+                <li><strong>Losartana:</strong> 0,7-1,4 mg/kg/dia 1x/dia <em>(Máx: 100mg/dia)</em></li>
+                <li><strong>Anlodipino:</strong> 0,1-0,6 mg/kg/dia 1x/dia <em>(Máx: 10mg/dia)</em></li>
+                <li><strong>HCTZ:</strong> 1-2 mg/kg/dia 1x/dia <em>(Máx: 50mg/dia)</em></li>
+            </ul>`;
     } else if (classificacao === 'Hipertensão Estágio 2') {
-        conduta = "Confirmação imediata do diagnóstico, avaliação clínica minuciosa, encaminhamento para especialista e pesquisa de LOA e causas secundárias.";
+        conduta = "Encaminhar especialista. Rastreio imediato de LOA e causas secundárias.";
         exames = `
-            Avaliação imediata e aprofundada:
-            <ul style="margin: 4px 0 0 20px; padding: 0;">
-                <li><strong>Laboratório:</strong> EAS, Ureia, Creatinina, Eletrólitos (Na+, K+), Ácido Úrico, Perfil Lipídico, Glicemia. Considerar avaliação hormonal direcionada (Ex: Renina, Aldosterona, TSH, T4L).</li>
-                <li><strong>Imagem/Outros:</strong> USG de Rins e Vias Urinárias <strong>com Doppler de Artérias Renais</strong>, Ecocardiograma e Fundoscopia ocular.</li>
+            <ul style="margin: 2px 0 0 15px; padding: 0;">
+                <li><strong>Lab:</strong> EAS, Ur, Cr, Na+, K+, Ác. Úrico, Perfil Lipídico, Glicemia. <em>(Considerar Renina, Aldosterona, TSH/T4L)</em>.</li>
+                <li><strong>Imagem:</strong> USG Vias Urinárias com Doppler de Art. Renais, Ecocardiograma e Fundoscopia.</li>
             </ul>`;
         tratamento = `
-            <strong>Início IMEDIATO da terapia medicamentosa</strong> em conjunto com as MNM.<br>
-            <strong>Doses Iniciais Recomendadas (Monoterapia de 1ª Linha):</strong>
-            <ul style="margin: 4px 0 0 20px; padding: 0;">
-                <li><strong>Enalapril (IECA):</strong> 0,08 a 0,6 mg/kg/dia (dividir em 1 a 2x/dia). <em>Dose Máx: 40 mg/dia.</em></li>
-                <li><strong>Losartana (BRA):</strong> 0,7 a 1,4 mg/kg/dia (1x/dia). <em>Dose Máx: 100 mg/dia.</em></li>
-                <li><strong>Anlodipino (BCC):</strong> 0,1 a 0,6 mg/kg/dia (1x/dia). <em>Dose Máx: 10 mg/dia.</em></li>
-                <li><strong>Hidroclorotiazida:</strong> 1 a 2 mg/kg/dia (1x/dia). <em>Dose Máx: 50 mg/dia.</em></li>
-            </ul>
-            <i style="color:#7f8c8d; font-size: 11px;">*Preferir IECA ou BRA em DRC, DM ou proteinúria. ATENÇÃO: Contraindicados se suspeita de Estenose de Artéria Renal Bilateral ou gravidez.</i>
-        `;
+            <strong>Início IMEDIATO de medicação</strong> + MNM.<br>
+            <ul style="margin: 2px 0 0 15px; padding: 0;">
+                <li><strong>Enalapril:</strong> 0,08-0,6 mg/kg/dia <em>(Máx: 40mg/dia)</em></li>
+                <li><strong>Losartana:</strong> 0,7-1,4 mg/kg/dia 1x/dia <em>(Máx: 100mg/dia)</em></li>
+                <li><strong>Anlodipino:</strong> 0,1-0,6 mg/kg/dia 1x/dia <em>(Máx: 10mg/dia)</em></li>
+                <li><strong>HCTZ:</strong> 1-2 mg/kg/dia 1x/dia <em>(Máx: 50mg/dia)</em></li>
+            </ul>`;
     }
 
     if (!conduta) return "";
 
     return `
-        <div style="margin-top: 15px; padding: 15px; background: #eef2f5; border-radius: 6px; border: 1px solid #d8e2ea;">
-            <h4 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.93 11.532a.5.5 0 0 1-.86 0L4.5 7.5a.5.5 0 0 1 .5-.866h2V3a.5.5 0 0 1 1 0v3.634h2a.5.5 0 0 1 .5.866l-3.57 3.998z"/></svg>
-                DBHA 2025: Conduta, Exames e Tratamento (Pediatria)
+        <div style="margin-top: 10px; padding: 10px; background: #eef2f5; border-radius: 6px; border: 1px solid #d8e2ea;">
+            <h4 style="margin: 0 0 6px 0; color: #2c3e50; font-size: 13px; display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.93 11.532a.5.5 0 0 1-.86 0L4.5 7.5a.5.5 0 0 1 .5-.866h2V3a.5.5 0 0 1 1 0v3.634h2a.5.5 0 0 1 .5.866l-3.57 3.998z"/></svg>
+                DBHA 2025: Conduta, Exames e Tratamento
             </h4>
-            <div style="font-size: 13px; color: #34495e; line-height: 1.6;">
-                <p style="margin: 0 0 8px 0;"><strong>Conduta:</strong> ${conduta}</p>
-                <p style="margin: 0 0 8px 0;"><strong>Exames:</strong> ${exames}</p>
+            <div style="font-size: 12px; color: #34495e; line-height: 1.4;">
+                <p style="margin: 0 0 4px 0;"><strong>Conduta:</strong> ${conduta}</p>
+                <p style="margin: 0 0 4px 0;"><strong>Exames:</strong> ${exames}</p>
                 <p style="margin: 0;"><strong>Tratamento:</strong> ${tratamento}</p>
             </div>
         </div>
@@ -325,20 +274,9 @@ function calcularPercentilEstatura(idadeAnos, est, sexo) {
     const meses = idadeAnos * 12;
     const ref = WHO_DATA[sexo].estatura['m' + Math.round(meses)] || WHO_DATA[sexo].estatura['d' + Math.round(meses * 30.4375)];
     if (!ref) return 50;
-
-    const L = ref.l;
-    const M = ref.m;
-    const S = ref.s;
-
-    let z = 0;
-    if (L === 0) {
-        z = Math.log(est / M) / S;
-    } else {
-        z = (Math.pow(est / M, L) - 1) / (L * S);
-    }
-
-    const p = zParaPercentil(z);
-    return Math.min(Math.max(p, 5), 95);
+    const { l: L, m: M, s: S } = ref;
+    let z = L === 0 ? Math.log(est / M) / S : (Math.pow(est / M, L) - 1) / (L * S);
+    return Math.min(Math.max(zParaPercentil(z), 5), 95);
 }
 
 function zParaPercentil(z) {
@@ -347,6 +285,5 @@ function zParaPercentil(z) {
     let t = 1.0 / (1.0 + 0.3275911 * x);
     let a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
     let erf = 1.0 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-    let percentil = 0.5 * (1.0 + sign * erf) * 100;
-    return percentil;
+    return 0.5 * (1.0 + sign * erf) * 100;
 }
