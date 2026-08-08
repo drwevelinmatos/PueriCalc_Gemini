@@ -62,7 +62,7 @@ export function initPACard() {
             <button class="clear-btn" id="btn-limpar-pa" style="background: #e2e8f0; color: #475569; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Limpar</button>
         </div>
 
-         <div id="res-pa" class="result-box" style="margin-top:15px; white-space:pre-wrap; line-height: 1.6; display: none;"></div>
+         <div id="res-pa" class="result-box" style="margin-top:15px; white-space:pre-wrap; line-height: 1.2; display: none;"></div>
     </div>
     `;
 
